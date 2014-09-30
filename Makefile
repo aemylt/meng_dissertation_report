@@ -3,7 +3,7 @@ TEXMFLOCAL="/home/crypto/texmf"
 SOURCES=$(wildcard *.tex)
 TARGETS=$(patsubst %.tex, %.pdf, ${SOURCES})
 
-all : ${TARGETS}
+all : spotless ${TARGETS}
 
 ${TARGETS} : %.pdf : %.tex $(wildcard %.bib)
 	@TEXMFLOCAL="${TEXMFLOCAL}" pdflatex ${*}
