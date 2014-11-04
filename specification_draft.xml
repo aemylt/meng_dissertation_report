@@ -68,7 +68,7 @@ or related work done to solve it.
 
   Another related problem is dictionary matching, which looks at matching one text to k patterns, which are not necessarily of equal length. Current results have been as follows:
 
-  -An O(m) space with constant time per character solution using the Aho–Corasick string matching algorithm[4]
+  -An O(m) space with constant time per character solution using the Aho–Corasick string matching algorithm.[4]
   -An O(k*logm) space with O(k) time per character solution using k instances of Breslauer and Galil's algorithm.
 
   The question this project aims to achieve is can we improve these bounds? Both in theory and in practice.
