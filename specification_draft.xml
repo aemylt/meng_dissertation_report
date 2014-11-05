@@ -62,21 +62,11 @@ or related work done to solve it.
 -->
 
   <description>
-  Intuitively it might seem that for matching a pattern of length m with a text, the minimum amount of space required is Omega(m). However, if we allow for the possibility of false positives - our algorithm finding matches where there aren't any - it is possible to improve this. This was first realised in Porat and Porat in 2009[1], who created an algorithm for exact matching with O(logm) time per character and O(logm) space, and improved in 2011 by Breslauer and Galil[2] to constant time per character. Both of these methods were achieved using Karp-Rabin fingerprints, and were implemented by myself over the summer as part of a Studentship with the Algorithms Team at Bristol.
+  A big push at the moment is for space-efficient computation. Intuitively when performing pattern matching, one might expect you to need to at least store a copy of the whole pattern. In reality, this was proven wrong in 2009, when Benny Porat and Ely Porat proved that you could use hash functions to do this in less space, with a small probability of error. This was implemented by myself over this summer as a project for the Algorithms Team.
 
-  Since then, a question in the theory community has been what other problems can be improved using fingerprinting. 2013 saw an O(Sigma*logm) space and constant time per character for parameterised matching by Jalsenius, Porat and Sach[3].
+  Since then, a big question has been to figure out what related problems can also be solved with less space than it takes to store the pattern. In 2013, Markus Jalsenius, Benny Porat and Benjamin Sach showed how to solve a more sophisticated problem known as parameterised matching in less space.
 
-  Another related problem is dictionary matching, which looks at matching one text to k patterns, which are not necessarily of equal length. Current results have been as follows:
-
-  -An O(m) space with constant time per character solution using the Aho–Corasick string matching algorithm.[4]
-  -An O(k*logm) space with O(k) time per character solution using k instances of Breslauer and Galil's algorithm.
-
-  The question this project aims to achieve is can we improve these bounds? Both in theory and in practice.
-
-  [1] Benny Porat and Ely Porat - Exact And Approximate Pattern Matching In The Streaming Model
-  [2] Dany Breslauer and Zvi Galil - Real-Time Streaming String-Matching
-  [3] Markus Jalsenius, Benny Porat, and Benjamin Sach - Parameterized matching in the streaming model
-  [4] Alfred V. Aho and Margaret J. Corasick - Efficient string matching: An aid to bibliographic search
+  Dictionary matching is another related problem, where we are trying to match multiple patterns over a single text. Here, this issue of saving space is even more pressing, but there is currently no space-efficient published solution.
  </description>
 
 <!-- 
@@ -87,10 +77,20 @@ b) concrete, step-by-step aims that will move you towards this.
 -->
 
   <objectives>
-  -Improve the best performance for dictionary matching with a new algorithm.
+  Porat and Porat in 2009[1] showed that you could do pattern matching in logarithmic time per character and logarithmic space. This was improved in 2011 by Breslauer and Galil[2] to constant time per character with the same amount of space.
+
+  The best published algorithm for dictionary matching so far is the Aho-Corasick String Matching Algorithm[3], which requires a linear amount of space and runs in constant time per character.
+
+  The objectives for this project are to:
+
+  -Improve the space complexity by utilising hashing in the same style as Porat and Porat's algorithm.
   -Implement this algorithm in practice.
-  -Analyse and compare to current algorithms.
-  -Improve the practical performance of the algorithm by optimisation.
+  -Analyse and compare to current the Aho-Corasick algorithm.
+  -Optimise the algorithm for better time and space efficiency in practice.
+
+  [1] Benny Porat and Ely Porat - Exact And Approximate Pattern Matching In The Streaming Model
+  [2] Dany Breslauer and Zvi Galil - Real-Time Streaming String-Matching
+  [3] Alfred V. Aho and Margaret J. Corasick - Efficient string matching: An aid to bibliographic search
  </objectives>
 
 <!-- 
@@ -100,12 +100,25 @@ risk/contingency planning.
 -->
 
   <plan>
-  -Gather data for testing performance.
-  -Find implementations of current algorithms. Contingency: Implement algorithms myself.
-  -Devise a new algorithm for dictionary matching.
-  -Implement the algorithm.
-  -Test how the performance of the algorithm compares to current implementations.
-  -Improve and optimise the time or space complexity.
+  Week 1:
+    -Gather data for testing performance.
+    -Investigate current implementations of the Aho-Corasick algorithm.
+  Weeks 1-2:
+    -Implement the Aho-Corasick algorithm.
+  Weeks 3-5:
+    -Implement a new algorithm for dictionary matching.
+  Week 6:
+    Buffer Week
+  Week 7:
+    -Start performance analysis of the new algorithm and current implementations.
+    -Design poster for project fair.
+  Week 8:
+    -Further performance analysis.
+  Weeks 8-9:
+    -Investigate optimisations.
+  Weeks 9-11:
+    -Wrap-up.
+    -Write the report and research proposal.
  </plan>
 
 </project>
