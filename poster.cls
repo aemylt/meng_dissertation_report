@@ -3,6 +3,7 @@
 
 \RequirePackage{pgfkeys}
 \RequirePackage{pgfopts}
+\RequirePackage[utf8]{inputenc}
 
 \pgfkeys{/poster/.cd,
   % options
@@ -15,7 +16,7 @@
         year/.store in=\poster@year,       % string
   % defaults
       author = {},
-  supervisor = {},
+  supervisor = {Dr. Raphaël Clifford and Dr. Benjamin Sach},
       degree = {MEng},
        title = {},
     subtitle = {},
