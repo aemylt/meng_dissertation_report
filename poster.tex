@@ -33,13 +33,15 @@
                 % the dissertation subtitle (which can    be blank)
                   subtitle={},
                 % the dissertation     type
-                      type={research},
+                      type={Research},
                 % the year of submission
                       year={2015} ]{poster}
 
 \newcommand{\nline}{
   \\\vspace{\baselineskip}
 }
+
+\usepackage{courier}
 
 \begin{document}
 
@@ -52,9 +54,9 @@
 \begin{columns}[t]
   \begin{column}{0.900\linewidth}
   \begin{block}{\Large Introduction}
-  'Big data' is a common term thrown about nowadays. As computers have become more and more powerful, the amount of information we want to process has also grown in size. As a result, time and space efficiency is a significant problem.\nline
+  'Big data' is a common term thrown about nowadays. As computers have become more and more powerful, the amount of information we want to process has also grown in size, and we now need to be smarter when thinking about how we store and process this data.\nline
 
-  A common method for reducing space is the streaming model, where parts of the input come in at a time instead of the whole input. This is a good choice for pattern matching, where the text can come in one character at a time.\nline
+  A common method for reducing space is the streaming model. In this model, we never see the whole input, but instead see it in parts. This is a good choice for pattern matching: the text can be processed one character at a time and thus the space complexity becomes independent of the text.\nline
 
   This project specifically looks at the area of dictionary matching, where you are trying to match one text to many patterns. The Algorithms team have devised a method of solving this problem in $O(\log m)$ time per character and $O(k\log m)$ space, based on Porat and Porat's solution to exact pattern matching in $O(\log m)$ time per character and $O(\log m)$ space. My work is on implementing this algorithm and compare it to other solutions for dictionary matching to see how it performs in practice.
   \end{block}
@@ -68,7 +70,7 @@
   \begin{block}{\Large Dictionary Matching Formally}
   We have a text $T$ of $n$ characters and a set $P$ of $k$ patterns $p_1,...,p_k$ with lengths $m_1,...,m_k$. For each index of the text, we output an occurance at $j$ if $\exists i \in \{1,...,k\}$ such that $t_{j - m_i},...,t_j = p_i$.\nline
 
-  The typical solution to dictionary matching in the streaming model is the Aho-Corasick algorithm, which solves the problem based on a generalisation of Knuth-Morris-Pratt. It takes $O(1)$ time per character and $O(\sum_{i =1}^km_i)$ space.
+  The typical solution to dictionary matching in the streaming model is the Aho-Corasick algorithm, which solves the problem based on a generalisation of Knuth-Morris-Pratt. It takes $O(1)$ time per character and $O(\sum_{i =1}^km_i)$ space, and was previously used in \texttt{fgrep}.
   \end{block}
   \end{column}
 
@@ -93,7 +95,7 @@
   \item This new algorithm has been implemented for:
     \begin{itemize}
     \item Patterns whose lengths are a power of 2
-    \item and patterns which are shorter than $k$
+    \item and patterns which are shorter than $k$.
     \end{itemize}
   \item Current work is focusing on long patterns which are repetitive.
   \end{itemize}
