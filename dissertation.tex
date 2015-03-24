@@ -194,7 +194,7 @@ dissertation''); an example is as follows:
 \begin{quote}
 \noindent
 \begin{itemize}
-\item I used the GNU Multi-Precision BigNum Library (GMP) to support my implementation of Karp-Rabin fingerprints.
+\item I used the GNU Multiple Precision Arithmetic Library (GMP) to support my implementation of Karp-Rabin fingerprints.
 \item I used the C Minimum Perfect Hashing Library (CMPH) for static perfect hashing.
 \item I used an open-source implementation of Red-Black Trees from \url{http://en.literateprograms.org/Red-black_tree_(C)?oldid=19567}, with some minor adaptations.
 \end{itemize}
@@ -224,12 +224,14 @@ as follows:
 \begin{quote}
 \noindent
 \begin{tabular}{lcl}
-AES                 &:     & Advanced Encryption Standard                                         \\
-DES                 &:     & Data Encryption Standard                                             \\
-                    &\vdots&                                                                      \\
-${\mathcal H}( x )$ &:     & the Hamming weight of $x$                                            \\
-${\mathbb  F}_q$    &:     & a finite field with $q$ elements                                     \\
-$x_i$               &:     & the $i$-th bit of some binary sequence $x$, st. $x_i \in \{ 0, 1 \}$ \\
+CMPH &: & C Minimum Perfect Hashing Library \\
+GMP &: & GNU Multiple Precision Arithmetic Library \\
+$T$ &: & A text string of $n$ characters \\
+$t_i$ &: & The $i$-th character in T \\
+$\mathcal{P}$ &: & A list of $k$ patterns \\
+$P_i$ &: & The $i$-th pattern in $\mathcal{P}$, a text string of $m$ characters \\
+$p_{i,j}$ &: & The $j$-th character in $P_i$ \\
+$\Phi(T)$ &: & The Karp-Rabin fingerprint of a text string $T$ \\
 \end{tabular}
 \end{quote}
 
