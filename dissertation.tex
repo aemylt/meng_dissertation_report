@@ -43,6 +43,8 @@
 % own dissertation: everything following it is in the correct order to use 
 % as is.
 
+\iffalse
+
 \section*{Prelude}
 \thispagestyle{empty}
 
@@ -66,6 +68,8 @@ of authorship may still be produced online via
 \[
 \mbox{\url{http://www.cs.bris.ac.uk/Teaching/Resources/cover.html}}
 \]
+
+\fi
 
 % =============================================================================
 
@@ -137,7 +141,7 @@ but an example is as follows:
 \end{quote}
 
 % -----------------------------------------------------------------------------
-
+\iffalse
 \chapter*{Summary of Changes}
 
 {\bf A conditional section, of at most $1$ page} 
@@ -173,7 +177,7 @@ an example might be as follows:
       to Chapter $2$, resolving this issue.
 \end{itemize}
 \end{quote}
-
+\fi
 % -----------------------------------------------------------------------------
 
 \chapter*{Supporting Technologies}
@@ -316,26 +320,55 @@ More specifically, the concrete aims are:
 \chapter{Technical Background}
 \label{chap:technical}
 
-{\bf A compulsory chapter, of roughly $10$ to $20$ pages} 
-\vspace{1cm} 
+\section{Pattern Matching: Formal Definitions}
 
 \noindent
-This chapter is intended to describe the technical basis on which execution
-of the project depends.  The goal is to provide a detailed explanation of
-the specific problem at hand, and existing work that is relevant (e.g., an
-existing algorithm that you use, alternative solutions proposed, supporting
-technologies).  
+Pattern matching with a single pattern is a simple problem to describe intuitively: We have a text and a pattern, and we want to output any indexes where the pattern occurs in the text.
 
-Per the same advice in the handbook, note there is a subtly difference from
-this and a full-blown literature review (or survey).  The latter might try
-to capture and organise (e.g., categorise somehow) {\em all} related work,
-potentially offering meta-analysis, whereas here the goal is simple to
-ensure the dissertation is self-contained.  Put another way, after reading 
-this chapter a non-expert reader should have obtained enough background to 
-understand what {\em you} have done, and then accurately assess your work.
-You might view an additional goal as giving the reader confidence that you 
-are able to absorb, understand and clearly communicate highly technical 
-material.
+More formally, we refer to the text by $T$, and define it as a string of $n$ characters $t_0...t_{n-1}$. Likewise, the pattern is referred to as $P$, and is a string of $m$ characters $p_0...p_{m-1}$. The aim of the text indexing problem is to output indexes $i \in \{m-1,...,n-1\}$ such that $t_{i-m+1}...t_{i} = P$.
+
+It is worth noting that there are many other ways of defining this problem. The most notable differences in this paper are that the text and pattern are indexed at zero instead of one, and that the index at the end of the pattern's occurance is returned instead of the index at the start. Both of these are done to be intentionally to be consistent with the code implemented: The zero-indexing is because the implementations are written in C, which also uses zero indexing, and reporting the index at the end of the occurance is to cater for the streaming model, on which more information will be provided later.
+
+\subsection{Dictionary Matching: Formal Definitions}
+
+\noindent
+Like pattern matching, dictionary matching is also simple to describe intuitively: We have one text as before, but now we have multiple patterns, and we want to output any indexes where a pattern occurs in the text.
+
+Formally, this is defined as follows: We have a text $n$ characters long $T = t_0...t_{n-1}$, and a set of $k$ patterns $\mathcal{P} = \{P_0,...,P_k\}$ of respective lengths $M = \{m_0,...,m_k\}$. Hence a given pattern $P_i$ is a string of $m_i$ characters $p_{i,0}...p{i,m_i-1}$. We output an index $j \in \{\min(M),...,n_1\}$ if $\exists i \in \{0,...,k-1\}$ such that $t_{j-m_i+1}...t_{j} = P_i$.
+
+Note that for this work, we do not care about what pattern has occured in the text, only that a pattern has occured. This is due to a limitation with one of the algorithms, which will be discussed later.
+
+\section{The Streaming Model}
+
+\noindent
+Data streaming is a way of reducing space consumption for certain problems. Under this model, required space is reduced by not processing the entire problem input at once. Instead, the input is provided to the algorithm in portions, delivered via a stream of data. The algorithm processes one portion of the input at a time, and it is required that the algorithm is not allowed to store the entire input.
+
+Under this model, we measure performance by two properties:
+\begin{itemize}
+  \item {\bf Space:} The size of the data structure
+  \item {\bf Time:} The time taken to process each portion in the stream
+\end{itemize}
+
+It is easy to see how pattern matching and in turn dictionary matching can be performed in this model. We can process the text by individual characters. During preprocessing we store the pattern and initialise a circular buffer $buf$ which is $m$ characters long. At index $j$ when we receive character $t_j$ we perform the algorithm described in Algorithm~\ref{alg:naive-pattern}. A dictionary matching variant can be done by storing a circular buffer which is $\max(M)$ characters long and repeating Algorithm~\ref{alg:naive-pattern} $k$ times. These algorithms use $O(m)$ and $O(\sum^{k-1}_{i=0}m_i)$ respectively, both in terms of space and time per character.
+
+\begin{algorithm}[t]
+{\bf rotate} buf {\bf by one}
+{\bf append} $t_i$ {\bf to} buf
+\For{$i=0$ {\bf upto} $m-1$}{
+  \If{$buf_i \neq p_i$}{
+    {\bf return} -1
+  }
+}
+{\bf return} j
+\caption{A na\"{i}ve solution to pattern matching.}
+\label{alg:naive-pattern}
+\end{algorithm}
+
+Of course, these are poor solutions to both pattern and dictionary matching. We can do much better in terms of both time and space complexity.
+
+\section{The Aho-Corasick Algorithm for Dictionary Matching}
+
+The Aho-Corasick Algorithm for Efficient String Matching\cite{Aho:1975:ESM:360825.360855} - known hereafter as Aho-Corasick - is a deterministic algorithm for dictionary matching. Published in 1975, the algorithm works as a generalisation of Knuth-Morris-Pratt, extending the state machine from single patterns in KMP to multiple patterns.
 
 % -----------------------------------------------------------------------------
 
