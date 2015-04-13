@@ -322,7 +322,7 @@ Under this model, we measure performance by two properties:
 It is easy to see how pattern matching and in turn dictionary matching can be performed in this model. We can process the text by individual characters. During preprocessing we store the pattern and initialise a circular buffer $buf$ which is $m$ characters long. At index $j$ when we receive character $t_j$ we perform the algorithm described in Algorithm~\ref{alg:naive-pattern}. A dictionary matching variant can be done by storing a circular buffer which is $\max(M)$ characters long and repeating Algorithm~\ref{alg:naive-pattern} $k$ times. These algorithms use $O(m)$ and $O(\sum^{k-1}_{i=0}m_i)$ respectively, both in terms of space and time per character.
 
 \begin{algorithm}[t]
-{\bf rotate} buf {\bf by one}
+{\bf rotate} buf {\bf by one}\\
 {\bf append} $t_i$ {\bf to} buf
 \For{$i=0$ {\bf upto} $m-1$}{
   \If{$buf_i \neq p_i$}{
@@ -330,7 +330,7 @@ It is easy to see how pattern matching and in turn dictionary matching can be pe
   }
 }
 {\bf return} j
-\caption{A na\"{i}ve solution to pattern matching.}
+\caption{A na\"{i}ve solution to single pattern matching.}
 \label{alg:naive-pattern}
 \end{algorithm}
 
@@ -339,6 +339,84 @@ Of course, these are poor solutions to both pattern and dictionary matching. We 
 \section{The Aho-Corasick Algorithm for Dictionary Matching}
 
 The Aho-Corasick Algorithm for Efficient String Matching\cite{Aho:1975:ESM:360825.360855} - known hereafter as Aho-Corasick - is a deterministic algorithm for dictionary matching. Published in 1975, the algorithm works as a generalisation of Knuth-Morris-Pratt, extending the state machine from single patterns in KMP to multiple patterns.
+
+Preprocessing consists of three algorithms. The first, Algorithm~\ref{alg:ac-goto}, produces the $\text{goto}$ function, which determines what to do if the next character in the stream is a match. This in essence works by building a suffix tree: We traverse the tree until we either reach the end of the pattern or we hit a leaf, and then append the rest of the pattern to the leaf. Note that $\Sigma$ refers to the alphabet of the patterns and $fail$ is a default fail state for if the $\text{goto}$ function cannot find a character for that state.
+
+The second, Algorithm~\ref{alg:ac-failure} constructs the $\text{failure}$ function for when the next character cannot be found and the $\text{output}$ function for whether or not there is a match. This is similar to how the failure table is computed in Knuth-Morris-Pratt, by using previously computed failure tables to find the longest prefix that is also a suffix of that point in the pattern.
+
+\begin{algorithm}[t]
+$newstate \gets -1$\\
+\For{$i=0$ {\bf upto} $k-1$}{
+  $state \gets -1$\\
+  $j \gets 0$\\
+  \While{$\text{goto}(state, p_{i,j}) \neq fail$}{
+    $state \gets \text{goto}(state, p_{i,j})$\\
+    $j \gets j + 1$
+  }
+  \While{$j < m_i$}{
+    $newstate \gets newstate + 1$\\
+    $\text{goto}(state, p_{i,j}) \gets newstate$\\
+    $state \gets newstate$\\
+    $j \gets j + 1$
+  }
+  $\text{output}(state) = \{P_i\}$
+}
+\ForAll{$a \in \Sigma$ such that $\text{goto}(-1, a) = fail$}{
+  $\text{goto}(-1, a) = -1$
+}
+\caption{Constructing the $\text{goto}$ function for Aho-Corasick.}
+\label{alg:ac-goto}
+\end{algorithm}
+
+\begin{algorithm}[t]
+$queue \gets empty$\\
+\ForEach{$a \in \Sigma$ such that $\text{goto}(-1, a) = s \neq -1$}{
+  $queue \gets queue \cup \{s\}$\\
+  $\text{failure}(s) \gets -1$
+}
+\While{$queue \neq empty$} {
+  $r \gets \text{pop}(queue)$\\
+  \ForEach{$a \in \Sigma$ such that $\text{goto}(r, a) = s \neq fail$}{
+    $queue \gets queue \cup {s}$\\
+    $state \gets \text{failure}(r)$\\
+    \While{$\text{goto}(state, a) = fail$}{
+      $state \gets \text{failure}(state)$
+    }
+    $\text{failure}(s) \gets \text{goto}(state, a)$\\
+    $\text{output}(s) \gets \text{output}(s) \cup \text{output}(\text{failure}(s))$
+  }
+}
+\caption{Constructing the $\text{failure}$ and $\text{output}$ functions for Aho-Corasick.}
+\label{alg:ac-failure}
+\end{algorithm}
+
+From these two algorithms alone it is possible to perform dictionary matching, using a computation method again similar to Knuth-Morris-Pratt: For each character $t_j$ in the text when we are in state $s$, we check if $\text{goto}(s, t_j) = fail$. If that is the case, we call $s \gets \text{failure}(s)$ repeatedly until the previous check no longer holds. We then update our state $s \gets \text{goto}(s, t_j)$, and if $\text{output}(s) \neq empty$ then we return $j$, otherwise we return $-1$. This runs in amortised $O(|\Sigma|)$ time per character, and worst case $O(|\Sigma|\max(M))$ time per character, as can be seen via Knuth-Morris-Pratt arguments.
+
+To improve on this running time, Algorithm~\ref{alg:ac-next} is used, which combines the $\text{goto}$ and $\text{failure}$ functions to produce a $\text{next}$ function, which given any state and character returns the next state. Computation now simply becomes as each character $t_j$ comes in when we are in state $s$, call $s \gets \text{next}(s, t_j)$ and return $j$ if $\text{output}(s) \neq empty$. This runs in worst case $O(|\Sigma|)$ time per character, where the bottleneck is finding the value associated with character $t_j$ in the $\text{next}$ function. In both the case with the $\text{goto}$ and $\text{failure}$ functions and the case with only the $\text{next}$ function, space complexity is $O(\sum_{i=0}^{k-1}m_i)$.
+
+\begin{algorithm}[t]
+$queue \gets empty$\\
+\ForEach{$a \in \Sigma$}{
+  $\text{next}(-1, a) = \text{goto}(-1, a)$\\
+  \If{$\text{goto}(-1, a) \neq -1$}{
+    $queue \gets queue \cup \{\text{goto}(-1, a)\}$
+  }
+}
+\While{$queue \neq empty$} {
+  $r \gets \text{pop}(queue)$\\
+  \ForEach{$a \in \Sigma$}{
+    \If{$\text{goto}(r, a) = s \neq fail$}{
+      $queue \gets queue \cup {s}$\\
+      $\text{next}(r, a) = s$
+    }
+    \Else{
+      $\text{next}(r, a) = \text{next}(\text{failure}(r), a)$
+    }
+  }
+}
+\caption{Constructing the $\text{next}$ function for Aho-Corasick.}
+\label{alg:ac-next}
+\end{algorithm}
 
 % -----------------------------------------------------------------------------
 
