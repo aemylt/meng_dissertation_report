@@ -203,7 +203,8 @@ GMP &: & GNU Multiple Precision Arithmetic Library \\
 $T$ &: & A text string of $n$ characters \\
 $t_i$ &: & The $i$-th character in T \\
 $\mathcal{P}$ &: & A list of $k$ patterns \\
-$P_i$ &: & The $i$-th pattern in $\mathcal{P}$, a text string of $m$ characters \\
+$P_i$ &: & The $i$-th pattern in $\mathcal{P}$, a text string of $m_i$ characters \\
+$M$ &: & A list of the length of each pattern in $\mathcal{P}$. \\
 $p_{i,j}$ &: & The $j$-th character in $P_i$ \\
 $\phi(T)$ &: & The Karp-Rabin fingerprint of a text string $T$ \\
 \end{tabular}
@@ -417,6 +418,10 @@ $queue \gets empty$\\
 \caption{Constructing the $\text{next}$ function for Aho-Corasick.}
 \label{alg:ac-next}
 \end{algorithm}
+
+\subsection{An Alternative: The Commentz-Walter Algorithm}
+
+Much like how Aho-Corasick is an algorithm for dictionary matching based on Knuth-Morris-Pratt, Commentz-Walter\cite{commentz-walter:algo} is an algorithm based on Boyer-Moore algorithm, using similar techniques to Aho-Corasick to convert the algorithm from single pattern to multiple patterns. While it is interesting to note as an alternative, particularly because of its time improvement on average cases and the fact that a variant of it is used in the GNU command \texttt{grep},\footnote{See \url{http://git.savannah.gnu.org/cgit/grep.git/tree/src/kwset.c}} it is not implemented in this project. This is because, like Boyer-Moore, the Commentz-Walter algorithm skips indexes in the text, which is not possible in the streaming model.
 
 % -----------------------------------------------------------------------------
 
