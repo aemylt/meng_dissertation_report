@@ -28,7 +28,7 @@
                 % the dissertation    title (which cannot be blank)
                      title={Dictionary Matching with Fingerprints},
                 % the dissertation subtitle (which can    be blank)
-                  subtitle={},
+                  subtitle={An Empirical Analysis},
                 % the dissertation     type
                       type={Research},
                 % the year of submission
@@ -221,7 +221,7 @@ Everyone on my course has had an impact on me over the past four years. In parti
 
 I would like to acknowledge David Beddows, Derek Bekoe, Timothy Lewis and Jonathan Walsh for remaining a stable household for the past three years - four in the case of David and Timothy.
 
-Last, but most certainly not least, I would like to thank my family for the infinite support, happiness and love they have given me my entire life.
+Last, but most certainly not least, I would like to thank my family and friends for the infinite support, happiness and love they have given me my entire life.
 
 % =============================================================================
 
@@ -422,6 +422,33 @@ $queue \gets empty$\\
 \subsection{An Alternative: The Commentz-Walter Algorithm}
 
 Much like how Aho-Corasick is an algorithm for dictionary matching based on Knuth-Morris-Pratt, Commentz-Walter\cite{commentz-walter:algo} is an algorithm based on Boyer-Moore algorithm, using similar techniques to Aho-Corasick to convert the algorithm from single pattern to multiple patterns. While it is interesting to note as an alternative, particularly because of its time improvement on average cases and the fact that a variant of it is used in the GNU command \texttt{grep},\footnote{See \url{http://git.savannah.gnu.org/cgit/grep.git/tree/src/kwset.c}} it is not implemented in this project. This is because, like Boyer-Moore, the Commentz-Walter algorithm skips indexes in the text, which is not possible in the streaming model.
+
+\section{Minimal Perfect Hashing}
+\label{min-perf-hash}
+
+For a universe $U$, a hash function $\text{h}$ is static if it can perform lookups for a pre-defined set of keys $S \subseteq U$ to a set of integers $\mathbb{Z}_m$. Said hash function is a static \textit{perfect} hash function if $\forall x \in S, \text{h}(x)$ is collision-free, and thus takes constant time to look up. Finally, a hash function is a \textit{minimal} perfect hash function if $m = |S|$. In other words, a minimal perfect hash function maps a set of $m$ keys to $\mathbb{Z}_m$ without any collisions.
+
+The implementation of minimal perfect hash functions will not be detailed here, as they are used merely as a library and are thus not part of implementation. Further information on minimal perfect hash functions can be found on the C Minimal Perfect Hashing Library (CMPH) website.\footnote{\url{http://cmph.sourceforge.net/}} Of particular interest is the paper on the Compress, Hash and Digest algorithm by Belazzougui, Botelho and Dietzfelbinger\cite{belazzougui:chd}, as the algorithm from CMPH used throughout this work.
+
+\section{Karp-Rabin Fingerprints}
+
+Karp-Rabin fingerprints\cite{5390135} are a function $\phi : \Sigma* \to \mathbb{Z}_p$ for some prime number $p$. For a text $T$ of length $n$ characters, the Karp-Rabin fingerprint is defined as:
+
+$$\phi(T) = \sum_{i = 0}^{n - 1} r^it_i \mod p$$
+
+Where $p$ is a prime number, and $r$ is a random number such that $1 < r < p$. Alongside the fingerprint $\phi(T)$, we store $r^n \mod p$ and $r^{-n} \mod p$ in a tuple. Using these three properties, we can manipulate the fingerprints to affect the underlying strings in three ways\cite{Breslauer:2014:RSS:2660854.2635814}. Note that all equations listed below are modulo $p$.
+
+\begin{itemize}
+  \item \textbf{Concatenate:} If we have a fingerprint $\{\phi(u), r^{n_1}, r^{-n_1}\}$ for a string $u$ of length $n_1$ and another fingerprint $\{\phi(v), r^{n_2}, r^{-n_2}\}$ for a string $v$ of length $n_2$, the concatenation of these two strings is $\{\phi(u) + \phi(v)*r^{n_1}, r^{n_1} * r^{n_2}, r^{-n_1} * r^{-n_2}\}$
+  \item \textbf{Prefix:} If we have a fingerprint $\{\phi(uv), r^{n_1}, r^{-n_1}\}$ for a string $uv$ of length $n_1$ and a fingerprint $\{\phi(v), r^{n_2}, r^{-n_2}\}$ for the $n_2$ suffix of $uv$, then we can work out the fingerprint of the $n_1 - n_2$ prefix of $uv$ as $\{\phi(uv) - \phi(v)*r^{n_1}, r^{n_1} * r^{-n_2}, r^{-n_1} * r^{n_2}\}$
+  \item \textbf{Suffix:} If we have a fingerprint $\{\phi(uv), r^{n_1}, r^{-n_1}\}$ for a string $uv$ of length $n_1$ and a fingerprint $\{\phi(u), r^{n_2}, r^{-n_2}\}$ for the $n_2$ prefix of $uv$, then we can work out the fingerprint of the $n_1 - n_2$ suffix of $uv$ as $\{(\phi(uv) - \phi(u))*r^{-n_2}, r^{n_1} * r^{-n_2}, r^{-n_1} * r^{n_2}\}$
+\end{itemize}
+
+All of these operations can be completed in constant time.
+
+It is interesting to note that a variant of the Karp-Rabin algorithm can be used for a subset of dictionary matching, where all the patterns are the same length $m$\cite[pp 205-206]{candan:data}. This can be done by storing a fingerprint of the last $m$ characters read from the text, and using static perfect hashing as described in section \ref{min-perf-hash} to check if the fingerprint of the text matches any fingerprints of the patterns. Using suffix and concatenation tectniques above and storing a circular buffer of the last $m$ characters, we can accomplish this with $O(k + m)$ space and $O(1)$ time per character. However, due to the limitation that all the patterns have to be the same length, this method has not been implemented for this project.
+
+The last point to mention is the probability of a collision. Breslauer and Galil\cite{Breslauer:2014:RSS:2660854.2635814} provide a theorem that if $u$ and $v$ are two different strings of length $l \leq n$, $p \in \theta(n^{2 + \alpha})$ for some level of accuracy $\alpha \geq 0$ and $r \in \mathbb{Z}_p$ is randomly chosen, then the probability that $\phi(u) = \phi(v)$ is smaller than $\frac{1}{n^{1 + \alpha}}$. We will however see later why this does not necessarily hold for the algorithm devised by Clifford, Fontaine and Sach.
 
 % -----------------------------------------------------------------------------
 
