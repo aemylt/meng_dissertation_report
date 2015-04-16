@@ -36,43 +36,6 @@
 
 \begin{document}
 
-% =============================================================================
-
-% This section simply introduces the structural guidelines.  It can clearly
-% be deleted (or commented out) if you use the file as a template for your
-% own dissertation: everything following it is in the correct order to use 
-% as is.
-
-\iffalse
-
-\section*{Prelude}
-\thispagestyle{empty}
-
-A typical dissertation will be structured according to (somewhat) standard 
-sections, described in what follows.  However, it is hard and perhaps even 
-counter-productive to generalise: the goal is {\em not} to be prescriptive, 
-but simply to act as a guideline.  In particular, each page count given is
-important but not absolute: their aim is simply to highlight that a clear, 
-concise description is better than a rambling alternative that makes it 
-hard to separate important content and facts from trivia.
-
-You can use this document as a \LaTeX-based~\cite{latexbook1,latexbook2} 
-template for your own dissertation by simply deleting extraneous sections
-and content; keep in mind that the associated {\tt Makefile} could be of
-use, in particular because it automatically executes \mbox{\BibTeX} to 
-deal with the associated bibliography.  
-
-You can, on the other hand, opt {\em not} to use this template; this is a 
-perfectly acceptable approach.  Note that a standard cover and declaration 
-of authorship may still be produced online via
-\[
-\mbox{\url{http://www.cs.bris.ac.uk/Teaching/Resources/cover.html}}
-\]
-
-\fi
-
-% =============================================================================
-
 % This macro creates the standard UoB title page by using information drawn
 % from the document class (meaning it is vital you select the correct degree 
 % title and so on).
@@ -139,46 +102,6 @@ but an example is as follows:
       compared the results with several alternatives.
 \end{itemize}
 \end{quote}
-
-% -----------------------------------------------------------------------------
-\iffalse
-\chapter*{Summary of Changes}
-
-{\bf A conditional section, of at most $1$ page} 
-\vspace{1cm} 
-
-Iff. the dissertation represents a resubmission (e.g., as the result of
-a resit), this section is compulsory: the content should summarise all
-non-trivial changes made to the initial submission.  Otherwise you can
-omit it, since a summary of this type is clearly nonsensical.
-
-When included, the section will ideally be used to highlight additional
-work completed, and address criticism raised in any associated feedback.
-Clearly it is difficult to give generic advice about how to do so, but
-an example might be as follows:
-
-\begin{quote}
-\noindent
-\begin{itemize}
-\item Feedback from the initial submission criticised the design and 
-      implementation of my genetic algorithm, stating ``there seems 
-      to have been no attention to computational complexity during the
-      design, and obvious methods of optimisation are missing within
-      the resulting implementation''.  Chapter $3$ now includes a
-      comprehensive analysis of the algorithm, in terms of both time
-      and space.  While I have not altered the algorithm itself, I
-      have included a cache mechanism (also detailed in Chapter $3$)
-      that provides a significant improvement in average run-time.
-\item I added a feature in my implementation to allow automatic rather
-      than manual selection of various parameters; the experimental
-      results in Chapter $4$ have been updated to reflect this.
-\item Questions after the presentation highlighted a range of related
-      work that I had not considered: I have make a number of updates 
-      to Chapter $2$, resolving this issue.
-\end{itemize}
-\end{quote}
-\fi
-% -----------------------------------------------------------------------------
 
 \chapter*{Supporting Technologies}
 
@@ -342,7 +265,7 @@ Of course, these are poor solutions to both pattern and dictionary matching. We 
 \section{The Aho-Corasick Algorithm for Dictionary Matching}
 
 \noindent
-The Aho-Corasick Algorithm for Efficient String Matching\cite{Aho:1975:ESM:360825.360855} - known hereafter as Aho-Corasick - is a deterministic algorithm for dictionary matching. Published in 1975, the algorithm works as a generalisation of Knuth-Morris-Pratt, extending the state machine from single patterns in KMP to multiple patterns.
+The Aho-Corasick Algorithm for Efficient String Matching\cite{Aho:1975:ESM:360825.360855} -- known hereafter as Aho-Corasick -- is a deterministic algorithm for dictionary matching. Published in 1975, the algorithm works as a generalisation of Knuth-Morris-Pratt, extending the state machine from single patterns in KMP to multiple patterns.
 
 Preprocessing consists of three algorithms. The first, Algorithm~\ref{alg:ac-goto}, produces the $\text{goto}$ function, which determines what to do if the next character in the stream is a match. This in essence works by building a suffix tree: We traverse the tree until we either reach the end of the pattern or we hit a leaf, and then append the rest of the pattern to the leaf. Note that $\Sigma$ refers to the alphabet of the patterns and $fail$ is a default fail state for if the $\text{goto}$ function cannot find a character for that state.
 
