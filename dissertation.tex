@@ -200,6 +200,7 @@ an example might be as follows:
 \begin{tabular}{lcl}
 CMPH &: & C Minimum Perfect Hashing Library \\
 GMP &: & GNU Multiple Precision Arithmetic Library \\
+VO &: & A Viable Occurance, a portion of the text which might match a pattern \\
 $T$ &: & A text string of $n$ characters \\
 $t_i$ &: & The $i$-th character in T \\
 $\mathcal{P}$ &: & A list of $k$ patterns \\
@@ -207,6 +208,7 @@ $P_i$ &: & The $i$-th pattern in $\mathcal{P}$, a text string of $m_i$ character
 $M$ &: & A list of the length of each pattern in $\mathcal{P}$. \\
 $p_{i,j}$ &: & The $j$-th character in $P_i$ \\
 $\phi(T)$ &: & The Karp-Rabin fingerprint of a text string $T$ \\
+$\rho_T$ &: & The period of a text string $T$ \\
 \end{tabular}
 \end{quote}
 
@@ -339,6 +341,7 @@ Of course, these are poor solutions to both pattern and dictionary matching. We 
 
 \section{The Aho-Corasick Algorithm for Dictionary Matching}
 
+\noindent
 The Aho-Corasick Algorithm for Efficient String Matching\cite{Aho:1975:ESM:360825.360855} - known hereafter as Aho-Corasick - is a deterministic algorithm for dictionary matching. Published in 1975, the algorithm works as a generalisation of Knuth-Morris-Pratt, extending the state machine from single patterns in KMP to multiple patterns.
 
 Preprocessing consists of three algorithms. The first, Algorithm~\ref{alg:ac-goto}, produces the $\text{goto}$ function, which determines what to do if the next character in the stream is a match. This in essence works by building a suffix tree: We traverse the tree until we either reach the end of the pattern or we hit a leaf, and then append the rest of the pattern to the leaf. Note that $\Sigma$ refers to the alphabet of the patterns and $fail$ is a default fail state for if the $\text{goto}$ function cannot find a character for that state.
@@ -426,12 +429,14 @@ Much like how Aho-Corasick is an algorithm for dictionary matching based on Knut
 \section{Minimal Perfect Hashing}
 \label{min-perf-hash}
 
+\noindent
 For a universe $U$, a hash function $\text{h}$ is static if it can perform lookups for a pre-defined set of keys $S \subseteq U$ to a set of integers $\mathbb{Z}_m$. Said hash function is a static \textit{perfect} hash function if $\forall x \in S, \text{h}(x)$ is collision-free, and thus takes constant time to look up. Finally, a hash function is a \textit{minimal} perfect hash function if $m = |S|$. In other words, a minimal perfect hash function maps a set of $m$ keys to $\mathbb{Z}_m$ without any collisions.
 
-The implementation of minimal perfect hash functions will not be detailed here, as they are used merely as a library and are thus not part of implementation. Further information on minimal perfect hash functions can be found on the C Minimal Perfect Hashing Library (CMPH) website.\footnote{\url{http://cmph.sourceforge.net/}} Of particular interest is the paper on the Compress, Hash and Digest algorithm by Belazzougui, Botelho and Dietzfelbinger\cite{belazzougui:chd}, as the algorithm from CMPH used throughout this work.
+The implementation of minimal perfect hash functions will not be detailed here, as they are used merely as a library and are thus not part of implementation. For further information, I direct the reader to the C Minimal Perfect Hashing Library (CMPH) website: \url{http://cmph.sourceforge.net/} Of particular interest is the paper on the Compress, Hash and Digest algorithm by Belazzougui, Botelho and Dietzfelbinger\cite{belazzougui:chd}, as the algorithm from CMPH used throughout this work.
 
 \section{Karp-Rabin Fingerprints}
 
+\noindent
 Karp-Rabin fingerprints\cite{5390135} are a function $\phi : \Sigma* \to \mathbb{Z}_p$ for some prime number $p$. For a text $T$ of length $n$ characters, the Karp-Rabin fingerprint is defined as:
 
 $$\phi(T) = \sum_{i = 0}^{n - 1} r^it_i \mod p$$
@@ -448,7 +453,102 @@ All of these operations can be completed in constant time.
 
 It is interesting to note that a variant of the Karp-Rabin algorithm can be used for a subset of dictionary matching, where all the patterns are the same length $m$\cite[pp 205-206]{candan:data}. This can be done by storing a fingerprint of the last $m$ characters read from the text, and using static perfect hashing as described in section \ref{min-perf-hash} to check if the fingerprint of the text matches any fingerprints of the patterns. Using suffix and concatenation tectniques above and storing a circular buffer of the last $m$ characters, we can accomplish this with $O(k + m)$ space and $O(1)$ time per character. However, due to the limitation that all the patterns have to be the same length, this method has not been implemented for this project.
 
-The last point to mention is the probability of a collision. Breslauer and Galil\cite{Breslauer:2014:RSS:2660854.2635814} provide a theorem that if $u$ and $v$ are two different strings of length $l \leq n$, $p \in \theta(n^{2 + \alpha})$ for some level of accuracy $\alpha \geq 0$ and $r \in \mathbb{Z}_p$ is randomly chosen, then the probability that $\phi(u) = \phi(v)$ is smaller than $\frac{1}{n^{1 + \alpha}}$. We will however see later why this does not necessarily hold for the algorithm devised by Clifford, Fontaine and Sach.
+The last point to mention is the probability of a collision. Breslauer and Galil\cite{Breslauer:2014:RSS:2660854.2635814} provide a theorem that if $u$ and $v$ are two different strings of length $l \leq n$, $p \in \theta(n^{2 + \alpha})$ for some level of accuracy $\alpha \geq 0$ and $r \in \mathbb{Z}_p$ is randomly chosen, then the probability that $\phi(u) = \phi(v)$ is smaller than $\frac{1}{n^{1 + \alpha}}$. We will however see later why this does not necessarily hold for the dictionary matching algorithm devised by Clifford et al..
+
+\section{Porat and Porat: Single Pattern Matching in Sublinear Space}
+
+\noindent
+In 2009, Porat and Porat\cite{5438620} provided the first solution to a pattern matching problem in sublinear space to the size of the pattern. Utilising Karp-Rabin fingerprints as described in the previous section, their randomised algorithm for single pattern matching in the streaming model had $O(\log m)$ complexity both in terms of space and time per character.
+
+Instead of storing the entire pattern in a single fingerprint, the pattern was broken up into $\lfloor \log_2 m\rfloor$ fingerprints, each a power of two prefix of the patter. These fingerprints denoted $\phi_i$, are computed as follows:
+
+$$\phi_i = \phi(p_0...p_{2^i-1})$$
+
+If the pattern is not a power of two in length, the remaining characters can be stored either in the fingerprint of the final prefix $\phi_{\lfloor\log_2m\rfloor}$ or in a new final level, $\phi_{\lceil\log_2m\rceil}$.
+
+These fingerprints can be created in a streaming fashion, so each character of the pattern only needs to be read once. This can be done via dynamic programming, concatenating the current row with the fingerprint of the already computed previous row:
+
+\[
+  \phi_i =
+  \begin{cases}
+    \phi(p_0),& \text{if } i = 0\\
+    \textbf{Concatenate}(\phi_{i - 1}, \phi(p_{2^{i-1}}...p_{2^i-1})),& \text{otherwise}
+  \end{cases}
+\]
+
+With this structure, we can now look at what we compute as each character of the text enters our stream. When $t_j$ enters the stream, we first compute the fingerprint $\phi(t_j)$, update our fingerprint of the text read so far $\phi(t_0...t_j)$ and check if $\phi(t_j) = \phi_0$. If this case is true, we have what is referred to as a viable occurance (VO) for level 1. When we have a VO at level 1 after character $\phi(t_j)$ has entered the stream, we store two properties: $j-1$ and $\phi(t_0...t_{j-1})$\footnote{If $j = 0$ then -1 and the fingerprint of the empty string will be stored as a VO.} in a list of viable occurances for level 1.
+
+After performing the above, we retrieve the oldest VO we have stored at level 1, which has properties $j'$ and $\phi(t_0...t_{j'-1})$. If $j - j' = 2$, we now know that enough characters have passed for us to be able to check if this viable occurance requires promotion. We remove this occurance from our list of VOs for level 1 and use the fingerprint suffix operation on our fingerprint of the text and $\phi(t_0...t_{j'-1})$ to retrieve $\phi(t_{j'}...t_j)$. We then check if $\phi(t_{j'}...t_j) = \phi_1$ and if this is the case, we promote this occurance by storing $j'$ and $\phi(t_0...t_{j'-1})$ in a list of viable occurances for level 2. Otherwise, we discard the occurance.
+
+We repeat the above process $\log_2m$ times per character. At the $i$-th level, we check if the oldest VO occured $2^i$ characters back and if so, we then check if the fingerprint of the last $2^i$ characters matches the fingerprint of the $2^i$ prefix of the pattern. If they match, we promote this occurance to the $i+1$-th level. At the final level, we check if the oldest VO for this level occured $m$ characters ago. If so, we check if the fingerprint of the last $m$ characters of the text matches the fingerprint of the whole pattern. If they do match, then a match is reported at index $j$, where $t_j$ was the last character read.
+
+This algorithm gives us $O(\log m)$ time per character, but the space complexity is still linear. This can be easily seen if the text and pattern are both strings of the letter $a$. After 6 characters, the list of viable occurances for each level would look like similar to the example given in Figure~\ref{tab:pp-vos}. Note that level 0 is not included in the aforementioned figure as there are no VOs stored for that level.
+
+\begin{figure}[t]
+\centering
+\begin{tabular}{|c|c|c|c|}
+  \hline
+  \textbf{Level number} & 1 & 2 & 3 \\
+  \hline
+  \textbf{VO locations stored} & 5 & 3,4 & -1,0,1,2 \\
+  \hline
+\end{tabular}
+\caption{Example state of VO lists after 7 characters, where $T = aaaaaaa$ and $P = aaaaaaaa$}
+\label{fig:pp-vos}
+\end{figure}
+
+At level $i$, we have to store up to $2^{i - 1}$ viable occurances. The final row has to store at most $\frac{m}{2}$ viable occurances. Storing these VOs na\"{i}vely will result in $1 + 2 + ... + 2^{i - 1} + ... + \frac{m}{2} \in O(m)$ space being used overall.
+
+So we are not able to simply store every VO for each level in an array. But there is a way of compressing these VOs.
+
+Consider what has happened when level $i$ receives a promotion from level $i-1$ at index $j$. This means that the fingerprint $\phi(t_{j - 2^{i-1}}...t_j)$ matched $\phi_{i-1}$. Now consider if level $i$ receives a promotion at index $j+1$. Now both the fingerprints $\phi(t_{j - 2^{i-1}}...t_j)$ and $\phi(t_{j - 2^{i-1} + 1}...t_{j + 1})$ matched $\phi_{i-1}$. Assuming that a collision did not occur in the Karp-Rabin fingerprinting -- an assumption that holds with at least probability $1 - \frac{1}{n^{1 + \alpha}}$ since the associated strings are the same length and fingerprinting parameters $p$ and $r$ have been picked correctly -- it must hold that $t_{j - 2^{i-1}}...t_j = t_{j - 2^{i-1} + 1}...t_{j + 1}$. In order for this to be the case, it is necessary that the prefix $p_0...p_{2^{i-1} - 1}$ repeats itself.
+
+We can see this in the example where the text and pattern are just strings of the letter $a$. If we consider a more detailed look at where the viable occurances are promoted to level 3, as shown in Figure~\ref{fig:pp-level-3}, we can see that the only reason we need to store $2^{3-1} = 4$ VOs is because the 4 character prefix of the pattern is so repetitive.
+
+\begin{figure}[t]
+\centering
+\begin{tabular}{|c|c c c c c c c|}
+  \hline
+  $j$ & 0 & 1 & 2 & 3 & 4 & 5 & 6 \\
+  \hline
+  $t_j$ & a & a & a & a & a & a & a \\
+  \hline
+  \textbf{VO for level 3 starting at -1} & a & a & a & a &  &  &  \\
+  \hline
+  \textbf{VO for level 3 starting at 0} &  & a & a & a & a &  &  \\
+  \hline
+  \textbf{VO for level 3 starting at 1} &  &  & a & a & a & a &  \\
+  \hline
+  \textbf{VO for level 3 starting at 2} &  &  &  & a & a & a & a \\
+  \hline
+\end{tabular}
+\caption{Example state of VO list for level 3 after 7 characters, where $T = aaaaaaa$ and $P = aaaaaaaa$}
+\label{fig:pp-level-3}
+\end{figure}
+
+It is at this point that we shall describe the period of a string. For any string $T$ of length $n$, the period $\rho_T$ is the shortest prefix of $T$ which we can repeat $\frac{n}{|\rho_T|}$ times in order to re-create $T$. For the situation shown in Figure~\ref{fig:pp-level-3}, the period of the pattern prefix $\rho_{p_0...p_3} = a$.
+
+More generally, if level $i$ needs to store more than one VO at a given point, the prefix $p_0...p_{2^{i-1} - 1}$ must be periodic. We can now store the VOs for a given level not as a list, but as an arithmetic progression, with the following properties:
+
+\begin{itemize}
+  \item The location and fingerprint of the oldest VO we need to store
+  \item The location and fingerprint of the newest VO currently stored
+  \item The fingerprint of the period
+  \item The length of the period
+  \item The number of VOs currently stored
+\end{itemize}
+
+The fingerprint and length of the period can both be computed when we need to store two VOs at a given level: The length by taking the second VO location and subtracting the first VO location, and the fingerprint by working out the suffix of the second VO fingerprint and the first VO fingerprint. Both of these are constant time operations.
+
+When we want to remove a VO from a row, we update the oldest location by adding on the length of the period, update the oldest fingerprint by concatenating it with the fingerprint of the period, and decrement our counter. Again, this is a constant time operation.
+
+There is however, a caution about this method. It must be remembered that we are not comparing the strings directly; we are merely comparing fingerprints of them. Thus if there is a collision in the fingerprints, we might have a case where the strings are not periodic.
+
+We can check for this when we insert a new VO into an arithmetic progression. If there are two or more VOs already stored, we compare the difference between the location of the newest VO currently stored and the location of this new VO, and also check the suffix of the new VO's fingerprint with the fingerprint of the newest VO currently stored. If these two values are equal to the length and fingerprint of the period, then we store this new VO by incrementing the number of VOs currently stored and continue as usual.
+
+If the above condition does not hold and these two conditions do not match, there is no general consensus on how to handle this case of a non-periodic VO. Breslauer and Galil\cite{Breslauer:2014:RSS:2660854.2635814} recommend not inserting the occurance into the pattern, yet reporting the index as a match against the whole pattern anyway and accepting some chance of false positives. Other papers\cite{JPS:2013} ignore this issue altogether and leave it as a decision for implementation. % TODO: Might want to remove this last sentence if possible.
+
+Independent of whether or not the condition holds, inserting and removing VOs can be performed in constant time and the VOs for a given row can be stored compactly in $O(1)$ space. Because there are $\lfloor\log_2m\rfloor$ levels, the overall algorithm now uses $O(\log m)$ in both space and time per character.
 
 % -----------------------------------------------------------------------------
 
