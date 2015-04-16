@@ -364,7 +364,7 @@ Karp-Rabin fingerprints\cite{5390135} are a function $\phi : \Sigma* \to \mathbb
 
 $$\phi(T) = \sum_{i = 0}^{n - 1} r^it_i \mod p$$
 
-Where $p$ is a prime number, and $r$ is a random number such that $1 < r < p$. Alongside the fingerprint $\phi(T)$, we store $r^n \mod p$ and $r^{-n} \mod p$ in a tuple. Using these three properties, we can manipulate the fingerprints to affect the underlying strings in three ways\cite{Breslauer:2014:RSS:2660854.2635814}. Note that all equations listed below are modulo $p$.
+Where $p$ is a prime number, and $r$ is a random number such that $1 < r < p$. Alongside the fingerprint $\phi(T)$, we store $r^n \mod p$ and $r^{-n} \mod p$ in a tuple. Using these three properties, we can manipulate the fingerprints to affect the underlying strings in three ways\cite{5438620}. Note that all equations listed below are modulo $p$.
 
 \begin{itemize}
   \item \textbf{Concatenate:} If we have a fingerprint $\{\phi(u), r^{n_1}, r^{-n_1}\}$ for a string $u$ of length $n_1$ and another fingerprint $\{\phi(v), r^{n_2}, r^{-n_2}\}$ for a string $v$ of length $n_2$, the concatenation of these two strings is $\{\phi(u) + \phi(v)*r^{n_1}, r^{n_1} * r^{n_2}, r^{-n_1} * r^{-n_2}\}$
@@ -383,7 +383,9 @@ The last point to mention is the probability of a collision. Breslauer and Galil
 \noindent
 In 2009, Porat and Porat\cite{5438620} provided the first solution to a pattern matching problem in sublinear space to the size of the pattern. Utilising Karp-Rabin fingerprints as described in the previous section, their randomised algorithm for single pattern matching in the streaming model had $O(\log m)$ complexity both in terms of space and time per character.
 
-Instead of storing the entire pattern in a single fingerprint, the pattern was broken up into $\lfloor \log_2 m\rfloor$ fingerprints, each a power of two prefix of the patter. These fingerprints denoted $\phi_i$, are computed as follows:
+Detailed below is not Porat and Porat's algorithm itself, but a variant of it developed by Breslauer and Galil in 2014\cite{Breslauer:2014:RSS:2660854.2635814}. The two algorithms can be seen as computationally equivalent.
+
+Instead of storing the entire pattern in a single fingerprint, the pattern is broken up into $\lfloor \log_2 m\rfloor$ fingerprints, each a power of two prefix of the patter. These fingerprints denoted $\phi_i$, are computed as follows:
 
 $$\phi_i = \phi(p_0...p_{2^i-1})$$
 
@@ -469,7 +471,7 @@ There is however, a caution about this method. It must be remembered that we are
 
 We can check for this when we insert a new VO into an arithmetic progression. If there are two or more VOs already stored, we compare the difference between the location of the newest VO currently stored and the location of this new VO, and also check the suffix of the new VO's fingerprint with the fingerprint of the newest VO currently stored. If these two values are equal to the length and fingerprint of the period, then we store this new VO by incrementing the number of VOs currently stored and continue as usual.
 
-If the above condition does not hold and these two conditions do not match, there is no general consensus on how to handle this case of a non-periodic VO. Breslauer and Galil\cite{Breslauer:2014:RSS:2660854.2635814} recommend not inserting the occurance into the pattern, yet reporting the index as a match against the whole pattern anyway and accepting some chance of false positives. Other papers\cite{JPS:2013} ignore this issue altogether and leave it as a decision for implementation. % TODO: Might want to remove this last sentence if possible.
+If the above condition does not hold and these two conditions do not match, there is no clear consensus on how to handle this case of a non-periodic VO. Porat and Porat themselves ignore this case, and simply accept that there is a possibility of both false positives and false negatives. Breslauer and Galil\cite{Breslauer:2014:RSS:2660854.2635814} recommend not inserting the occurance into the pattern, yet reporting the index as a match against the whole pattern anyway to accept some chance of false positives yet still finding all instances of the pattern.
 
 Independent of whether or not the condition holds, inserting and removing VOs can be performed in constant time and the VOs for a given row can be stored compactly in $O(1)$ space. Because there are $\lfloor\log_2m\rfloor$ levels, the overall algorithm now uses $O(\log m)$ in both space and time per character.
 
