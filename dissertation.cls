@@ -15,7 +15,7 @@
         year/.store in=\dissertation@year,       % string
   % defaults
       author = {},
-  supervisor = {},
+  supervisor = {Dr. Raphaël Clifford and Dr. Benjamin Sach},
       degree = {MEng},
        title = {},
     subtitle = {},
@@ -101,6 +101,10 @@
 }
 
 \pagestyle{plain}
+
+% add paragraph breaks
+\setlength{\parskip}{1em}
+\renewcommand{\baselinestretch}{1.1}
 
 
 % -----------------------------------------------------------------------------

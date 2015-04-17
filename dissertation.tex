@@ -21,8 +21,6 @@
 
 \documentclass[ % the name of the author
                     author={Dominic Joseph Moylett},
-                % the name of the supervisor
-                supervisor={Dr. Raphael Clifford and Dr. Benjamin Sach},
                 % the degree programme
                     degree={MEng},
                 % the dissertation    title (which cannot be blank)
@@ -106,7 +104,6 @@ but an example is as follows:
 \chapter*{Supporting Technologies}
 
 \begin{quote}
-\noindent
 \begin{itemize}
 \item I used the GNU Multiple Precision Arithmetic Library (GMP) to support my implementation of Karp-Rabin fingerprints.
 \item I used the C Minimum Perfect Hashing Library (CMPH) for static perfect hashing.
@@ -119,19 +116,22 @@ but an example is as follows:
 \chapter*{Notation and Acronyms}
 
 \begin{quote}
-\noindent
 \begin{tabular}{lcl}
 CMPH &: & C Minimum Perfect Hashing Library \\
 GMP &: & GNU Multiple Precision Arithmetic Library \\
-VO &: & A Viable Occurance, a portion of the text which might match a pattern \\
+VO &: & A Viable Occurrence, a portion of the text which might match a pattern \\
+KMP &: & The Knuth-Morris-Pratt single pattern matching algorithm \\
+BST &: & Binary Search Tree \\
+RBT &: & Red-Black Tree, a specific instance of a binary search tree \\
 $T$ &: & A text string of $n$ characters \\
 $t_i$ &: & The $i$-th character in T \\
 $\mathcal{P}$ &: & A list of $k$ patterns \\
 $P_i$ &: & The $i$-th pattern in $\mathcal{P}$, a text string of $m_i$ characters \\
 $M$ &: & A list of the length of each pattern in $\mathcal{P}$. \\
 $p_{i,j}$ &: & The $j$-th character in $P_i$ \\
-$\phi(T)$ &: & The Karp-Rabin fingerprint of a text string $T$ \\
-$\rho_T$ &: & The period of a text string $T$ \\
+$|S|$ &: & The length of a string $S$ \\
+$\phi(S)$ &: & The Karp-Rabin fingerprint of a string $S$ \\
+$\rho_S$ &: & The period of a string $S$ \\
 \end{tabular}
 \end{quote}
 
@@ -139,7 +139,6 @@ $\rho_T$ &: & The period of a text string $T$ \\
 
 \chapter*{Acknowledgements}
 
-\noindent
 First and foremost, I would like to thank my supervisors: Dr. Rapha\"{e}l Clifford and Dr. Benjamin Sach. This project would have been impossible without their work and advice. Alongside them, I would like to mention Dr. Markus Jalsenius for his assistance during the summer project that led to this work and Dr. Allyx Fontaine, who contributed to the paper on which my project is based and advised me alongside Benjamin every week.
 
 Everyone on my course has had an impact on me over the past four years. In particular, I would like to mention William Coaluca, Stephen de Mora, Nicholas Phillips, James Savage and Ashley Whetter. I have put countless hours into many projects with one or more of them.
@@ -218,25 +217,23 @@ More specifically, the concrete aims are:
 
 \section{Pattern Matching: Formal Definitions}
 
-\noindent
 Pattern matching with a single pattern is a simple problem to describe intuitively: We have a text and a pattern, and we want to output any indexes where the pattern occurs in the text.
 
 More formally, we refer to the text by $T$, and define it as a string of $n$ characters $t_0...t_{n-1}$. Likewise, the pattern is referred to as $P$, and is a string of $m$ characters $p_0...p_{m-1}$. The aim of the text indexing problem is to output indexes $i \in \{m-1,...,n-1\}$ such that $t_{i-m+1}...t_{i} = P$.
 
-It is worth noting that there are many other ways of defining this problem. The most notable differences in this paper are that the text and pattern are indexed at zero instead of one, and that the index at the end of the pattern's occurance is returned instead of the index at the start. Both of these are done to be intentionally to be consistent with the code implemented: The zero-indexing is because the implementations are written in C, which also uses zero indexing, and reporting the index at the end of the occurance is to cater for the streaming model, on which more information will be provided later.
+It is worth noting that there are many other ways of defining this problem. The most notable differences in this paper are that the text and pattern are indexed at zero instead of one, and that the index at the end of the pattern's occurrence is returned instead of the index at the start. Both of these are done to be intentionally to be consistent with the code implemented: The zero-indexing is because the implementations are written in C, which also uses zero indexing, and reporting the index at the end of the occurrence is to cater for a limitation on the algorithm by Clifford et al. detailed in Section~\ref{ssec:periodic-theory}.
 
 \subsection{Dictionary Matching: Formal Definitions}
+\label{ssec:dict-matching:definitions}
 
-\noindent
 Like pattern matching, dictionary matching is also simple to describe intuitively: We have one text as before, but now we have multiple patterns, and we want to output any indexes where a pattern occurs in the text.
 
 Formally, this is defined as follows: We have a text $n$ characters long $T = t_0...t_{n-1}$, and a set of $k$ patterns $\mathcal{P} = \{P_0,...,P_k\}$ of respective lengths $M = \{m_0,...,m_k\}$. Hence a given pattern $P_i$ is a string of $m_i$ characters $p_{i,0}...p{i,m_i-1}$. We output an index $j \in \{\min(M),...,n_1\}$ if $\exists i \in \{0,...,k-1\}$ such that $t_{j-m_i+1}...t_{j} = P_i$.
 
-Note that for this work, we do not care about what pattern has occured in the text, only that a pattern has occured. This is due to a limitation with one of the algorithms, which will be discussed later.
+Note that for this work, we do not care about what patterns have occured in the text, only that a pattern has occured. This is due to a limitation with the algorithm by Clifford et al., which will be discussed in Section~\ref{ssec:periodic-theory}.
 
 \section{The Streaming Model}
 
-\noindent
 Data streaming is a way of reducing space consumption for certain problems. Under this model, required space is reduced by not processing the entire problem input at once. Instead, the input is provided to the algorithm in portions, delivered via a stream of data. The algorithm processes one portion of the input at a time, and it is required that the algorithm is not allowed to store the entire input.
 
 Under this model, we measure performance by two properties:
@@ -264,8 +261,7 @@ Of course, these are poor solutions to both pattern and dictionary matching. We 
 
 \section{The Aho-Corasick Algorithm for Dictionary Matching}
 
-\noindent
-The Aho-Corasick Algorithm for Efficient String Matching\cite{Aho:1975:ESM:360825.360855} -- known hereafter as Aho-Corasick -- is a deterministic algorithm for dictionary matching. Published in 1975, the algorithm works as a generalisation of Knuth-Morris-Pratt, extending the state machine from single patterns in KMP to multiple patterns.
+The Aho-Corasick Algorithm for Efficient String Matching\cite{Aho:1975:ESM:360825.360855} -- known hereafter as Aho-Corasick -- is a deterministic algorithm for dictionary matching. Published in 1975, the algorithm works as a generalisation of Knuth-Morris-Pratt (KMP)\cite{kmp}, extending the state machine from single patterns in KMP to multiple patterns.
 
 Preprocessing consists of three algorithms. The first, Algorithm~\ref{alg:ac-goto}, produces the $\text{goto}$ function, which determines what to do if the next character in the stream is a match. This in essence works by building a suffix tree: We traverse the tree until we either reach the end of the pattern or we hit a leaf, and then append the rest of the pattern to the leaf. Note that $\Sigma$ refers to the alphabet of the patterns and $fail$ is a default fail state for if the $\text{goto}$ function cannot find a character for that state.
 
@@ -332,7 +328,7 @@ $queue \gets empty$\\
 \While{$queue \neq empty$} {
   $r \gets \text{pop}(queue)$\\
   \ForEach{$a \in \Sigma$}{
-    \If{$\text{goto}(r, a) = s \neq fail$}{
+    \uIf{$\text{goto}(r, a) = s \neq fail$}{
       $queue \gets queue \cup {s}$\\
       $\text{next}(r, a) = s$
     }
@@ -347,19 +343,17 @@ $queue \gets empty$\\
 
 \subsection{An Alternative: The Commentz-Walter Algorithm}
 
-Much like how Aho-Corasick is an algorithm for dictionary matching based on Knuth-Morris-Pratt, Commentz-Walter\cite{commentz-walter:algo} is an algorithm based on Boyer-Moore algorithm, using similar techniques to Aho-Corasick to convert the algorithm from single pattern to multiple patterns. While it is interesting to note as an alternative, particularly because of its time improvement on average cases and the fact that a variant of it is used in the GNU command \texttt{grep},\footnote{See \url{http://git.savannah.gnu.org/cgit/grep.git/tree/src/kwset.c}} it is not implemented in this project. This is because, like Boyer-Moore, the Commentz-Walter algorithm skips indexes in the text, which is not possible in the streaming model.
+Much like how Aho-Corasick is an algorithm for dictionary matching based on Knuth-Morris-Pratt, Commentz-Walter\cite{commentz-walter:algo} is an algorithm based on Boyer-Moore algorithm\cite{Boyer:1977:FSS:359842.359859}, using similar techniques to Aho-Corasick to convert the algorithm from single pattern to multiple patterns. While it is interesting to note as an alternative, particularly because of its time improvement on average cases and the fact that a variant of it is used in the GNU command \texttt{grep},\footnote{See \url{http://git.savannah.gnu.org/cgit/grep.git/tree/src/kwset.c}} it is not implemented in this project. This is because, like Boyer-Moore, the Commentz-Walter algorithm skips indexes in the text, which is not possible in the streaming model.
 
 \section{Minimal Perfect Hashing}
 \label{min-perf-hash}
 
-\noindent
 For a universe $U$, a hash function $\text{h}$ is static if it can perform lookups for a pre-defined set of keys $S \subseteq U$ to a set of integers $\mathbb{Z}_m$. Said hash function is a static \textit{perfect} hash function if $\forall x \in S, \text{h}(x)$ is collision-free, and thus takes constant time to look up. Finally, a hash function is a \textit{minimal} perfect hash function if $m = |S|$. In other words, a minimal perfect hash function maps a set of $m$ keys to $\mathbb{Z}_m$ without any collisions.
 
 The implementation of minimal perfect hash functions will not be detailed here, as they are used merely as a library and are thus not part of implementation. For further information, I direct the reader to the C Minimal Perfect Hashing Library (CMPH) website: \url{http://cmph.sourceforge.net/} Of particular interest is the paper on the Compress, Hash and Digest algorithm by Belazzougui, Botelho and Dietzfelbinger\cite{belazzougui:chd}, as the algorithm from CMPH used throughout this work.
 
 \section{Karp-Rabin Fingerprints}
 
-\noindent
 Karp-Rabin fingerprints\cite{5390135} are a function $\phi : \Sigma* \to \mathbb{Z}_p$ for some prime number $p$. For a text $T$ of length $n$ characters, the Karp-Rabin fingerprint is defined as:
 
 $$\phi(T) = \sum_{i = 0}^{n - 1} r^it_i \mod p$$
@@ -374,13 +368,13 @@ Where $p$ is a prime number, and $r$ is a random number such that $1 < r < p$. A
 
 All of these operations can be completed in constant time.
 
-It is interesting to note that a variant of the Karp-Rabin algorithm can be used for a subset of dictionary matching, where all the patterns are the same length $m$\cite[pp 205-206]{candan:data}. This can be done by storing a fingerprint of the last $m$ characters read from the text, and using static perfect hashing as described in section \ref{min-perf-hash} to check if the fingerprint of the text matches any fingerprints of the patterns. Using suffix and concatenation tectniques above and storing a circular buffer of the last $m$ characters, we can accomplish this with $O(k + m)$ space and $O(1)$ time per character. However, due to the limitation that all the patterns have to be the same length, this method has not been implemented for this project.
+It is interesting to note that a variant of the Karp-Rabin algorithm can be used for a subset of dictionary matching, where all the patterns are the same length $m$\cite{candan:data}. This can be done by storing a fingerprint of the last $m$ characters read from the text, and using static perfect hashing as described in section \ref{min-perf-hash} to check if the fingerprint of the text matches any fingerprints of the patterns. Using suffix and concatenation tectniques above and storing a circular buffer of the last $m$ characters, we can accomplish this with $O(k + m)$ space and $O(1)$ time per character. However, due to the limitation that all the patterns have to be the same length, this method has not been implemented for this project.
 
-The last point to mention is the probability of a collision. Breslauer and Galil\cite{Breslauer:2014:RSS:2660854.2635814} provide a theorem that if $u$ and $v$ are two different strings of length $l \leq n$, $p \in \theta(n^{2 + \alpha})$ for some level of accuracy $\alpha \geq 0$ and $r \in \mathbb{Z}_p$ is randomly chosen, then the probability that $\phi(u) = \phi(v)$ is smaller than $\frac{1}{n^{1 + \alpha}}$. We will however see later why this does not necessarily hold for the dictionary matching algorithm devised by Clifford et al..
+The last point to mention is the probability of a collision. Breslauer and Galil\cite{Breslauer:2014:RSS:2660854.2635814} provide a theorem that if $u$ and $v$ are two different strings of length $l \leq n$, $p \in \theta(n^{2 + \alpha})$ for some level of accuracy $\alpha \geq 0$ and $r \in \mathbb{Z}_p$ is randomly chosen, then the probability that $\phi(u) = \phi(v)$ is smaller than $\frac{1}{n^{1 + \alpha}}$. We will however see later why this does not necessarily hold for the dictionary matching algorithm devised by Clifford et al. \cite{clifford:dict-matching}.
 
 \section{Porat and Porat: Single Pattern Matching in Sublinear Space}
+\label{porat-porat}
 
-\noindent
 In 2009, Porat and Porat\cite{5438620} provided the first solution to a pattern matching problem in sublinear space to the size of the pattern. Utilising Karp-Rabin fingerprints as described in the previous section, their randomised algorithm for single pattern matching in the streaming model had $O(\log m)$ complexity both in terms of space and time per character.
 
 Detailed below is not Porat and Porat's algorithm itself, but a variant of it developed by Breslauer and Galil in 2014\cite{Breslauer:2014:RSS:2660854.2635814}. The two algorithms can be seen as computationally equivalent.
@@ -401,13 +395,13 @@ These fingerprints can be created in a streaming fashion, so each character of t
   \end{cases}
 \]
 
-With this structure, we can now look at what we compute as each character of the text enters our stream. When $t_j$ enters the stream, we first compute the fingerprint $\phi(t_j)$, update our fingerprint of the text read so far $\phi(t_0...t_j)$ and check if $\phi(t_j) = \phi_0$. If this case is true, we have what is referred to as a viable occurance (VO) for level 1. When we have a VO at level 1 after character $\phi(t_j)$ has entered the stream, we store two properties: $j-1$ and $\phi(t_0...t_{j-1})$\footnote{If $j = 0$ then -1 and the fingerprint of the empty string will be stored as a VO.} in a list of viable occurances for level 1.
+With this structure, we can now look at what we compute as each character of the text enters our stream. When $t_j$ enters the stream, we first compute the fingerprint $\phi(t_j)$, update our fingerprint of the text read so far $\phi(t_0...t_j)$ and check if $\phi(t_j) = \phi_0$. If this case is true, we have what is referred to as a viable occurrence (VO) for level 1. When we have a VO at level 1 after character $\phi(t_j)$ has entered the stream, we store two properties: $j-1$ and $\phi(t_0...t_{j-1})$\footnote{If $j = 0$ then -1 and the fingerprint of the empty string will be stored as a VO.} in a list of viable occurrences for level 1.
 
-After performing the above, we retrieve the oldest VO we have stored at level 1, which has properties $j'$ and $\phi(t_0...t_{j'-1})$. If $j - j' = 2$, we now know that enough characters have passed for us to be able to check if this viable occurance requires promotion. We remove this occurance from our list of VOs for level 1 and use the fingerprint suffix operation on our fingerprint of the text and $\phi(t_0...t_{j'-1})$ to retrieve $\phi(t_{j'}...t_j)$. We then check if $\phi(t_{j'}...t_j) = \phi_1$ and if this is the case, we promote this occurance by storing $j'$ and $\phi(t_0...t_{j'-1})$ in a list of viable occurances for level 2. Otherwise, we discard the occurance.
+After performing the above, we retrieve the oldest VO we have stored at level 1, which has properties $j'$ and $\phi(t_0...t_{j'-1})$. If $j - j' = 2$, we now know that enough characters have passed for us to be able to check if this viable occurrence requires promotion. We remove this occurrence from our list of VOs for level 1 and use the fingerprint suffix operation on our fingerprint of the text and $\phi(t_0...t_{j'-1})$ to retrieve $\phi(t_{j'}...t_j)$. We then check if $\phi(t_{j'}...t_j) = \phi_1$ and if this is the case, we promote this occurrence by storing $j'$ and $\phi(t_0...t_{j'-1})$ in a list of viable occurrences for level 2. Otherwise, we discard the occurrence.
 
-We repeat the above process $\log_2m$ times per character. At the $i$-th level, we check if the oldest VO occured $2^i$ characters back and if so, we then check if the fingerprint of the last $2^i$ characters matches the fingerprint of the $2^i$ prefix of the pattern. If they match, we promote this occurance to the $i+1$-th level. At the final level, we check if the oldest VO for this level occured $m$ characters ago. If so, we check if the fingerprint of the last $m$ characters of the text matches the fingerprint of the whole pattern. If they do match, then a match is reported at index $j$, where $t_j$ was the last character read.
+We repeat the above process $\log_2m$ times per character. At the $i$-th level, we check if the oldest VO occured $2^i$ characters back and if so, we then check if the fingerprint of the last $2^i$ characters matches the fingerprint of the $2^i$ prefix of the pattern. If they match, we promote this occurrence to the $i+1$-th level. At the final level, we check if the oldest VO for this level occured $m$ characters ago. If so, we check if the fingerprint of the last $m$ characters of the text matches the fingerprint of the whole pattern. If they do match, then a match is reported at index $j$, where $t_j$ was the last character read.
 
-This algorithm gives us $O(\log m)$ time per character, but the space complexity is still linear. This can be easily seen if the text and pattern are both strings of the letter $a$. After 6 characters, the list of viable occurances for each level would look like similar to the example given in Figure~\ref{tab:pp-vos}. Note that level 0 is not included in the aforementioned figure as there are no VOs stored for that level.
+This algorithm gives us $O(\log m)$ time per character, but the space complexity is still linear. This can be easily seen if the text and pattern are both strings of the letter $a$. After 6 characters, the list of viable occurrences for each level would look like similar to the example given in Figure~\ref{tab:pp-vos}. Note that level 0 is not included in the aforementioned figure as there are no VOs stored for that level.
 
 \begin{figure}[t]
 \centering
@@ -422,13 +416,11 @@ This algorithm gives us $O(\log m)$ time per character, but the space complexity
 \label{fig:pp-vos}
 \end{figure}
 
-At level $i$, we have to store up to $2^{i - 1}$ viable occurances. The final row has to store at most $\frac{m}{2}$ viable occurances. Storing these VOs na\"{i}vely will result in $1 + 2 + ... + 2^{i - 1} + ... + \frac{m}{2} \in O(m)$ space being used overall.
-
-So we are not able to simply store every VO for each level in an array. But there is a way of compressing these VOs.
+At level $i$, we have to store up to $2^{i - 1}$ viable occurrences. The final row has to store at most $\frac{m}{2}$ viable occurrences. Storing these VOs na\"{i}vely in a list will result in $1 + 2 + ... + 2^{i - 1} + ... + \frac{m}{2} \in O(m)$ space being used overall, so that is not an option. But there is a way of compressing these VOs.
 
 Consider what has happened when level $i$ receives a promotion from level $i-1$ at index $j$. This means that the fingerprint $\phi(t_{j - 2^{i-1}}...t_j)$ matched $\phi_{i-1}$. Now consider if level $i$ receives a promotion at index $j+1$. Now both the fingerprints $\phi(t_{j - 2^{i-1}}...t_j)$ and $\phi(t_{j - 2^{i-1} + 1}...t_{j + 1})$ matched $\phi_{i-1}$. Assuming that a collision did not occur in the Karp-Rabin fingerprinting -- an assumption that holds with at least probability $1 - \frac{1}{n^{1 + \alpha}}$ since the associated strings are the same length and fingerprinting parameters $p$ and $r$ have been picked correctly -- it must hold that $t_{j - 2^{i-1}}...t_j = t_{j - 2^{i-1} + 1}...t_{j + 1}$. In order for this to be the case, it is necessary that the prefix $p_0...p_{2^{i-1} - 1}$ repeats itself.
 
-We can see this in the example where the text and pattern are just strings of the letter $a$. If we consider a more detailed look at where the viable occurances are promoted to level 3, as shown in Figure~\ref{fig:pp-level-3}, we can see that the only reason we need to store $2^{3-1} = 4$ VOs is because the 4 character prefix of the pattern is so repetitive.
+We can see this in the example where the text and pattern are just strings of the letter $a$. If we consider a more detailed look at where the viable occurrences are promoted to level 3, as shown in Figure~\ref{fig:pp-level-3}, we can see that the only reason we need to store $2^{3-1} = 4$ VOs is because the 4 character prefix of the pattern is so repetitive.
 
 \begin{figure}[t]
 \centering
@@ -471,9 +463,95 @@ There is however, a caution about this method. It must be remembered that we are
 
 We can check for this when we insert a new VO into an arithmetic progression. If there are two or more VOs already stored, we compare the difference between the location of the newest VO currently stored and the location of this new VO, and also check the suffix of the new VO's fingerprint with the fingerprint of the newest VO currently stored. If these two values are equal to the length and fingerprint of the period, then we store this new VO by incrementing the number of VOs currently stored and continue as usual.
 
-If the above condition does not hold and these two conditions do not match, there is no clear consensus on how to handle this case of a non-periodic VO. Porat and Porat themselves ignore this case, and simply accept that there is a possibility of both false positives and false negatives. Breslauer and Galil\cite{Breslauer:2014:RSS:2660854.2635814} recommend not inserting the occurance into the pattern, yet reporting the index as a match against the whole pattern anyway to accept some chance of false positives yet still finding all instances of the pattern.
+If the above condition does not hold and these two conditions do not match, there is no clear consensus on how to handle this case of a non-periodic VO. Porat and Porat themselves ignore this case, and simply accept that there is a possibility of both false positives and false negatives. Breslauer and Galil\cite{Breslauer:2014:RSS:2660854.2635814} recommend not inserting the occurrence into the pattern, yet reporting the index as a match against the whole pattern anyway to accept some chance of false positives yet still finding all instances of the pattern.
 
 Independent of whether or not the condition holds, inserting and removing VOs can be performed in constant time and the VOs for a given row can be stored compactly in $O(1)$ space. Because there are $\lfloor\log_2m\rfloor$ levels, the overall algorithm now uses $O(\log m)$ in both space and time per character.
+
+\section{Binary Search Trees}
+A Binary Search Tree (BST)\cite{clrs:bst} is a tree where each node has at most two children and for every node in the tree, all the descendants to the left of the tree have a smaller value than the given node, and those to the right have a larger value. The height of a BST is determined by the longest distance from any leaf to the root of the tree, and a BST is self-balancing if its height is kept small regardless of what items are inserted or removed. Because a lot of BST operations run in time dependent on the height of the tree, keeping this factor small is important.
+
+Of particular note are Red-Black Trees (RBT)\cite{clrs:rbt}, which are the binary search trees used in this project. Their time complexity when containing $n$ items is $O(log n)$ for insert, search and delete and $O(n)$ Because this is used as a library function and not implemented by myself, we will not go into detail on how RBTs work. For more information on Red-Black Trees, I encourage the reader to consult the CLRS chapter cited above, the original paper by Bayer\cite{bayer:rbt}, and the website for the implementation used in this project: \url{http://en.literateprograms.org/Red-black_tree_%28C%29}
+
+\section{Clifford, Fontaine, Porat and Sach: Dictionary Matching in Sublinear Space}
+
+Clifford et al.\cite{clifford:dict-matching} provided a solution to dictionary matching under the streaming model in less space than it takes to store the pattern. Their solution uses $O(k\log m)$ space and $O(\log m)$ time per character, where $m = \max(M)$. It is worth noting that this description is based off of a version of this paper that was not accept, and the accepted version of the paper will likely have some differences to what is described here. Also note that these are how the algorithm is described in the paper; any changes to how the algorithm works in later chapters are my own work to correct the algorithm.
+
+The first step to understanding the algorithm as described in the paper is to consider a subset of the dictionary matching problem, where all the patterns are a power of two in length. This algorithm is very similar to the one described in Section~\ref{porat-porat}, where all the patterns are broken up into $\log m_i$ fingerprints, denoted $\phi_{i,j}$ and defined as follows:
+
+$$\phi{i,j} = \phi(p_{i,0}...p_{i,2^j-1})$$
+
+Each level of the algorithm now contains up to $k$ of these prefix fingerprints, and stores all of them in a static perfect hash table. Along with this, each level stores up to $k$ aritmetic progressions of viable occurrences. When the next character enters the stream, each level checks if one of the arithmetic progressions has a viable occurrence that requires processing. If there is, then the algorithm uses static perfect hashing to check if the last $2^j$ characters in the text match any of the prefixes at that level. If there is a match, that VO is promoted to the next level. Finally, a flag is also specified in the hash table to indicate if the given fingerprint is actually the fingerprint of a whole pattern. If that flag is true, then a match at that index is reported.
+
+In terms of complexity, each level requires $O(k)$ space and there are $\log m$ levels, so space usage is $O(k\log m)$ as required. Time complexity depends on how long it takes to figure out if an arithmetic progression needs processing and if so which one. Assuming this can be done in constant time, then each level takes constant time and thus an overall performance of $O(\log m)$ time per character is given.
+
+In order to go from this to the general case of any length of pattern, the patterns are broken up into three cases, based on their length $m_i$ and period $\rho_i = \rho_{P_i}$:
+
+$$|\rho_i| \geq k; (m_i \geq k \text{ and } |\rho_i| < k); m_i < k$$
+
+\subsection{Patterns with Long Periods}
+
+We start with the case where for every pattern $P_i$ in our dictionary $|\rho_i| \geq k$. We start by defining $Q_i$ to be the $m_i - k$ prefix of the $i$-th pattern. For this algorithm to work, we continue under the assumption that $|\rho_{Q_i}| \geq k$. We will see a brief solution for when this assumption does not hold in the subsubsection at the end of this case.
+
+The first part of this case works the same as in the power of two length case. We perform the above algorithm on $\log|Q|$ levels, where $Q$ is the prefix of the longest pattern. If there is a match at a given level, we insert the viable occurrence that matched into a special row, which stores one arithmetic progression for each prefix. At each text index $j$, we process two prefixes. Let $Q_i$ be one of those prefixes processed at $j$, and we perform the following:
+
+\begin{enumerate}
+  \item First, if $j \geq l + |Q_i|$, where $l$ is the location of the VO stored in the arithmetic progression related to $Q_i$, then we check if $\phi(t_{l+1}...t_{l+Q_i+1}) = \phi(Q_i)$. In other words, did the $|Q_i|$ characters following the VO location match the prefix?
+  \item If there is a match, then we insert all the fingerprints for the $k$ length suffixes of all the patterns in the dictionary for which $Q_i$ is a prefix into a binary search tree (BST). The binary search tree is set up so that it will only be queried when the stream reaches index $l + |Q_i| + k$.
+\end{enumerate}
+
+Finally, the algorithm checks to see if any binary search trees need processing. If so, the algorithm takes the fingerprint of the last $k$ characters seen in the stream, and searches the BST to see if a match is found. If a match is found, then an entire pattern has been matched, and the index $j$ is returned.
+
+Time complexity wise, processing the power of two length prefixes costs $O(\log|Q|)$ time per character by simply substituting $m = |Q|$ into the previous definitions. The first step of processing each prefix takes constant time, but may be delayed by up to $\frac{k}{2}$ characters. The second step is more complicated, and in the worst case -- where all the patterns have the same $m_i - k$ length prefix -- will take $O(k\log k)$ time per character if implemented na\"{i}vely. However, because of our assumption that $\forall i, |\rho_{Q_i}| \geq k$, each prefix can only occur once every $k$ characters. This means that, amortised over $k$ characters, our time complexity becomes $O(\log k)$ time per character. Furthermore, this can be deamortised by inserting two suffixes into the BST per index, bringing our worst case time complexity for this step down to $O(\log k)$ per character. Steps 1 and 2 are both delayed by at most $\frac{k}{2}$ indexes each, so the overall delay will be at most $k$ indexes, within time for the BST to be processed. Finally, searching the BST takes $O(\log k)$ time. Putting all of this together gives us $O(\log|Q| + \log k)$ time per character, and because of our assumption that $\rho_Q \geq l$, this becomes $O(\log|Q|) \in O(\log m)$ time per character.
+
+As for space usage, the power of two length prefixes uses $O(k\log|Q|)$ space. Storing the fingerprints of all the prefixes costs $O(k)$ space, as does storing lists of all the suffixes. To cater for both the $\frac{k}{2}$ delay in the first step of the prefix processing and searching for the fingerprint of the last $k$ characters in a BST, we store a circular buffer of the last $k$ fingerprints, which takes up $O(k)$ space. Finally, we may need up to $k$ binary search trees, and at any given time the total number of nodes across all BSTs is at most $k$, so this again is $O(k)$ space. This gives us an overall space usage of $O(k\log|Q|) \in O(k\log m)$ space.
+
+\subsubsection{An Edge Case}
+\label{sssec:edge-case-theory}
+
+As previously mentioned, there is an edge case in the above algorithm if $\exists i \text{ such that } |\rho_{Q_i}| < k$. Any patterns which fall under this case can be processed by using the algorithm for long patterns with short periods described in Section~\ref{ssec:periodic-theory} to process their prefix $Q_i$. Any matches returned from this algorithm can be extended from $m_i - k$ to $m_i$ by a combination of fingerprinting and static perfect hashing.
+
+\subsection{Long Patterns with Short Periods}
+\label{ssec:periodic-theory}
+
+The next case detailed is where the patterns in the dictionary are longer than $k$, but their periods are shorter. In this algorithm, we store a fingerprint of the $k$ length prefix of each pattern, and call the result $K_i$. For each $K_i$, we store a fingerprint of the period of the pattern $\phi(\rho_i)$ and the period's length $|rho_i|$ along with a counter of the number of times it has occurred the index of the last time it occurred in the current arithmetic progression and the fingerprint of the text at the last occurrence.
+
+When a new index comes in, we use a static perfect hash function to check if the fingerprint of the last $k$ characters in the text stream matches some $K_i$. If so, we check if this index fits in with the rest of $K_i$'s arithmetic progression by checking the current index is $|\rho_i|$ characters away from the last occurrence and the fingerprint suffix of the current stream with the fingerprint of the stream at the last occurrence matches the fingerprint of the period. If they do match then we increment the counter, otherwise we abandon the arithmetic progression by resetting the counter to 1 and setting the last occurrence to the current index and fingerprint.
+
+The second step we perform is to check if the fingerprint of the last $k$ characters in the text matches the last $k$ characters in one of the patterns -- referred to as the \textit{tail} of each pattern. This can be done by storing the fingerprint of the tails of each pattern in another static perfect hash table.
+
+At this point, we are going to assume that no patterns are a suffix of another pattern. If this is not the case, then it is possible to perform dictionary matching, but it comes at the cost of not knowing which patterns have matched. This is why for our choice of dictionary matching, we do not care about what pattern(s) have matched. It is also why we can only return the index at the end of the instance; the only way we could know the starting index of the would be if we knew what the pattern was, since then we could just simply take the current index and subtract the length of the pattern.
+
+Anyway, either through no pattern being a suffix of any other pattern or through discarding the patterns which do have other patterns as suffixes, we end up in a situation where each pattern has a unique tail. If the last $k$ characters in the stream match the tail of some pattern $P_i$, we check the arithmetic progression associated with that pattern. In order for a match to have occured, there need to have been at least $\lfloor\frac{m_i}{\rho_i}\rfloor$ occurrences of $K_i$ in the progression, and the last occurrence must have happened $m_i \mod \rho_i$ characters ago. If both of these conditions hold, then a match is reported.
+
+Complexity wise, the progressions can be stored in $O(k)$ space, as can the fingerprints of the tails. The fingerprint of the last $k$ characters in the text stream can be stored by using a circular array of such fingerprints for the last $k$ indexes. Thus space usage is $O(k)$. As for time, the static perfect hashing operations are constant time, as is inserting the occurrence into the arithmetic progressions and checking for a match, so time overall is $O(1)$.
+
+\subsection{Short Patterns}
+
+The final case to consider is where all the patterns are shorter than $k$. The algorithm for this case is an adaptation of binary search, searching over suffixes of the stream of lengths from 1 to $k$ to see if a pattern matches any of them. However, binary search cannot be applied na\"{i}vely, as we may need to search both parts of the search space. Instead, we use a hash table with a fingerprint as the key and a boolean as the value to find out which half of the space to search.
+
+Algorithm~\ref{alg:short-dict-matching} computes the hash table that is used. We call $\mathtt{PreProc}(k',m_i)$ on each pattern $P_i$, where $k'$ is the nearest integer power of two no smaller than $k$. Note that $\mathcal{S}$ is a boolean function which, given a string, returns True if there is a pattern in the dictionary which is a suffix of that string, and False otherwise.
+
+\begin{algorithm}[t]
+\uIf {$y \geq x/2$} {
+  $\mathcal{H}_3.\text{insert}(\phi(p_{y-x/2}...p_{m_i}), \mathcal{S}(p_{y-x/2}...p_{m_i}))$
+  $\mathtt{PreProc}(x/2,y - x/2)$
+}
+\Else {
+  $\mathtt{PreProc}(x/2,y)$
+}
+\caption{$\mathtt{PreProc}(x,y)$: Preprocessing of a single pattern}
+\label{alg:short-dict-matching}
+\end{algorithm}
+
+At each index $j$, we keep a cyclic buffer of the previous $k'$ fingerprints of the whole stream. We start our binary search by seeing if $\phi(t_{j - k/2 + 1}...t_j)$ is within the hash table and its associated boolean value. If the boolean value is True, we know that there is an occurance of the pattern which ends at this index, so we report it. If the boolean value is false but the key exists in the table, then we know that this fingerprint matches the suffix of a pattern, but not necessarily all of it, so we check the longer suffixes of the text. If there is no key in the table, then we know that no pattern matches this suffix, but they might match shorter ones, so we check shorter suffixes instead. This continues until we either report an instance or run out of search space.
+
+For space complexity, the only space used is the hash function which uses $O(k\log k)$ space to store the fingerprints and their associated booleans and the cyclic buffer, which uses $O(k') \in O(2k) \in O(k)$ space, so the overall space usage is $O(k\log k)$. The only step in the algorithm is the binary search, which takes $O(\log k)$ time per character.
+
+\section{Arbitrary-Precision Arithmetic}
+
+Arbitrary-Precision Arithmetic are libaries which allow for computation of numbers beyond what is capable of a typical machine. Common applications include Cryptography and linear algebra.
+
+Again, little detail will be provided here due to the fact that this is not implemented and only used as an external library. For more information, feel free to visit the GNU Multiple Precision Arithmetic Library (GMP) website at \url{https://gmplib.org/}.
 
 % -----------------------------------------------------------------------------
 
