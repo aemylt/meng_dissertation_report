@@ -28,6 +28,7 @@
 
 % see http://www.ctan.org/tex-archive/macros/latex/required/graphics
 \RequirePackage{graphicx}
+\DeclareGraphicsExtensions{.pdf}
 % see http://www.ctan.org/tex-archive/macros/latex/required/amslatex/
 \RequirePackage{amsmath}
 \RequirePackage{amssymb}

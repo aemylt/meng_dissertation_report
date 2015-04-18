@@ -105,9 +105,10 @@ but an example is as follows:
 
 \begin{quote}
 \begin{itemize}
-\item I used the GNU Multiple Precision Arithmetic Library (GMP) to support my implementation of Karp-Rabin fingerprints.
-\item I used the C Minimum Perfect Hashing Library (CMPH) for static perfect hashing.
+\item I used the GNU Multiple Precision Arithmetic Library (GMP) to support my implementation of Karp-Rabin fingerprints.\url{https://gmplib.org/}
+\item I used the C Minimum Perfect Hashing Library (CMPH) for static perfect hashing.\url{http://cmph.sourceforge.net/}
 \item I used an open-source implementation of Red-Black Trees from \url{http://en.literateprograms.org/Red-black_tree_(C)?oldid=19567}, with some minor adaptations.
+\item The algorithms were tested against 50MB of gene DNA sequences from the Pizza and Chili Corpus.\url{http://pizzachili.dcc.uchile.cl/texts/dna/}
 \end{itemize}
 \end{quote}
 
@@ -259,6 +260,24 @@ It is easy to see how pattern matching and in turn dictionary matching can be pe
 
 Of course, these are poor solutions to both pattern and dictionary matching. We can do much better in terms of both time and space complexity.
 
+\section{Arbitrary-Precision Arithmetic}
+
+Arbitrary-Precision Arithmetic are libaries which allow for computation of numbers beyond what is capable of a typical machine. Common applications include Cryptography and linear algebra.
+
+Again, little detail will be provided here due to the fact that this is not implemented and only used as an external library. For more information, feel free to visit the GNU Multiple Precision Arithmetic Library (GMP) website at \url{https://gmplib.org/}.
+
+\section{(Minimal) Static Perfect Hashing}
+\label{min-perf-hash}
+
+For a universe $U$, a hash function $\text{h}$ is static if it can perform lookups for a pre-defined set of keys $S \subseteq U$ to a set of integers $\mathbb{Z}_m$. Said hash function is a static \textit{perfect} hash function if $\forall x \in S, \text{h}(x)$ is collision-free, and thus takes constant time to look up. Finally, a hash function is a \textit{minimal} perfect hash function if $m = |S|$. In other words, a minimal perfect hash function maps a set of $m$ keys to $\mathbb{Z}_m$ without any collisions.
+
+The implementation of minimal perfect hash functions will not be detailed here, as they are used merely as a library and are thus not part of implementation. For further information, I direct the reader to the C Minimal Perfect Hashing Library (CMPH) website: \url{http://cmph.sourceforge.net/} Of particular interest is the paper on the Compress, Hash and Digest algorithm by Belazzougui, Botelho and Dietzfelbinger\cite{belazzougui:chd}, as the algorithm from CMPH used throughout this work.
+
+\section{Binary Search Trees}
+A Binary Search Tree (BST)\cite{clrs:bst} is a tree where each node has at most two children and for every node in the tree, all the descendants to the left of the tree have a smaller value than the given node, and those to the right have a larger value. The height of a BST is determined by the longest distance from any leaf to the root of the tree, and a BST is self-balancing if its height is kept small regardless of what items are inserted or removed. Because a lot of BST operations run in time dependent on the height of the tree, keeping this factor small is important.
+
+Of particular note are Red-Black Trees (RBT)\cite{clrs:rbt}, which are the binary search trees used in this project. Their time complexity when containing $n$ items is $O(log n)$ for insert, search and delete and $O(n)$ Because this is used as a library function and not implemented by myself, we will not go into detail on how RBTs work. For more information on Red-Black Trees, I encourage the reader to consult the CLRS chapter cited above, the original paper by Bayer\cite{bayer:rbt}, and the website for the implementation used in this project: \url{http://en.literateprograms.org/Red-black_tree_%28C%29}
+
 \section{The Aho-Corasick Algorithm for Dictionary Matching}
 
 The Aho-Corasick Algorithm for Efficient String Matching\cite{Aho:1975:ESM:360825.360855} -- known hereafter as Aho-Corasick -- is a deterministic algorithm for dictionary matching. Published in 1975, the algorithm works as a generalisation of Knuth-Morris-Pratt (KMP)\cite{kmp}, extending the state machine from single patterns in KMP to multiple patterns.
@@ -344,13 +363,6 @@ $queue \gets empty$\\
 \subsection{An Alternative: The Commentz-Walter Algorithm}
 
 Much like how Aho-Corasick is an algorithm for dictionary matching based on Knuth-Morris-Pratt, Commentz-Walter\cite{commentz-walter:algo} is an algorithm based on Boyer-Moore algorithm\cite{Boyer:1977:FSS:359842.359859}, using similar techniques to Aho-Corasick to convert the algorithm from single pattern to multiple patterns. While it is interesting to note as an alternative, particularly because of its time improvement on average cases and the fact that a variant of it is used in the GNU command \texttt{grep},\footnote{See \url{http://git.savannah.gnu.org/cgit/grep.git/tree/src/kwset.c}} it is not implemented in this project. This is because, like Boyer-Moore, the Commentz-Walter algorithm skips indexes in the text, which is not possible in the streaming model.
-
-\section{Minimal Perfect Hashing}
-\label{min-perf-hash}
-
-For a universe $U$, a hash function $\text{h}$ is static if it can perform lookups for a pre-defined set of keys $S \subseteq U$ to a set of integers $\mathbb{Z}_m$. Said hash function is a static \textit{perfect} hash function if $\forall x \in S, \text{h}(x)$ is collision-free, and thus takes constant time to look up. Finally, a hash function is a \textit{minimal} perfect hash function if $m = |S|$. In other words, a minimal perfect hash function maps a set of $m$ keys to $\mathbb{Z}_m$ without any collisions.
-
-The implementation of minimal perfect hash functions will not be detailed here, as they are used merely as a library and are thus not part of implementation. For further information, I direct the reader to the C Minimal Perfect Hashing Library (CMPH) website: \url{http://cmph.sourceforge.net/} Of particular interest is the paper on the Compress, Hash and Digest algorithm by Belazzougui, Botelho and Dietzfelbinger\cite{belazzougui:chd}, as the algorithm from CMPH used throughout this work.
 
 \section{Karp-Rabin Fingerprints}
 
@@ -467,10 +479,41 @@ If the above condition does not hold and these two conditions do not match, ther
 
 Independent of whether or not the condition holds, inserting and removing VOs can be performed in constant time and the VOs for a given row can be stored compactly in $O(1)$ space. Because there are $\lfloor\log_2m\rfloor$ levels, the overall algorithm now uses $O(\log m)$ in both space and time per character.
 
-\section{Binary Search Trees}
-A Binary Search Tree (BST)\cite{clrs:bst} is a tree where each node has at most two children and for every node in the tree, all the descendants to the left of the tree have a smaller value than the given node, and those to the right have a larger value. The height of a BST is determined by the longest distance from any leaf to the root of the tree, and a BST is self-balancing if its height is kept small regardless of what items are inserted or removed. Because a lot of BST operations run in time dependent on the height of the tree, keeping this factor small is important.
+\subsection{Breslauer and Galil: Sublinear Space Pattern Matching in Constant Timer per Character}
 
-Of particular note are Red-Black Trees (RBT)\cite{clrs:rbt}, which are the binary search trees used in this project. Their time complexity when containing $n$ items is $O(log n)$ for insert, search and delete and $O(n)$ Because this is used as a library function and not implemented by myself, we will not go into detail on how RBTs work. For more information on Red-Black Trees, I encourage the reader to consult the CLRS chapter cited above, the original paper by Bayer\cite{bayer:rbt}, and the website for the implementation used in this project: \url{http://en.literateprograms.org/Red-black_tree_%28C%29}
+Continued from the work of Porat and Porat above, Breslauer and Galil\cite{Breslauer:2014:RSS:2660854.2635814} created a method for single pattern matching in $O(\log m)$ space and $O(1)$ time per character. Their improvement was based on the fact that all occurrences of the pattern must be at least $|\rho_P|$ characters apart. If $|\rho_P| \geq \log m$, then we can process each level of the algorithm in a round robin fashion, one level per index. Because we are now only processing one level at a time, the time complexity becomes constant.
+
+There are three problems to discuss with this algorithm. The first is how do we handle the case where $|\rho_P| < \log m$. The second is that VOs may need to be checked up to $\log m$ characters after they occurred. And the third is that under this proposed method, instances of the whole pattern may not be reported until $\log m$ characters later.
+
+We'll start with the first problem, as the more complex one. Breslauer and Galil's suggestion is to remove the bottom $\log\log m$ rows and instead match the first $2\log m$ characters of the pattern using Knuth-Morris-Pratt\cite{kmp}. The remaining rows match prefixes of doubling length again, from $4\log m$ to $8\log m$ up to $m$. We can check if the condition at the start of this question holds based on the KMP failure table; if $\texttt{failure}(2\log m - 1) + 1 \leq \log m$, then it holds that the period of the $2\log m$ prefix is larger than $\log m$. By extension, we know that $|\rho_P| \geq \log m$ and thus we can do pattern matching via the round robin technique mentioned above.
+
+If the above condition does not hold, then we simply extend the length of the prefix processed by KMP until it either eventually does hold or we reach the end of the pattern, in which case the entire pattern is processed by KMP. The only difficulty with this is that KMP uses linear space, so it could consume $O(m)$ space. However, in this case we know that up until the final character, the whole prefix processed by KMP has a period shorter than $\log m$. Because of this, we can perform KMP in $O(\log m)$ space by using only the pattern and failure table of the period.
+
+The only difficulty left with solving the first problem is that KMP is only \textit{amortised} constant time per character; in the worst space it is $O(m)$ time. To solve this, the KMP algorithm is deamortised by use of Galil's\cite{Galil:1981:SMR:322234.322244} real-time implementation.
+
+The second problem is the easiest to resolve. Instead of storing only one fingerprint of all the previous characters read in the text stream, have a cyclic buffer of $O(\log m)$ fingerprints, representing the all the previous characters in the text stream up to the last $\log m$ indexes. Now when a VO is checked, it is simply tested against one of these previous fingerprints.
+
+To deal with the third problem of an instance being reported up to $\log m$ characters after it occurred, Breslauer and Galil's solution is to simply process the final level of the pattern -- the level that matces the whole pattern -- at every index, instead of once every $\log m$ indexes. Because even the shortest prefix is $4\log m$ characters long and the delay for processing a VO is only at most $O(\log m)$, each level is guaranteed to receive a viable occurrence before it needs to process that VO itself.
+
+The addition of KMP and the cyclic buffer both take $O(1)$ time to update per character, and the round robin method brings the time for the rest of the algorithm down to constant per index as well. All of the components added have contributed at most $O(\log m)$ space. Thus the overall complexity is $O(\log m)$ space and constant time per character.
+
+\section{An Empirical Analysis of Data Streaming Algorithms}
+
+This was the title of a project I worked on with the Theory \& Algorithms Team at the University of Bristol in the summer of 2014. The objective of the project was to investigate a number of pattern matching algorithms in the streaming model and see how well they performed in practice. The project ended with a poster being designed and presented at an event held by the Industrial Liason Office.
+
+One of the major steps in this summer project, and the step that led to this very dissertation, is that I created to our knowledge the first implementation of Breslauer and Galil's algorithm from the previous section. The algorithm was tested against a simple amortised version of Knuth-Morris-Pratt on different lengths of pattern against 50MB of English text from the Pizza and Chili Corpus. The results are shown in Figure~\ref{fig:summer-results}.
+
+As can be seen from these results, Breslauer and Galil's algorithm took roughly sixty time longer to run per character, but provided a significant benefit in terms of space as the patterns grew longer.
+
+For more information, I recommend the blog \url{https://streamsandpatterns.wordpress.com/}, which is where I kept track of my progress over that summer. The website provides more details on the efforts of implementing Breslauer and Galil's algorithm, other algorithms I implemented over that summer, and details on how I implemented the Aho-Corasick algorithm at the start of this project.
+
+\begin{figure}[t]
+\begin{center}
+  \includegraphics[width=0.5\linewidth]{summer_run_time}\includegraphics[width=0.5\linewidth]{summer_size}
+\end{center}
+\caption{Run time and space performance for Breslauer and Galil's algorithm against Knuth-Morris-Pratt}
+\label{fig:summer-results}
+\end{figure}
 
 \section{Clifford, Fontaine, Porat and Sach: Dictionary Matching in Sublinear Space}
 
@@ -547,12 +590,6 @@ At each index $j$, we keep a cyclic buffer of the previous $k'$ fingerprints of 
 
 For space complexity, the only space used is the hash function which uses $O(k\log k)$ space to store the fingerprints and their associated booleans and the cyclic buffer, which uses $O(k') \in O(2k) \in O(k)$ space, so the overall space usage is $O(k\log k)$. The only step in the algorithm is the binary search, which takes $O(\log k)$ time per character.
 
-\section{Arbitrary-Precision Arithmetic}
-
-Arbitrary-Precision Arithmetic are libaries which allow for computation of numbers beyond what is capable of a typical machine. Common applications include Cryptography and linear algebra.
-
-Again, little detail will be provided here due to the fact that this is not implemented and only used as an external library. For more information, feel free to visit the GNU Multiple Precision Arithmetic Library (GMP) website at \url{https://gmplib.org/}.
-
 % -----------------------------------------------------------------------------
 
 \chapter{Project Execution}
@@ -601,13 +638,6 @@ the following content is auto-generated dummy text.
 
 \subsection{Example Sub-section}
 
-\begin{figure}[t]
-\centering
-foo
-\caption{This is an example figure.}
-\label{fig}
-\end{figure}
-
 \begin{table}[t]
 \centering
 \begin{tabular}{|cc|c|}
@@ -623,14 +653,6 @@ $9     $ & $9     $ & $9     $ \\
 \caption{This is an example table.}
 \label{tab}
 \end{table}
-
-\begin{algorithm}[t]
-\For{$i=0$ {\bf upto} $n$}{
-  $t_i \leftarrow 0$\;
-}
-\caption{This is an example algorithm.}
-\label{alg}
-\end{algorithm}
 
 \begin{lstlisting}[float={t},caption={This is an example listing.},label={lst},language=C]
 for( i = 0; i < n; i++ ) {
