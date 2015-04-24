@@ -700,7 +700,7 @@ The bottleneck with Aho-Corasick at processing time is that for our current stat
 
 Note that after preprocessing, we never add any characters to or remove any characters from $\texttt{next\_chr}_i$. As a matter of fact, the $\texttt{next}$ function does not change at all after preprocessing has completed. This means that we can compute this function by having a static perfect hash table for each state $i$, with $\texttt{next\_chr}_i$ as the keys and $\texttt{next\_state}_i$ as the values. This gives uss constant time per character.
 
-For implementation, I used the C Minimum Perfect Hashing library, with a data structure based on my summer project as mentioned in Section~\ref{sec:summer}. One of these three cases occurs when a structure is searched with key $key$:
+For implementation, I used the C Minimum Perfect Hashing Library (CMPH) configured to the Compress, Hash and Digest algorithm (CHD). This was contained in a data structure based on my summer project as mentioned in Section~\ref{sec:summer}. One of these three cases occurs when a structure is searched with key $key$:
 
 \begin{enumerate}
   \item If there are no keys and values for a hash table, return 0 by default.
@@ -708,7 +708,7 @@ For implementation, I used the C Minimum Perfect Hashing library, with a data st
   \item Otherwise, do a CMPH search on the key. If none of the keys match the search key, CMPH will by default return either the number of keys or the index of some key. If it returns the index of some key $i$, check if $keys_i = key$. If they match, return $values_i$, otherwise return 0.
 \end{enumerate}
 
-Because the keys are a single character, each search can be evaluated in constant time.
+Because the keys are a single character, each search can be evaluated in constant time. Since we are implementing the $\texttt{next}$ function, we only need to call one search per index. Thus the overall run time per character for the algorithm is now constant time. The hash function takes up the same amount of space as the $\texttt{next}$ function would, as does the rest of the search structure, as we are using a minimum perfect hash function. There are only as many search structures are there are states, so we are left with the same space usage as traditional Aho-Corasick.
 
 \section{Implementing the Clifford et al. Algorithm for Power of Two Length Dictionary Matching}
 
