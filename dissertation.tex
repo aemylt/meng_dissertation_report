@@ -604,9 +604,9 @@ For space complexity, the only space used is the hash function which uses $O(k\l
 
 As stated in Section~\ref{sec:aho-corasick}, Aho-Corasick\cite{Aho:1975:ESM:360825.360855} is a generalisation of Knuth-Morris-Pratt. Because of this, I decided the most suitable way of attempting to implement this algorithm was to start with an implementation of KMP and then generalise it to $k$ patterns.
 
-Most implementations of KMP simply consist of an array of $m$ integers to act as a failure table, a string of $m$ characters for the pattern, and a counter of the number of characters that have matched so far, with the counter reaching $m - 1$ representing the accept state. But this is actually a simplification of the algorithm. As pointed out in CLRS[TODO: FIND CHAPTER], the correctness of Knuth-Morris-Pratt is proven because this array, string and integer represent a finite state automata: The array of integers represent the state the automata should fall back to if the pattern does not match, the string shows the next character that needs to arrive in the text in order for the automata to move one state closer to the accept state, and the counter represents the current state the automata is in, with $m - 1$ being the accept state of the automata.
+Most implementations of KMP simply consist of an array of $m$ integers to act as a failure table, a string of $m$ characters for the pattern, and a counter of the number of characters that have matched so far, with the counter reaching $m - 1$ representing the accept state. But this is actually a simplification of the algorithm. As pointed out in CLRS\cite{clrs:kmp}, the correctness of Knuth-Morris-Pratt can be proven because this array, string and integer represent a finite state automaton: The array of integers represent the state the automaton should fall back to if the pattern does not match, the string shows the next character that needs to arrive in the text in order for the automaton to move one state closer to the accept state, and the counter represents the current state the automaton is in, with $m - 1$ being the accept state of the automaton.
 
-We can show this with an example: Table~\ref{tab:kmp-pattern-failure} shows the pattern and failure table for the pattern $aabab$, and Figure~\ref{fig:kmp-pattern-failure} shows the finite state automata for the same pattern.
+We can show this with an example: Table~\ref{tab:kmp-pattern-failure} shows the pattern and failure table for the pattern $aabab$, and Figure~\ref{fig:kmp-pattern-failure} shows the state transition diagram for the same pattern.
 
 \begin{table}[t]
   \centering
@@ -642,25 +642,25 @@ We can show this with an example: Table~\ref{tab:kmp-pattern-failure} shows the 
         (3) edge [bend left] node {$\Sigma/\{b\}$} (0.south)
         (4) edge [bend left] node {$\Sigma$} (start.south);
     \end{tikzpicture}
-  \caption{Finite state automata for pattern $aabab$}
+  \caption{State transition diagram for pattern $aabab$. Edges directed right represent matches, edges directed left represent failures.}
   \label{fig:kmp-pattern-failure}
 \end{figure}
 
-Because the Aho-Corasick algorithm generalises Knuth-Morris-Pratt by taking this finite automata and adapting it for multiple patterns, I decided a suitable way of starting the project was to implement KMP as a finite automata.
+Because the Aho-Corasick algorithm generalises Knuth-Morris-Pratt by taking this finite automaton and adapting it for multiple patterns, I decided a suitable way of starting the project was to implement KMP as a finite automaton.
 
-This meant an important first decision to make: How to implement the automata? As a finite state automata is based on graphs, there are three main options available:
+This meant an important first decision to make: How to implement the automaton? As a finite state automaton is based on graphs, there are three main options available:
 
 \begin{itemize}
   \item \textbf{Adjacency Matrix:} An item at coordinates $(i,a)$ in the matrix represents an edge in the matrix from state $i$ if the next character is $a$. The value of $(i,j)$ itself is the $\texttt{goto}$ state, and is set to the failure state if there is no subsequent pattern with the next character in the state. Constant time travelling between states but $O(m|\Sigma|)$ space.
   \item \textbf{Adjacency List:} Each item in the list is a tuple $(i, j, a)$, representing an edge from $i$ to $j$ if $a$ is next on the tape. Failure edges are represented by an integer for each state. Potentially less space than an adjacency matrix but $O(m * \min(|\Sigma|, m))$ time to move to $\texttt{goto}$ state.
-  \item \textbf{Object Oriented:} A state structure is defined, with an array of pointers to other states it connects to and the next character that needs to be read on the tape for the automata to enter that state. Failure edges are simply a pointer to failure state. Performance is a compromise between an adjacency matrix and an adjacency list, with the same asymptotic space consumption as an adjacency list but $O(\min(|\Sigma|, m))$ time to move to $\texttt{goto}$ state.
+  \item \textbf{Object Oriented:} A state structure is defined, with an array of pointers to other states it connects to and the next character that needs to be read on the tape for the automaton to enter that state. Failure edges are simply a pointer to failure state. Performance is a compromise between an adjacency matrix and an adjacency list, with the same asymptotic space consumption as an adjacency list but $O(\min(|\Sigma|, m))$ time to move to $\texttt{goto}$ state.
 \end{itemize}
 
-My initial decision was to use the object oriented approach. Implementing Knuth-Morris-Pratt in this form is easy: When constructing the $\texttt{goto}$ edge, we just iterate through each character in the pattern and connect a new state to the most recent state made. When both constructing the failure pointer and processing the text, we just use the standard KMP algorithm, only using pointers to states instead of integers. And when destroying the automata at the end, we just recursively call the destroy function on the $\texttt{goto}$ item in the automata. Note that we don't worry about destroying the node pointed to along the failure edge, as we know that will be destroyed later.
+My initial decision was to use the object oriented approach. Implementing Knuth-Morris-Pratt in this form is easy: When constructing the $\texttt{goto}$ edge, we just iterate through each character in the pattern and connect a new state to the most recent state made. When both constructing the failure pointer and processing the text, we just use the standard KMP algorithm, only using pointers to states instead of integers. And when destroying the automaton at the end, we just recursively call the destroy function on the $\texttt{goto}$ item in the automaton. Note that we don't worry about destroying the node pointed to along the failure edge, as we know that will be destroyed later.
 
-However, while this method was simple enough for KMP, generalising it for Aho-Corasick led to a number of memory problems. In particular, there were issues with the starting state of the automata being overwritten by another node later on, leading to corrupted memory and double free attempts. The conclusion was that this was too problematic an implementation of automata for C.
+However, while this method was simple enough for KMP, generalising it for Aho-Corasick led to a number of memory problems. In particular, there were issues with the starting state of the automaton being overwritten by another node later on, leading to corrupted memory and double free attempts. The conclusion was that this was too problematic an implementation of automaton for C.
 
-In the end, a hybrid method was used for representing the automata, combining adjacency matrices with the object oriented approach. The current state is simply represented by an integer, the $\texttt{goto}$ state is represented by a 2-D array of integers $\texttt{goto}$, the character it needs to match is represented by an array of strings $\texttt{match}$ and the failure edges represented by an array of integers $\texttt{failure}$. Thus if we're in state $i$ and character $a$ is the next character in the text, the next state we move to is determined by:
+In the end, a hybrid method was used for representing the automaton, combining adjacency matrices with the object oriented approach. The current state is simply represented by an integer, the $\texttt{goto}$ state is represented by a 2-D array of integers $\texttt{goto}$, the character it needs to match is represented by an array of strings $\texttt{match}$ and the failure edges represented by an array of integers $\texttt{failure}$. Thus if we're in state $i$ and character $a$ is the next character in the text, the next state we move to is determined by:
 
 \[
   \begin{cases}
