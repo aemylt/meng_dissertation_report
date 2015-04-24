@@ -124,6 +124,7 @@ VO &: & A Viable Occurrence, a portion of the text which might match a pattern \
 KMP &: & The Knuth-Morris-Pratt single pattern matching algorithm \\
 BST &: & Binary Search Tree \\
 RBT &: & Red-Black Tree, a specific instance of a binary search tree \\
+CLRS &: & Introduction to Algorithms by Thomas H. Cormen, Charles E. Lieserson, Ronald L. Rivest and Clifford Stein \\
 $T$ &: & A text string of $n$ characters \\
 $t_i$ &: & The $i$-th character in T \\
 $\mathcal{P}$ &: & A list of $k$ patterns \\
@@ -247,7 +248,7 @@ It is easy to see how pattern matching and in turn dictionary matching can be pe
 
 \begin{algorithm}[t]
 {\bf rotate} buf {\bf by one}\\
-{\bf append} $t_i$ {\bf to} buf
+{\bf append} $t_i$ {\bf to} buf\\
 \For{$i=0$ {\bf upto} $m-1$}{
   \If{$buf_i \neq p_i$}{
     {\bf return} -1
@@ -276,87 +277,88 @@ The implementation of minimal perfect hash functions will not be detailed here, 
 \section{Binary Search Trees}
 A Binary Search Tree (BST)\cite{clrs:bst} is a tree where each node has at most two children and for every node in the tree, all the descendants to the left of the tree have a smaller value than the given node, and those to the right have a larger value. The height of a BST is determined by the longest distance from any leaf to the root of the tree, and a BST is self-balancing if its height is kept small regardless of what items are inserted or removed. Because a lot of BST operations run in time dependent on the height of the tree, keeping this factor small is important.
 
-Of particular note are Red-Black Trees (RBT)\cite{clrs:rbt}, which are the binary search trees used in this project. Their time complexity when containing $n$ items is $O(log n)$ for insert, search and delete and $O(n)$ Because this is used as a library function and not implemented by myself, we will not go into detail on how RBTs work. For more information on Red-Black Trees, I encourage the reader to consult the CLRS chapter cited above, the original paper by Bayer\cite{bayer:rbt}, and the website for the implementation used in this project: \url{http://en.literateprograms.org/Red-black_tree_%28C%29}
+Of particular note are Red-Black Trees (RBT)\cite{clrs:rbt}, which are the binary search trees used in this project. Their time complexity when containing $n$ items is $O(log n)$ for insert, search and delete and $O(n)$ Because this is used as a library function and not implemented by myself, we will not go into detail on how RBTs work. For more information on Red-Black Trees, I encourage the reader to consult the Introduction to Algorithms by Cormen, Leiserson, Rivest and Stein (CLRS) chapter cited above, the original paper by Bayer\cite{bayer:rbt}, and the website for the implementation used in this project: \url{http://en.literateprograms.org/Red-black_tree_%28C%29}
 
 \section{The Aho-Corasick Algorithm for Dictionary Matching}
+\label{sec:aho-corasick}
 
 The Aho-Corasick Algorithm for Efficient String Matching\cite{Aho:1975:ESM:360825.360855} -- known hereafter as Aho-Corasick -- is a deterministic algorithm for dictionary matching. Published in 1975, the algorithm works as a generalisation of Knuth-Morris-Pratt (KMP)\cite{kmp}, extending the state machine from single patterns in KMP to multiple patterns.
 
-Preprocessing consists of three algorithms. The first, Algorithm~\ref{alg:ac-goto}, produces the $\text{goto}$ function, which determines what to do if the next character in the stream is a match. This in essence works by building a suffix tree: We traverse the tree until we either reach the end of the pattern or we hit a leaf, and then append the rest of the pattern to the leaf. Note that $\Sigma$ refers to the alphabet of the patterns and $fail$ is a default fail state for if the $\text{goto}$ function cannot find a character for that state.
+Preprocessing consists of three algorithms. The first, Algorithm~\ref{alg:ac-goto}, produces the $\texttt{goto}$ function, which determines what to do if the next character in the stream is a match. This in essence works by building a suffix tree: We traverse the tree until we either reach the end of the pattern or we hit a leaf, and then append the rest of the pattern to the leaf. Note that $\Sigma$ refers to the alphabet of the patterns and $fail$ is a default fail state for if the $\texttt{goto}$ function cannot find a character for that state.
 
-The second, Algorithm~\ref{alg:ac-failure} constructs the $\text{failure}$ function for when the next character cannot be found and the $\text{output}$ function for whether or not there is a match. This is similar to how the failure table is computed in Knuth-Morris-Pratt, by using previously computed failure tables to find the longest prefix that is also a suffix of that point in the pattern.
+The second, Algorithm~\ref{alg:ac-failure} constructs the $\texttt{failure}$ function for when the next character cannot be found and the $\texttt{output}$ function for whether or not there is a match. This is similar to how the failure table is computed in Knuth-Morris-Pratt, by using previously computed failure tables to find the longest prefix that is also a suffix of that point in the pattern.
 
 \begin{algorithm}[t]
-$newstate \gets -1$\\
+$newstate \gets 0$\\
 \For{$i=0$ {\bf upto} $k-1$}{
-  $state \gets -1$\\
+  $state \gets 0$\\
   $j \gets 0$\\
-  \While{$\text{goto}(state, p_{i,j}) \neq fail$}{
-    $state \gets \text{goto}(state, p_{i,j})$\\
+  \While{$\texttt{goto}(state, p_{i,j}) \neq fail$}{
+    $state \gets \texttt{goto}(state, p_{i,j})$\\
     $j \gets j + 1$
   }
   \While{$j < m_i$}{
     $newstate \gets newstate + 1$\\
-    $\text{goto}(state, p_{i,j}) \gets newstate$\\
+    $\texttt{goto}(state, p_{i,j}) \gets newstate$\\
     $state \gets newstate$\\
     $j \gets j + 1$
   }
-  $\text{output}(state) = \{P_i\}$
+  $\texttt{output}(state) = \{P_i\}$
 }
-\ForAll{$a \in \Sigma$ such that $\text{goto}(-1, a) = fail$}{
-  $\text{goto}(-1, a) = -1$
+\ForAll{$a \in \Sigma$ such that $\texttt{goto}(0, a) = fail$}{
+  $\texttt{goto}(0, a) = 0$
 }
-\caption{Constructing the $\text{goto}$ function for Aho-Corasick.}
+\caption{Constructing the $\texttt{goto}$ function for Aho-Corasick.}
 \label{alg:ac-goto}
 \end{algorithm}
 
 \begin{algorithm}[t]
 $queue \gets empty$\\
-\ForEach{$a \in \Sigma$ such that $\text{goto}(-1, a) = s \neq -1$}{
+\ForEach{$a \in \Sigma$ such that $\texttt{goto}(0, a) = s \neq 0$}{
   $queue \gets queue \cup \{s\}$\\
-  $\text{failure}(s) \gets -1$
+  $\texttt{failure}(s) \gets 0$
 }
 \While{$queue \neq empty$} {
   $r \gets \text{pop}(queue)$\\
-  \ForEach{$a \in \Sigma$ such that $\text{goto}(r, a) = s \neq fail$}{
+  \ForEach{$a \in \Sigma$ such that $\texttt{goto}(r, a) = s \neq fail$}{
     $queue \gets queue \cup {s}$\\
-    $state \gets \text{failure}(r)$\\
-    \While{$\text{goto}(state, a) = fail$}{
-      $state \gets \text{failure}(state)$
+    $state \gets \texttt{failure}(r)$\\
+    \While{$\texttt{goto}(state, a) = fail$}{
+      $state \gets \texttt{failure}(state)$
     }
-    $\text{failure}(s) \gets \text{goto}(state, a)$\\
-    $\text{output}(s) \gets \text{output}(s) \cup \text{output}(\text{failure}(s))$
+    $\texttt{failure}(s) \gets \texttt{goto}(state, a)$\\
+    $\texttt{output}(s) \gets \texttt{output}(s) \cup \texttt{output}(\texttt{failure}(s))$
   }
 }
-\caption{Constructing the $\text{failure}$ and $\text{output}$ functions for Aho-Corasick.}
+\caption{Constructing the $\texttt{failure}$ and $\texttt{output}$ functions for Aho-Corasick.}
 \label{alg:ac-failure}
 \end{algorithm}
 
-From these two algorithms alone it is possible to perform dictionary matching, using a computation method again similar to Knuth-Morris-Pratt: For each character $t_j$ in the text when we are in state $s$, we check if $\text{goto}(s, t_j) = fail$. If that is the case, we call $s \gets \text{failure}(s)$ repeatedly until the previous check no longer holds. We then update our state $s \gets \text{goto}(s, t_j)$, and if $\text{output}(s) \neq empty$ then we return $j$, otherwise we return $-1$. This runs in amortised $O(|\Sigma|)$ time per character, and worst case $O(|\Sigma|\max(M))$ time per character, as can be seen via Knuth-Morris-Pratt arguments.
+From these two algorithms alone it is possible to perform dictionary matching, using a computation method again similar to Knuth-Morris-Pratt: For each character $t_j$ in the text when we are in state $s$, we check if $\texttt{goto}(s, t_j) = fail$. If that is the case, we call $s \gets \texttt{failure}(s)$ repeatedly until the previous check no longer holds. We then update our state $s \gets \texttt{goto}(s, t_j)$, and if $\texttt{output}(s) \neq empty$ then we return $j$, otherwise we return $-1$. This runs in amortised $O(|\Sigma|)$ time per character, and worst case $O(|\Sigma|\max(M))$ time per character, as can be seen via Knuth-Morris-Pratt arguments.
 
-To improve on this running time, Algorithm~\ref{alg:ac-next} is used, which combines the $\text{goto}$ and $\text{failure}$ functions to produce a $\text{next}$ function, which given any state and character returns the next state. Computation now simply becomes as each character $t_j$ comes in when we are in state $s$, call $s \gets \text{next}(s, t_j)$ and return $j$ if $\text{output}(s) \neq empty$. This runs in worst case $O(|\Sigma|)$ time per character, where the bottleneck is finding the value associated with character $t_j$ in the $\text{next}$ function. In both the case with the $\text{goto}$ and $\text{failure}$ functions and the case with only the $\text{next}$ function, space complexity is $O(\sum_{i=0}^{k-1}m_i)$.
+To improve on this running time, Algorithm~\ref{alg:ac-next} is used, which combines the $\texttt{goto}$ and $\texttt{failure}$ functions to produce a $\texttt{next}$ function, which given any state and character returns the next state. Computation now simply becomes as each character $t_j$ comes in when we are in state $s$, call $s \gets \texttt{next}(s, t_j)$ and return $j$ if $\texttt{output}(s) \neq empty$. This runs in worst case $O(|\Sigma|)$ time per character, where the bottleneck is finding the value associated with character $t_j$ in the $\texttt{next}$ function. In both the case with the $\texttt{goto}$ and $\texttt{failure}$ functions and the case with only the $\texttt{next}$ function, space complexity is $O(\sum_{i=0}^{k-1}m_i)$.
 
 \begin{algorithm}[t]
 $queue \gets empty$\\
 \ForEach{$a \in \Sigma$}{
-  $\text{next}(-1, a) = \text{goto}(-1, a)$\\
-  \If{$\text{goto}(-1, a) \neq -1$}{
-    $queue \gets queue \cup \{\text{goto}(-1, a)\}$
+  $\texttt{next}(0, a) = \texttt{goto}(0, a)$\\
+  \If{$\texttt{goto}(0, a) \neq 0$}{
+    $queue \gets queue \cup \{\texttt{goto}(0, a)\}$
   }
 }
 \While{$queue \neq empty$} {
   $r \gets \text{pop}(queue)$\\
   \ForEach{$a \in \Sigma$}{
-    \uIf{$\text{goto}(r, a) = s \neq fail$}{
+    \uIf{$\texttt{goto}(r, a) = s \neq fail$}{
       $queue \gets queue \cup {s}$\\
-      $\text{next}(r, a) = s$
+      $\texttt{next}(r, a) = s$
     }
     \Else{
-      $\text{next}(r, a) = \text{next}(\text{failure}(r), a)$
+      $\texttt{next}(r, a) = \texttt{next}(\texttt{failure}(r), a)$
     }
   }
 }
-\caption{Constructing the $\text{next}$ function for Aho-Corasick.}
+\caption{Constructing the $\texttt{next}$ function for Aho-Corasick.}
 \label{alg:ac-next}
 \end{algorithm}
 
@@ -498,6 +500,7 @@ To deal with the third problem of an instance being reported up to $\log m$ char
 The addition of KMP and the cyclic buffer both take $O(1)$ time to update per character, and the round robin method brings the time for the rest of the algorithm down to constant per index as well. All of the components added have contributed at most $O(\log m)$ space. Thus the overall complexity is $O(\log m)$ space and constant time per character.
 
 \section{An Empirical Analysis of Data Streaming Algorithms}
+\label{sec:summer}
 
 This was the title of a project I worked on with the Theory \& Algorithms Team at the University of Bristol in the summer of 2014. The objective of the project was to investigate a number of pattern matching algorithms in the streaming model and see how well they performed in practice. The project ended with a poster being designed and presented at an event held by the Industrial Liason Office.
 
@@ -597,9 +600,115 @@ For space complexity, the only space used is the hash function which uses $O(k\l
 
 \section{Implementing the Aho-Corasick Algoritm}
 
-\subsection{Implementing The Trie Data Structure}
+\subsection{From Knuth-Morris-Pratt to Aho-Corasick}
 
-\subsection{Optimising the Aho-Corasick Algorithm's Performance}
+As stated in Section~\ref{sec:aho-corasick}, Aho-Corasick\cite{Aho:1975:ESM:360825.360855} is a generalisation of Knuth-Morris-Pratt. Because of this, I decided the most suitable way of attempting to implement this algorithm was to start with an implementation of KMP and then generalise it to $k$ patterns.
+
+Most implementations of KMP simply consist of an array of $m$ integers to act as a failure table, a string of $m$ characters for the pattern, and a counter of the number of characters that have matched so far, with the counter reaching $m - 1$ representing the accept state. But this is actually a simplification of the algorithm. As pointed out in CLRS[TODO: FIND CHAPTER], the correctness of Knuth-Morris-Pratt is proven because this array, string and integer represent a finite state automata: The array of integers represent the state the automata should fall back to if the pattern does not match, the string shows the next character that needs to arrive in the text in order for the automata to move one state closer to the accept state, and the counter represents the current state the automata is in, with $m - 1$ being the accept state of the automata.
+
+We can show this with an example: Table~\ref{tab:kmp-pattern-failure} shows the pattern and failure table for the pattern $aabab$, and Figure~\ref{fig:kmp-pattern-failure} shows the finite state automata for the same pattern.
+
+\begin{table}[t]
+  \centering
+  \begin{tabular}{|l|c|c|c|c|c|}
+    \hline
+    \textbf{Index} & 0 & 1 & 2 & 3 & 4 \\\hline
+    \textbf{Pattern} & $a$ & $a$ & $b$ & $a$ & $b$ \\\hline
+    \textbf{Failure} & -1 & 0 & -1 & 0 & -1\\\hline
+  \end{tabular}
+  \caption{Pattern and failure table for pattern $aabab$}
+  \label{tab:kmp-pattern-failure}
+\end{table}
+
+\begin{figure}[t]
+  \centering
+    \begin{tikzpicture}[node distance=2cm,on grid,auto]
+      \node[state] (start) at (0,0) {-1};
+      \node[state] (0) [right of=start] {0};
+      \node[state] (1) [right of=0] {1};
+      \node[state] (2) [right of=1] {2};
+      \node[state] (3) [right of=2] {3};
+      \node[accepting, state] (4) [right of=3] {4};
+      \path[->]
+        (start) edge node {$\{a\}$} (0)
+        (0) edge node {$\{a\}$} (1)
+        (1) edge node {$\{b\}$} (2)
+        (2) edge node {$\{a\}$} (3)
+        (3) edge node {$\{b\}$} (4)
+        (start) edge [loop left] node {$\Sigma/\{a\}$} (start)
+        (0) edge [bend left] node {$\Sigma/\{a\}$} (start)
+        (1) edge [bend left] node {$\Sigma/\{b\}$} (0)
+        (2) edge [bend right] node {$\Sigma/\{a\}$} (start)
+        (3) edge [bend left] node {$\Sigma/\{b\}$} (0.south)
+        (4) edge [bend left] node {$\Sigma$} (start.south);
+    \end{tikzpicture}
+  \caption{Finite state automata for pattern $aabab$}
+  \label{fig:kmp-pattern-failure}
+\end{figure}
+
+Because the Aho-Corasick algorithm generalises Knuth-Morris-Pratt by taking this finite automata and adapting it for multiple patterns, I decided a suitable way of starting the project was to implement KMP as a finite automata.
+
+This meant an important first decision to make: How to implement the automata? As a finite state automata is based on graphs, there are three main options available:
+
+\begin{itemize}
+  \item \textbf{Adjacency Matrix:} An item at coordinates $(i,a)$ in the matrix represents an edge in the matrix from state $i$ if the next character is $a$. The value of $(i,j)$ itself is the $\texttt{goto}$ state, and is set to the failure state if there is no subsequent pattern with the next character in the state. Constant time travelling between states but $O(m|\Sigma|)$ space.
+  \item \textbf{Adjacency List:} Each item in the list is a tuple $(i, j, a)$, representing an edge from $i$ to $j$ if $a$ is next on the tape. Failure edges are represented by an integer for each state. Potentially less space than an adjacency matrix but $O(m * \min(|\Sigma|, m))$ time to move to $\texttt{goto}$ state.
+  \item \textbf{Object Oriented:} A state structure is defined, with an array of pointers to other states it connects to and the next character that needs to be read on the tape for the automata to enter that state. Failure edges are simply a pointer to failure state. Performance is a compromise between an adjacency matrix and an adjacency list, with the same asymptotic space consumption as an adjacency list but $O(\min(|\Sigma|, m))$ time to move to $\texttt{goto}$ state.
+\end{itemize}
+
+My initial decision was to use the object oriented approach. Implementing Knuth-Morris-Pratt in this form is easy: When constructing the $\texttt{goto}$ edge, we just iterate through each character in the pattern and connect a new state to the most recent state made. When both constructing the failure pointer and processing the text, we just use the standard KMP algorithm, only using pointers to states instead of integers. And when destroying the automata at the end, we just recursively call the destroy function on the $\texttt{goto}$ item in the automata. Note that we don't worry about destroying the node pointed to along the failure edge, as we know that will be destroyed later.
+
+However, while this method was simple enough for KMP, generalising it for Aho-Corasick led to a number of memory problems. In particular, there were issues with the starting state of the automata being overwritten by another node later on, leading to corrupted memory and double free attempts. The conclusion was that this was too problematic an implementation of automata for C.
+
+In the end, a hybrid method was used for representing the automata, combining adjacency matrices with the object oriented approach. The current state is simply represented by an integer, the $\texttt{goto}$ state is represented by a 2-D array of integers $\texttt{goto}$, the character it needs to match is represented by an array of strings $\texttt{match}$ and the failure edges represented by an array of integers $\texttt{failure}$. Thus if we're in state $i$ and character $a$ is the next character in the text, the next state we move to is determined by:
+
+\[
+  \begin{cases}
+    \texttt{goto}(i, j),& \text{if } \exists j \text{ such that } \texttt{match}_i(j) = a\\
+    \texttt{failure}(i),& \text{otherwise}
+  \end{cases}
+\]
+
+This has the same performance as the object oriented approach, both in terms of time and space.
+
+One detail to remember is that the current state is the index of several arrays. Thus, we cannot have our start state as -1 anymore. This is easy to remedy however, by just having the start state be 0 instead. This is the only discrepancy between our terms for KMP above and our work on Aho-Corasick below.
+
+\subsection{Removing the $\Sigma$ Dependency from Preprocessing}
+
+One of the major problems with the Aho-Corasick algorithm as it is defined in Section~\ref{sec:aho-corasick} is that Algorthms~\ref{alg:ac-goto}, \ref{alg:ac-failure} and \ref{alg:ac-next} all rely on us knowing the complete alphabet at preprocessing time. This is not guaranteed under the streaming model, and requires multiple passes over the text and pattern.
+
+In order to cater for this, a few changes have been made to each algorithm. For Algorithm~\ref{alg:ac-goto}, we change it by specifying the result the output from $\texttt{goto}$ if the next character does not match $failure = 0$. This removes the need for the final loop entirely on that case.
+
+For Algorithm~\ref{alg:ac-failure}, we already know for every state $i$ every character $a \in \Sigma$ such that $\texttt{goto}(i, a) \neq fail$. That is because all of these characters are stored in the $\texttt{match}$ strings, so we can simply iterate through each state's associated string.
+
+Algorithm~\ref{alg:ac-next} is the hardest to remove the alphabet dependency for, but it is still acievable. For the first loop, we only iterate over the characters in state 0's $\texttt{match}_{0}$ string, and set $\texttt{next}(i, a) = 0$ by default. For any other state, denoted $i$, we start by handling the case where $\texttt{goto}(i, a) \neq fail$, by simply iterating through the characters stored in the $\texttt{match}_i$ strings. We then handle the other case by iterating through every character $a \in \texttt{next\_chr}_{\texttt{failure}(i)}$, where $\texttt{next\_chr}_i$ is the string of characters for state $i$'s $\texttt{next}$ function: if $a \notin \texttt{match}_i$, then we know that $\texttt{goto}(i, a) = fail$. If $\exists a \in \Sigma \text{ such that } a \notin \texttt{match}_i \cup \texttt{next\_chr}_{\texttt{failure}(i)}$, it must hold that $\texttt{next}(i, a) = 0$, as it does by default, so we do not need to worry about these characters.
+
+\subsection{Removing the $|\Sigma|$ Run Time per Character}
+
+The bottleneck with Aho-Corasick at processing time is that for our current state, we need to compute the $\texttt{next}$ function. This is not easy to implement; the simplest implementation is linear search, as described in Algorithm~\ref{alg:ac-search}, which would take $O(|\Sigma|)$ time per character. A more efficient implementation could use a binary search tree, which would be $O(\log|\Sigma|)$, but there is in fact an even better way.
+
+\begin{algorithm}[t]
+\For{$i=0$ {\bf upto} $|\texttt{next\_chr}_i|$}{
+  \If{$\texttt{next\_chr}_i(j) = a$}{
+    {\bf return} $\texttt{next\_state}_i(j)$
+  }
+}
+{\bf return} 0
+\caption{Computing the $\texttt{next}(i, a)$ function by linear search.}
+\label{alg:ac-search}
+\end{algorithm}
+
+Note that after preprocessing, we never add any characters to or remove any characters from $\texttt{next\_chr}_i$. As a matter of fact, the $\texttt{next}$ function does not change at all after preprocessing has completed. This means that we can compute this function by having a static perfect hash table for each state $i$, with $\texttt{next\_chr}_i$ as the keys and $\texttt{next\_state}_i$ as the values. This gives uss constant time per character.
+
+For implementation, I used the C Minimum Perfect Hashing library, with a data structure based on my summer project as mentioned in Section~\ref{sec:summer}. One of these three cases occurs when a structure is searched with key $key$:
+
+\begin{enumerate}
+  \item If there are no keys and values for a hash table, return 0 by default.
+  \item If there is one key, check if $keys_0 = key$ and if so return $values_0$, if not return 0.
+  \item Otherwise, do a CMPH search on the key. If none of the keys match the search key, CMPH will by default return either the number of keys or the index of some key. If it returns the index of some key $i$, check if $keys_i = key$. If they match, return $values_i$, otherwise return 0.
+\end{enumerate}
+
+Because the keys are a single character, each search can be evaluated in constant time.
 
 \section{Implementing the Clifford et al. Algorithm for Power of Two Length Dictionary Matching}
 

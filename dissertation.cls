@@ -57,6 +57,9 @@
 % see http://www.ctan.org/tex-archive/usergrps/dante/dtk
 \RequirePackage{dtklogos}
 
+\RequirePackage{tikz}
+\usetikzlibrary{automata,positioning,arrows}
+
 \makeatletter
 
 % =============================================================================
@@ -106,7 +109,6 @@
 % add paragraph breaks
 \setlength{\parskip}{1em}
 \renewcommand{\baselinestretch}{1.1}
-
 
 % -----------------------------------------------------------------------------
 
