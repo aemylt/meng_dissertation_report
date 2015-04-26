@@ -388,7 +388,7 @@ It is interesting to note that a variant of the Karp-Rabin algorithm can be used
 The last point to mention is the probability of a collision. Breslauer and Galil\cite{Breslauer:2014:RSS:2660854.2635814} provide a theorem that if $u$ and $v$ are two different strings of length $l \leq n$, $p \in \theta(n^{2 + \alpha})$ for some level of accuracy $\alpha \geq 0$ and $r \in \mathbb{Z}_p$ is randomly chosen, then the probability that $\phi(u) = \phi(v)$ is smaller than $\frac{1}{n^{1 + \alpha}}$. We will however see later why this does not necessarily hold for the dictionary matching algorithm devised by Clifford et al. \cite{clifford:dict-matching}.
 
 \section{Porat and Porat: Single Pattern Matching in Sublinear Space}
-\label{porat-porat}
+\label{sec:porat-porat}
 
 In 2009, Porat and Porat\cite{5438620} provided the first solution to a pattern matching problem in sublinear space to the size of the pattern. Utilising Karp-Rabin fingerprints as described in the previous section, their randomised algorithm for single pattern matching in the streaming model had $O(\log m)$ complexity both in terms of space and time per character.
 
@@ -483,6 +483,7 @@ If the above condition does not hold and these two strings do not match despite 
 Independent of whether or not the condition holds, inserting and removing VOs can be performed in constant time and the VOs for a given row can be stored compactly in $O(1)$ space. Because there are $\lfloor\log_2m\rfloor$ levels, the overall algorithm now uses $O(\log m)$ in both space and time per character.
 
 \subsection{Breslauer and Galil: Sublinear Space Pattern Matching in Constant Timer per Character}
+\label{ssec:breslauer-galil}
 
 Continued from the work of Porat and Porat above, Breslauer and Galil\cite{Breslauer:2014:RSS:2660854.2635814} created a method for single pattern matching in $O(\log m)$ space and $O(1)$ time per character. Their improvement was based on the fact that all occurrences of the pattern must be at least $|\rho_P|$ characters apart. If $|\rho_P| \geq \log m$, then we can process each level of the algorithm in a round robin fashion, one level per index. Because we are now only processing one level at a time, the time complexity becomes constant.
 
@@ -524,7 +525,7 @@ For more information, I recommend the blog \url{https://streamsandpatterns.wordp
 
 Clifford et al.\cite{clifford:dict-matching} provided a solution to dictionary matching under the streaming model in less space than it takes to store the pattern. Their solution uses $O(k\log m)$ space and $O(\log m)$ time per character, where $m = \max(M)$. It is worth noting that this description is based off of a version of this paper that was not accept, and the accepted version of the paper will likely have some differences to what is described here. Also note that these are how the algorithm is described in the paper; any changes to how the algorithm works in later chapters are my own work to correct the algorithm.
 
-The first step to understanding the algorithm as described in the paper is to consider a subset of the dictionary matching problem, where all the patterns are a power of two in length. This algorithm is very similar to the one described in Section~\ref{porat-porat}, where all the patterns are broken up into $\log m_i$ fingerprints, denoted $\phi_{i,j}$ and defined as follows:
+The first step to understanding the algorithm as described in the paper is to consider a subset of the dictionary matching problem, where all the patterns are a power of two in length. This algorithm is very similar to the one described in Section~\ref{sec:porat-porat}, where all the patterns are broken up into $\log m_i$ fingerprints, denoted $\phi_{i,j}$ and defined as follows:
 
 $$\phi{i,j} = \phi(p_{i,0}...p_{i,2^j-1})$$
 
@@ -676,6 +677,7 @@ This has the same performance as the object oriented approach, both in terms of 
 One detail to remember is that the current state is the index of several arrays. Thus, we cannot have our start state as -1 anymore. This is easy to remedy however, by just having the start state be 0 instead. This is the only discrepancy between our terms for KMP above and our work on Aho-Corasick below.
 
 \subsection{Removing the $\Sigma$ Dependency from Preprocessing}
+\label{ssec:ac-hashing}
 
 One of the major problems with the Aho-Corasick algorithm as it is defined in Section~\ref{sec:aho-corasick} is that Algorthms~\ref{alg:ac-goto}, \ref{alg:ac-failure} and \ref{alg:ac-next} all rely on us knowing the complete alphabet at preprocessing time. This is not guaranteed under the streaming model, and requires multiple passes over the text and pattern.
 
@@ -714,20 +716,20 @@ Because the keys are a single character, each search can be evaluated in constan
 
 \subsection{A Brief Note on $\texttt{output}$}
 
-Aho-Corasick offers the advantage that we can return what patterns matched at a given index. However, due to limitations on the Clifford et al. algorithm described in \ref{ssec:periodic-theory}, we only care about \textit{if} a pattern matched, regardless of \textit{which} pattern(s) matched. Because of this, the $\texttt{output}$ function was changed from returning a set to returning a boolean.
+Aho-Corasick offers the advantage that we can return what patterns matched at a given index. However, due to limitations on the Clifford et al. algorithm described in \ref{ssec:periodic-theory}, we only care about \textit{if} a pattern matched, regardless of \textit{which} pattern(s) matched. Because of this, the $\texttt{output}$ function was changed from returning a set to returning an integer, with 0 to represent no patterns matching and 1 to represent a match.
 
 This change requires two lines of the algorithm being modified:
 
 \begin{enumerate}
-  \item Line 15 of Algorithm~\ref{alg:ac-goto} becomes $\texttt{output}(state) = \text{true}$
+  \item Line 15 of Algorithm~\ref{alg:ac-goto} becomes $\texttt{output}(state) = 1$
   \item Line 15 of Algorithm~\ref{alg:ac-failure} becomes $\texttt{output}(state) = \texttt{output}(state) \vee \texttt{output}(\texttt{failure}(state))$
 \end{enumerate}
 
-If unspecified, $\texttt{output}(state)$ is false by default.
+If unspecified, $\texttt{output}(state)$ is 0 by default.
 
 \section{Implementing the Clifford et al. Algorithm for Power of Two Length Dictionary Matching}
 
-The rest of this chapter describes the implementation of Clifford, Fontaine, Porat and Sach's algorithm as described in Section~\ref{sec:theory-clifford}. Note that, this algorithm does not achieve $O(\log m)$ time per character as desired, but $O(\log k\log m)$ instead. The reason behind this will be explained later in this section. It is also worth noting, as explained in Section~\ref{sec:impl-long} that this is amortised time per character; the real time per character is $O(\log k(k + \log m))$.
+The rest of this chapter describes the implementation of Clifford, Fontaine, Porat and Sach's algorithm as described in Section~\ref{sec:theory-clifford}. Note that, this algorithm does not achieve $O(\log m)$ time per character as desired, but $O(\log k\log m)$ instead. The reason behind this will be explained later in this section. It is also worth noting, as will be explained in Section~\ref{sec:impl-long} that this is amortised time per character; the real time per character is $O(\log k(k + \log m))$.
 
 \subsection{Implementing Karp and Rabin's Algorithm for Dictionary Matching}
 
@@ -768,7 +770,7 @@ Concatenation, prefix and suffix operations are computed as shown in Section~\re
 
 \subsubsection{Implementing Static Perfect Hashing of Fingerprints}
 
-The data structure is similar to the static hash table used for Aho-Corasick, only with fingerprints instead of characters for the keys. But there is a problem with this method: The C version of CMPH is designed to only take strings as the keys, whereas we want it to run on (multiple precision) integers.
+The data structure is similar to the static hash table used for Aho-Corasick, only with fingerprints instead of characters for the keys, and returning the index calculated by the hash function (or $-1$ by default) instead of some value. But there is a problem with this method: The C version of CMPH is designed to only take strings as the keys, whereas we want it to run on (multiple precision) integers.
 
 The method taken for solving this problem was to convert the fingerprints into strings, using the function $\texttt{gmp\_snprintf}$. While this had some impact on performance, it was a quick solution in order to make static hashing work on integers. The conclusion was that if it turns out to be a bottleneck at the testing stage, faster implementations of static hashing could be investigated then or suggested as future work depending on the amount of time left.
 
@@ -779,6 +781,53 @@ We cannot figure out the number of characters needed to represent $p$ in hexadec
 Asymptotically, the space is not affected by this change. We only need to store one string in the structure for the key we want to search at a given point--we store this string in order to avoid constantly allocating and freeing space--and this string will take up as much space as $p$, within a constant factor.
 
 \subsection{From Karp-Rabin to Power of Two Length Dictionary Matching}
+
+\subsubsection{Dictionary Matching Where All Patterns are the Same Power of Two Length}
+
+The next step of implementation was to look at patterns which are all the same power of two length. This essentially works as a combination of Porat and Porat's algorithm with the Karp-Rabin algorithm implemented in the previous section.
+
+The first step is to determine the length of the longest pattern $m$, and then use this to compute $\log m$, so that we can allocate enough rows for the pattern. This is done very simply: Iterate through all of the pattern lengths to find the largest, and simply use bit shifting, as shown in Listing~\ref{lst:bit-shift} to compute $\log m$.
+
+\begin{lstlisting}[float={t},caption={Computing $\log m$ via bit shifting.},label={lst:bit-shift},language=C]
+while((1 << (matcher->num_rows + 1)) < m_max) {
+  matcher->num_rows++;
+}
+\end{lstlisting}
+
+An interesting question to ask at this point is why we have the +1 in the above listing. This is because the very fist row, which matches prefixes one character long, doesn't need any arithmetic progressions stored. Instead, it just processes those characters live as they come in on the stream.
+
+Because of this, we handle the first row differently. Instead of having an array of progressions for it, we just have a static hash table to check each character $t_j$ as it enters the stream if it matches the prefix of some pattern, and then insert it into level 0 if there is a match. We also don't use the fingerprint static hash table described above for these prefixes. Instead, because these prefixes are only one character long, we use the static hash table used in Section~\ref{ssec:ac-hashing}, which is faster than hashing $\phi(t_j)$.
+
+The rest of the structure is built by iterating through each row $i$ until $2^{i+1} \leq m$, which occurs when $i = \lfloor\log_2m\rfloor$. For row $i$, we iterate through each pattern $P_j$ and create the fingerprint $\phi_{i,j} = \phi(p_{j,0}...p_{j,2^{i + 1} - 1})$. As with Porat and Porat in Section~\ref{sec:porat-porat}, this fingerprint can be created reading each character only once by concatenating the previous prefix with $\phi(p_{j,2^{i}}...p_{j,2^{i + 1} - 1})$.
+
+One point to be cautious of is if different patterns have the same prefix. This can cause problems with CMPH, which does not handle matching keys well, and can also cause later problems for us when looking at different length patterns, if one entire pattern is the prefix for another pattern. We will see this problem arise regularly throughout this project, as all three cases described later in this chapter have the risk of matching fingerprints. In all cases where this issue arises during preprocessing, avoiding this is implemented na\"{i}vely through linear search. A better option would have been to implement it via a binary search tree, but this was only realised after testing was completed.
+
+For each row $i$, we keep count of the number of unique prefixes in that row. We need this information so that when we start building row $i+1$, we know how many arithmetic progressions need to be allocated. For this implementation, it does not matter which prefix in row $i$ is maps via CMPH to which progression in row $i+1$.
+
+This is most of the preprocessing issues explained. The rest of the algorithm works similarly to the way it is described in Section~\ref{sec:theory-clifford}: As each character of the text enters, each row checks if the oldest occurrence stored in any progression can now be tested. If it is tested and succeeds, then it is promoted to the next row and stored using the prefix's period. A few differences are explained below.
+
+Simplest difference first, we do not promote at the final level. Instead, since the final level performs matches against the complete patterns, this level performs a static lookup to see if a full match has occured and if so simply report that match.
+
+The second and more complicated difference is what to do if there is a collision in the fingerprints and thus have a viable occurrence that does not fit with the period. We could use the method suggested by Breslauer and Galil in Section~\ref{sec:porat-porat} and simply report a match every time this happens, but this will cause problems once the patterns are of different lengths since we will not know which index to declare a match at. Instead, this implementation simply ignores such occurrences, and prints a warning on $\texttt{stderr}$ explaining that there was a non-periodic occurrence at this index, which prefix causes the occurrence, and that it has been ignored.
+
+The final difference is how we figure out which arithmetic progression contains the oldest viable occurrence. This detail was omitted from the version of the paper that I was using for this project, and a method for solving this was not devised until it was too late to attempt to implement it. In the original implementation, a simple linear search was performed over the progressions. But this is too costly, as it makes the run time per character to $O(k\log m)$. With that asymptotic performance we might as well just run $k$ copies of the Breslauer and Galil algorithm described in Section~\ref{ssec:breslauer-galil}.
+
+Instead, the next progression was found by using a Red-Black Tree, using source code from \url{http://en.literateprograms.
+org/Red-black_tree_(C)?oldid=19567} as a starting point. More precisely, I used a version from my summer project which modified the RBT source code so that when searching the tree, a default value could be specified if the key could not be found. This is because the original implementation of the RBT returns $\texttt{NULL}$ by default, which is problematic as $\texttt{NULL}$ is interpreted by C as 0, and I want to store the value 0 in the tree.
+
+Each row has an RBT as part of its data structure, which takes integers as both keys and values. For key-value pair $i, j$ in a tree, $i$ is the index of the oldest prefix in the $j$-th progression that is yet to be tested. When a viable occurrence is added to an arithmetic progression, a key-value pair is added to the RBT only if that progression was previously empty. Then, when we reach index $i$ in the text, we check the RBT if one of the keys in the tree matches $i$. If so, then progression $j$ can be tested. After testing, we remove $i$ from the RBT, and if the progression $j$ still contains some viable occurrences, insert $(i + |\rho_j|, j)$ into the tree, where $|\rho_j|$ is the length of the period of the $j$-th progression.
+
+There are a few final points worth noting about these trees. First, because the prefixes are the same length, it is impossible to have more than one progression to test for a given index. Thus we have no risk of progressions being lost because of other progressions overwriting them in the RBT. Second, because we only insert items into the tree if either the progression was previously empty or because we have shifted the progression along--which involves deleting an item from the RBT--we have at most $k$ items in the tree at any one time. Thus, we still meet the $k\log m$ space bounds as before.
+
+As for time complexity, inserting, searching and deleting items from the red-black tree take $O(\log k)$ time, where $k$ is the number of items in the tree. We call these functions a constant number of times for each level at each index of the text. Because there are $\log m$ levels to iterate over at each index of the text, the overall runtime is $O(\log k\log m)$, as mentioned at the start of this section.
+
+\subsubsection{Dictionary Matching with Different Power of Two Length Patterns}
+
+From the above implementation, modifying it to handle patterns of different power of two lengths is trivial. For each level, we keep track of an array of integers to indicate if a pattern ends at a given prefix. When preprocessing on pattern $P_j$ at level $i$, we check if $2^{i + 1} = m_j$. If that is the case, then we specify a pattern ending in the array by the value $1$. Otherwise, we use $0$ to indicate that the pattern does not end here. To cater for the case where one pattern is the prefix of another and thus have matching fingerprints, we simply use a bitwise OR to make sure that the array knows that a pattern ends at this prefix.
+
+Finally, the static perfect hash table\footnote{Note that this refers to both the hash tables for fingerprints and the hash table for characters in the first level.} is modified to store these integers, and optionally return them by reference.
+
+Now for each character in the text, we iterate over each level and use the static hash table to check if there is a match with some prefix. Alongside this, we are returned by reference an integer to indicate if a complete pattern matches here or not. If the integer is 1, we report a match at this index, otherwise we report no match.
 
 \section{Implementing the Clifford et al. Algorithm for Short Patterns Dictionary Matching}
 
