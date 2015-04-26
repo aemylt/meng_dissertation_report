@@ -538,6 +538,7 @@ In order to go from this to the general case of any length of pattern, the patte
 $$|\rho_i| \geq k; (m_i \geq k \text{ and } |\rho_i| < k); m_i < k$$
 
 \subsection{Patterns with Long Periods}
+\label{ssec:long-theory}
 
 We start with the case where for every pattern $P_i$ in our dictionary $|\rho_i| \geq k$. We start by defining $Q_i$ to be the $m_i - k$ prefix of the $i$-th pattern. For this algorithm to work, we continue under the assumption that $|\rho_{Q_i}| \geq k$. We will see a brief solution for when this assumption does not hold in the subsubsection at the end of this case.
 
@@ -829,9 +830,73 @@ Finally, the static perfect hash table\footnote{Note that this refers to both th
 
 Now for each character in the text, we iterate over each level and use the static hash table to check if there is a match with some prefix. Alongside this, we are returned by reference an integer to indicate if a complete pattern matches here or not. If the integer is 1, we report a match at this index, otherwise we report no match.
 
+\section{Prelude to the General Case Algorithms}
+
+Sections~\ref{sec:impl-short}, \ref{sec:impl-periodic} and \ref{sec:impl-long} look at implementing each of the three algorithms by Clifford et al. described in Section~\ref{sec:theory-clifford} for the general case of dictionary matching. This section is for general points applied to all three algorithms.
+
+The algorithms are described in this report in opposite order from how they are described in the original paper. This is intentional, as this was the order I implemented each algorithm in.
+
+\subsection{Redefining the Cases for Each Algorithm}
+
+Alongside the edge case described in Section~\ref{sssec:edge-case-theory}, there is a second case not considered by the paper. Consider a pattern $P_i$ of length $m_i = \frac{3k}{2}$ and period $\rho_i$ such that $|\rho_i| > k$. Because the pattern has a longer period than $k$, it should be processed by the algorithm described in Section~\ref{ssec:long-theory}.
+
+Let $Q_i$ be the $m_i - k$ length prefix as previously defined. It is easy to see that $|Q_i| = \frac{3k}{2} - k = \frac{k}{2}$, and because $|Q_i| < k$, it follows that $|\rho_{Q_i}| < k$. So this hits an edge case that, according to the paper, should be fixed as described in Section~\ref{sssec:edge-case-theory}. But that means running the algorithm described in Section~\ref{ssec:periodic-theory} on $Q_i$, which will not work either as that algorithm relies on patterns being longer than $k$, which doesn't hold.
+
+So we have another edge case. However, this one can be more easily rectified. Since this edge case occurs if the patterns are shorter than $2k$, we can simply process them using the algorithm for short patterns. We can state this change formally by a simple adjustment:
+
+\begin{itemize}
+  \item \textbf{Patterns with Long Periods:} $m_i > 2k \text{ and } |\rho_i > k|$
+  \item \textbf{Long Patterns with Short Periods:} $m_i > 2k \text{ and } |\rho_i \leq k|$
+  \item \textbf{Short Patterns:} $m_i \leq 2k$
+\end{itemize}
+
+The other difference between the definitions here and in Section~\ref{sec:theory-clifford} is that the equals conditions have been switched. This was for convenience, as this was the order I implemented the algorithms in. The correctness of all three algorithms still hold.
+
+Note that the edge case--defined under these new definitions as pattern $P_i$ of length $m_i$ with $(m_i - k)$-length prefix $Q_i$ such that $m_i > 2k \text{ and } |\rho_i > k|$ but $|\rho_{Q_i} < k|$--has not been implemented. This was due to time constraints, and the belief that this case was unlikely enough that efforts would be better focused elsewhere in this project.
+
+\subsection{Determining the Period of Each Pattern}
+
+The period length of each pattern can be determined via the algorithm described in Listing~\ref{lst:get-periods}. This is based on the way the failure table is computed for Knuth-Morris-Pratt, and simply iterated over each pattern.
+
+In order to avoid more malloc and realloc calls than necessary, the space allocated for the failure table is reused for each pattern, and only reallocated if the next pattern is longer than any previously seen patterns.
+
+Finally, the calculation at the end of the loop is to convert the standard failure table content into the length of the period. Since the final element in the KMP failure table is the length of the longest strict prefix of the pattern that is also a suffix, the difference between that value and the length of the pattern is the point when the pattern starts repeating itself. Thus, we have the period of the pattern.
+
+\begin{lstlisting}[float={t},caption={Computing $\log m$ via bit shifting.},label={lst:get-periods},language=C]
+void get_periods(char **P, int *m, int num_patterns, int *period) {
+    int i, j, k;
+    int *failure;
+    failure = malloc(sizeof(int));
+    int failure_size = 1;
+    for (i = 0; i < num_patterns; i++) {
+        if (m[i] > failure_size) {
+            failure = realloc(failure, sizeof(int) * m[i]);
+            failure_size = m[i];
+        }
+        failure[0] = -1;
+        k = -1;
+        for (j = 1; j < m[i]; j++) {
+            while (k > -1 && P[i][k + 1] != P[i][j]) k = failure[k];
+            if (P[i][k + 1] == P[i][j]) k++;
+            failure[j] = k;
+        }
+        period[i] = m[i] - failure[m[i] - 1] - 1;
+    }
+    free(failure);
+}
+\end{lstlisting}
+
+\subsection{Re-using Buffers}
+
+All three algorithms use a buffer of the last few fingerprints of the text. For the cases where the patterns have long periods or are long patterns with short periods, both algorithms use such a buffer of length $k$, and thus a buffer can be shared trivially. However, the short patterns algorithm uses a buffer of length $k'$ as described in the paper. I will describe in Section~\ref{sec:impl-short} how to adjust the algorithm in such a way that all three algorithms can use the same buffer.
+
+It can also be seen that, following this redefinition, the buffer will now need to be of length $2k$ for the case of short matching. It will also be shown in each of the following sections how to adjust the algorithms for this longer buffer.
+
 \section{Implementing the Clifford et al. Algorithm for Short Patterns Dictionary Matching}
+\label{sec:impl-short}
 
 \section{Implementing the Clifford et al. Algorithm for Long Patterns with Short Periods Dictionary Matching}
+\label{sec:impl-periodic}
 
 \section{Implementing the Clifford et al. Algorithm for Patterns with Long Periods Dictionary Matching}
 \label{sec:impl-long}
