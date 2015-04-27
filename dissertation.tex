@@ -385,7 +385,7 @@ All of these operations can be completed in constant time.
 
 It is interesting to note that a variant of the Karp-Rabin algorithm can be used for a subset of dictionary matching, where all the patterns are the same length $m$\cite{candan:data}. This can be done by storing a fingerprint of the last $m$ characters read from the text, and using static perfect hashing as described in section \ref{min-perf-hash} to check if the fingerprint of the text matches any fingerprints of the patterns. Using suffix and concatenation tectniques above and storing a circular buffer of the last $m$ characters, we can accomplish this with $O(k + m)$ space and $O(1)$ time per character. However, due to the limitation that all the patterns have to be the same length, this method has not been analysed for this project.
 
-The last point to mention is the probability of a collision. Breslauer and Galil\cite{Breslauer:2014:RSS:2660854.2635814} provide a theorem that if $u$ and $v$ are two different strings of length $l \leq n$, $p \in \theta(n^{2 + \alpha})$ for some level of accuracy $\alpha \geq 0$ and $r \in \mathbb{Z}_p$ is randomly chosen, then the probability that $\phi(u) = \phi(v)$ is smaller than $\frac{1}{n^{1 + \alpha}}$. We will however see later why this does not necessarily hold for the dictionary matching algorithm devised by Clifford et al. \cite{clifford:dict-matching}.
+The last point to mention is the probability of a collision. Breslauer and Galil\cite{Breslauer:2014:RSS:2660854.2635814} provide a theorem that if $u$ and $v$ are two different strings of length $l \leq n$, $p \in \theta(n^{2 + \alpha})$ for some level of accuracy $\alpha \geq 0$ and $r \in \mathbb{Z}_p$ is randomly chosen, then the probability that $\phi(u) = \phi(v)$ is smaller than $\frac{1}{n^{1 + \alpha}}$. We will however see in Section~\ref{ssec:short-collisions} why this does not necessarily hold for the dictionary matching algorithm devised by Clifford et al. \cite{clifford:dict-matching}.
 
 \section{Porat and Porat: Single Pattern Matching in Sublinear Space}
 \label{sec:porat-porat}
@@ -576,6 +576,7 @@ Anyway, either through no pattern being a suffix of any other pattern or through
 Complexity wise, the progressions can be stored in $O(k)$ space, as can the fingerprints of the tails. The fingerprint of the last $k$ characters in the text stream can be stored by using a circular array of such fingerprints for the last $k$ indexes. Thus space usage is $O(k)$. As for time, the static perfect hashing operations are constant time, as is inserting the occurrence into the arithmetic progressions and checking for a match, so time overall is $O(1)$.
 
 \subsection{Short Patterns}
+\label{ssec:short-theory}
 
 The final case to consider is where all the patterns are shorter than $k$. The algorithm for this case is an adaptation of binary search, searching over suffixes of the stream of lengths from 1 to $k$ to see if a pattern matches any of them. However, binary search cannot be applied na\"{i}vely, as we may need to search both parts of the search space. Instead, we use a hash table with a fingerprint as the key and a boolean as the value to find out which half of the space to search.
 
@@ -770,6 +771,7 @@ After space has been allocated, the fingerprints of strings can be computed by a
 Concatenation, prefix and suffix operations are computed as shown in Section~\ref{sec:kr-fingerprints}. The only difference is that, as with setting the fingerprint, $r^{-k}$ was calculated using $\texttt{mpz\_invert}$.
 
 \subsubsection{Implementing Static Perfect Hashing of Fingerprints}
+\label{sssec:static-hashing-kr}
 
 The data structure is similar to the static hash table used for Aho-Corasick, only with fingerprints instead of characters for the keys, and returning the index calculated by the hash function (or $-1$ by default) instead of some value. But there is a problem with this method: The C version of CMPH is designed to only take strings as the keys, whereas we want it to run on (multiple precision) integers.
 
@@ -888,12 +890,107 @@ void get_periods(char **P, int *m, int num_patterns, int *period) {
 
 \subsection{Re-using Buffers}
 
-All three algorithms use a buffer of the last few fingerprints of the text. For the cases where the patterns have long periods or are long patterns with short periods, both algorithms use such a buffer of length $k$, and thus a buffer can be shared trivially. However, the short patterns algorithm uses a buffer of length $k'$ as described in the paper. I will describe in Section~\ref{sec:impl-short} how to adjust the algorithm in such a way that all three algorithms can use the same buffer.
+All three algorithms use a circular buffer of the last few fingerprints of the text. For the cases where the patterns have long periods or are long patterns with short periods, both algorithms use such a buffer of length $k$, and thus a buffer can be shared trivially. However, the short patterns algorithm uses a buffer of length $k'$ as described in the paper. I will describe in Section~\ref{sec:impl-short} how to adjust the algorithm in such a way that all three algorithms can use the same buffer.
 
 It can also be seen that, following this redefinition, the buffer will now need to be of length $2k$ for the case of short matching. It will also be shown in each of the following sections how to adjust the algorithms for this longer buffer.
 
+For implementation, a circular buffer is not used itself. Instead, a standard array of $2k$ fingerprints have been used instead. The oldest fingerprint at index $j$ is $j \mod 2k$ and serves as the start of the buffer. At the end of the computation for index $j$, the fingerprint at index $j \mod 2k$ is updated to the fingerprint of the whole text seen so far.
+
 \section{Implementing the Clifford et al. Algorithm for Short Patterns Dictionary Matching}
 \label{sec:impl-short}
+
+\subsection{Modifications to the $\texttt{PreProc}$ Algorithm}
+
+There is in fact a typographical error in the way the $\texttt{PreProc}$ algorithm is presented in the original paper--see Algorithm~\ref{alg:short-dict-matching}. We can see this error if, for example, $P_i = aaaaa, m_i = 5, k' = 8$, as displayed in Table~\ref{tab:preproc-results-incorrect}. The problem is that it only inserts the power of two length suffixes into the hash table, so if our pattern is not a power of two in length, the full pattern will not be inserted.
+
+\begin{table}[t]
+  \centering
+  \begin{tabular}{|c|c|c|c|}
+    \hline
+    Iteration & $x$ & $y$ & $p_{i, m_i-x/2}...p_{i, m_i - 1}$ \\\hline
+    0 & 8 & 5 & $aaaa$ \\\hline
+    1 & 4 & 1 & n/a \\\hline
+    2 & 2 & 1 & $`a'$ \\\hline
+    3 & 1 & 1 & $`'$ \\\hline
+    4 & 0 & 0 & $`'$ \\\hline
+  \end{tabular}
+  \caption{Suffixes added to the hash table for pattern $aaaaa$ following $\texttt{PreProc}$ as described in Algorithm~\ref{alg:short-dict-matching}.}
+  \label{tab:preproc-results-incorrect}
+\end{table}
+
+It is easy to see that this is merely a typo as opposed to an error in the algorithm, as the algorithm can be simply fixed by modifying line 2 to the following:
+
+$$\mathcal{H}_3.insert(\phi(p_{i, y - x/2}...p_{i, m{i} - 1}), \mathcal{S}(p_{i, y - x/2}...p_{i, m{i} - 1}))$$
+
+This guides the algorithm to preprocess the patterns in the same order that binary search will traverse them, and essentially lay out the path for binary search to a given pattern.
+
+The second modification was because the algorithm doesn't yet specify a base case for the recursive call to stop. The base case was in the end specified as $x = 0$, but checking this becomes problematic as in some cases we still want the algorithm to run when $x = 0$ in order to get a fingerprint of the entire pattern. So at the end of the recursive call, the entire pattern is inserted into the hash table.
+
+The third modification is to simplify the algorithm. We can see from Algorithm~\ref{alg:short-dict-matching} that the value $x$ is never used, only $x/2$. So we can replace the occurrences of $x/2$ with $x$ and run $\texttt{PreProc}(k'/2, m_i)$ instead.
+
+The final adjustment is to remove the recursive call. Because of how simple the recursion is, it is easy to convert the recursive call into a while loop and thus save the practical cost of recursion in time and stack space.
+
+The completely modified algorithm is described in Algorithm~\ref{alg:preproc-correct}. We call $\texttt{PreProc}$ with parameters $(k'/2, m_i)$ for each pattern $P_i$. The result of preprocessing this algorithm can be seen in Table~\ref{tab:preproc-results-correct}.
+
+\begin{algorithm}[t]
+\While {$x \neq 0$} {
+  \If {$y \geq x$} {
+    $\mathcal{H}_3.\text{insert}(\phi(p_{y-x}...p_{m_i}), \mathcal{S}(p_{y-x}...p_{m_i}))$\\
+    $y \gets y - x$
+  }
+  $x \gets x/2$
+}
+$\mathcal{H}_3.\text{insert}(\phi(p_0...p_{m_i}), 1)$
+\caption{$\mathtt{PreProc}(x,y)$: Modified version of the algorithm for preprocessing of a single pattern}
+\label{alg:preproc-correct}
+\end{algorithm}
+
+\begin{table}[t]
+  \centering
+  \begin{tabular}{|c|c|c|c|}
+    \hline
+    Iteration & $x$ & $y$ & $p_{i, m_i-x/2}...p_{i, m_i - 1}$ \\\hline
+    0 & 4 & 5 & $aaaa$ \\\hline
+    1 & 2 & 1 & n/a \\\hline
+    2 & 1 & 1 & $aaaaa$ \\\hline
+    3 & 0 & 0 & $aaaaa$ \\\hline
+  \end{tabular}
+  \caption{Suffixes added to the hash table for pattern $aaaaa$ following $\texttt{PreProc}$ as described in Algorithm~\ref{alg:preproc-correct}.}
+  \label{tab:preproc-results-correct}
+\end{table}
+
+Another point worth mentioning is how the function $\mathcal{S}$ is computed. For a string $S$ of $m$ characters, we iterate through every pattern in the dictionary $P_i$ and check if $m_i \leq m$. If that check holds, we then use na\"{i}ve pattern matcing to check if $s_{m - m_i}...s_{m - 1} = P_i$. This was the easiest solution to implement, and we can see at testing whether or not this is a bottleneck of the algorithm.
+
+\subsection{Adjusting for Patterns Shorter than $2k$}
+
+The above preprocessing changes will work for patterns shorter than $k$, but what about patterns shorter than $2k$? Thankfully, this adjustment can be made by simply modifying $k'$ to become the smallest power of two greater than or equal to $2k$. Because of how generic the $\texttt{PreProc}$ and $\mathcal{S}$ functions are, the only adjustments needed to make them work for any patterns shorter than some length $c$ is to adjust $k'$ to be the smallest power of two greater than $c$.
+
+So preprocessing works fine. But what changes need to be made to the streaming algorithm itself? Again, the answer is not a lot. The cyclic buffer needs to be modified to store the past $2k$ fingerprints of the text, and the initial position we check is $k'/2$ where $k'$ is defined by the new definition in the previous paragraph.
+
+The final time and space constraints are the same as before, only with $2k$ substituted for $k$. Asymptotically, this is still the same overall complexity, as $O(2k) \in O(k)$.
+
+\subsection{Reducing the Size of the Buffer}
+
+The algorithm as described in Section~\ref{sec:impl-short} uses a buffer of the last $k'$ fingerprints of the text. This is problematic if we want to share a buffer between all three algorithms, as the other two algorithms work with a buffer of $k$ fingerprints.
+
+To solve this, it is worth investigating how $\texttt{PreProc}$ behaves on a pattern $P_i$. In particular, note that the longest fingerprint inserted into the hash table is of length $m_i$; all other fingerprints have to be suffixes of the pattern and are thus shorter than $m_i$. We also know that all patterns are at most length $2k$ because of our definition of the problem. Thus, we can conclude that the maximum length of the strings stored in the static hash table is $2k$. Since we know that no strings will be in the hash table longer than this length, we don't need to check the hash table in this case and can just traverse right if we have a midpoint longer than $2k$. With this change applied to the binary search, we only ever compute the fingerprint of the last $2k$ suffixes in the pattern, so we can share this buffer with the other two algorithms.
+
+\subsection{Why the Probability of Collisions Does Not Hold}
+\label{ssec:short-collisions}
+
+I mentioned at the end of Section~\ref{sec:kr-fingerprints} that the probability of two fingerprints colliding does not hold for this algorithm. This is because of the static hash table used here.
+
+Recall that the probability of $\phi(u) = \phi(v)$ for different strings $u, v$ of length $l \leq n$ is smaller than $\frac{1}{n^{1 + \alpha}}$ as long as the fingerprint parameters $p, r$ are chosen correctly. Unfortunately, this probability does not hold for the hash table, which contains strings of different lengths. This makes the probability of collisions in the fingerprints significantly higher, to the point that this was the only point in the algorithm where I was actually seeing the hash function colliding.
+
+We can resolve this by comparing more than just the fingerprints. For strings $u, v$ of respective lengths $l_u, l_v \leq n$, we define their fingerprints as being equivalent if the following equation holds:
+
+$$\phi(u) = \phi(v), r^{l_u} = r^{l_v} \text{ and } r^{-l_u} = r^{-l_v}$$
+
+$r^{l_u} \text{ and } r^{-l_u}$ are both stored in the fingerprint structure we defined in Section~\ref{sec:kr-fingerprints}. Because CMPH requires string keys for static perfect hash functions, we can make sure these are unique by having the keys be a comma-separated string of $\phi(u),r^{l_u},r^{-l_u}$. Since $r^{l_u}$ and $r^{-l_u}$ are both modulo $p$, their string representations require as much space as there was allocated for the hexadecimal string representation of the fingerprint. Using the size calculated in Section~\ref{sssec:static-hashing-kr}, the overall space required for these strings comes to $3 * (2 * \texttt{\_mp\_size} * \texttt{sizeof}(\texttt{mp\_limb\_t}) + 1)$. Note that we now need three extra bytes instead of one: Two for the commas separating the variables and one for the string terminator.
+
+The probability of a collision now depends on the value of our random number $r$. Because $2 \leq r < p$, it holds that $r$ is in the cyclic group $\mathbb{Z}^*_p$. From this, we can define the set $\langle r \rangle =^{def} \{r^0, r^1,...,1\}$--we know that this group eventually terminates by Lagrange's Theorem, as shown in Katz and Lindell\cite{katz:lagrange}. We can define the order of the set $\langle r \rangle$ as the smallest number $i$ such that $r^i = 1$. Katz and Lindell\cite{katz:cyclic-groups} show that if $i$ is the order of $\langle r \rangle$, then $r^x = r^y$ if and only if $x = y \mod i$.
+
+Translating this to our fingerprints, the fingerprints of two different strings $u, v$ of respective lengths $l_u, l_v \leq n$ collide if and only if $l_u = l_v \mod i$. For this algorithm, we only compare strings as long as $2k$. Therefore, as long as $i > 2k$, $r^{l_u} = r^{l_v} \text{ and } r^{-l_u} = r^{-l_v}$ if and only if $l_u = l_v$ and thus we have equivalent probability. However, this is the best case scenario. I have not been able to find a solution for the probability of a collision in general.
 
 \section{Implementing the Clifford et al. Algorithm for Long Patterns with Short Periods Dictionary Matching}
 \label{sec:impl-periodic}
