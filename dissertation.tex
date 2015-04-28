@@ -105,10 +105,10 @@ but an example is as follows:
 
 \begin{quote}
 \begin{itemize}
-\item I used the GNU Multiple Precision Arithmetic Library (GMP) to support my implementation of Karp-Rabin fingerprints.\url{https://gmplib.org/}
-\item I used the C Minimum Perfect Hashing Library (CMPH) for static perfect hashing.\url{http://cmph.sourceforge.net/}
+\item I used the GNU Multiple Precision Arithmetic Library (GMP) to support my implementation of Karp-Rabin fingerprints: \url{https://gmplib.org/}
+\item I used the C Minimum Perfect Hashing Library (CMPH) for static perfect hashing: \url{http://cmph.sourceforge.net/}
 \item I used an open-source implementation of Red-Black Trees from \url{http://en.literateprograms.org/Red-black_tree_(C)?oldid=19567}, with some minor adaptations.
-\item The algorithms were tested against 50MB of gene DNA sequences from the Pizza and Chili Corpus.\url{http://pizzachili.dcc.uchile.cl/texts/dna/}
+\item The algorithms were tested against 50MB of gene DNA sequences from the Pizza and Chili Corpus: \url{http://pizzachili.dcc.uchile.cl/texts/dna/}
 \end{itemize}
 \end{quote}
 
@@ -571,7 +571,7 @@ The second step we perform is to check if the fingerprint of the last $k$ charac
 
 At this point, we are going to assume that no patterns are a suffix of another pattern. If this is not the case, then it is possible to perform dictionary matching, but it comes at the cost of not knowing which patterns have matched. This is why for our choice of dictionary matching, we do not care about what pattern(s) have matched. It is also why we can only return the index at the end of the instance; the only way we could know the starting index of the would be if we knew what the pattern was, since then we could just simply take the current index and subtract the length of the pattern.
 
-Anyway, either through no pattern being a suffix of any other pattern or through discarding the patterns which do have other patterns as suffixes, we end up in a situation where each pattern has a unique tail. If the last $k$ characters in the stream match the tail of some pattern $P_i$, we check the arithmetic progression associated with that pattern. In order for a match to have occured, there need to have been at least $\lfloor\frac{m_i}{\rho_i}\rfloor$ occurrences of $K_i$ in the progression, and the last occurrence must have happened $m_i \mod \rho_i$ characters ago. If both of these conditions hold, then a match is reported.
+Anyway, either through no pattern being a suffix of any other pattern or through discarding the patterns which do have other patterns as suffixes, we end up in a situation where each pattern has a unique tail. If the last $k$ characters in the stream match the tail of some pattern $P_i$, we check the arithmetic progression associated with that pattern. In order for a match to have occured, there need to have been at least $\lfloor\frac{m_i}{\rho_i}\rfloor$ occurrences of $K_i$ in the progression, and the last occurrence must have happened at index $j - m_i + \lfloor\frac{m_i}{|\rho_i|}\rfloor\cdot|\rho_i|$. If both of these conditions hold, then a match is reported.
 
 Complexity wise, the progressions can be stored in $O(k)$ space, as can the fingerprints of the tails. The fingerprint of the last $k$ characters in the text stream can be stored by using a circular array of such fingerprints for the last $k$ indexes. Thus space usage is $O(k)$. As for time, the static perfect hashing operations are constant time, as is inserting the occurrence into the arithmetic progressions and checking for a match, so time overall is $O(1)$.
 
@@ -864,7 +864,7 @@ In order to avoid more malloc and realloc calls than necessary, the space alloca
 
 Finally, the calculation at the end of the loop is to convert the standard failure table content into the length of the period. Since the final element in the KMP failure table is the length of the longest strict prefix of the pattern that is also a suffix, the difference between that value and the length of the pattern is the point when the pattern starts repeating itself. Thus, we have the period of the pattern.
 
-\begin{lstlisting}[float={t},caption={Computing $\log m$ via bit shifting.},label={lst:get-periods},language=C]
+\begin{lstlisting}[float={t},caption={Computing the period length $|\rho_i|$ for each pattern.},label={lst:get-periods},language=C]
 void get_periods(char **P, int *m, int num_patterns, int *period) {
     int i, j, k;
     int *failure;
@@ -971,7 +971,7 @@ The final time and space constraints are the same as before, only with $2k$ subs
 
 \subsection{Reducing the Size of the Buffer}
 
-The algorithm as described in Section~\ref{sec:impl-short} uses a buffer of the last $k'$ fingerprints of the text. This is problematic if we want to share a buffer between all three algorithms, as the other two algorithms work with a buffer of $k$ fingerprints.
+The algorithm as described in Section~\ref{ssec:short-theory} uses a buffer of the last $k'$ fingerprints of the text. This is problematic if we want to share a buffer between all three algorithms, as the other two algorithms work with a buffer of $k$ fingerprints.
 
 To solve this, it is worth investigating how $\texttt{PreProc}$ behaves on a pattern $P_i$. In particular, note that the longest fingerprint inserted into the hash table is of length $m_i$; all other fingerprints have to be suffixes of the pattern and are thus shorter than $m_i$. We also know that all patterns are at most length $2k$ because of our definition of the problem. Thus, we can conclude that the maximum length of the strings stored in the static hash table is $2k$. Since we know that no strings will be in the hash table longer than this length, we don't need to check the hash table in this case and can just traverse right if we have a midpoint longer than $2k$. With this change applied to the binary search, we only ever compute the fingerprint of the last $2k$ suffixes in the pattern, so we can share this buffer with the other two algorithms.
 
@@ -994,6 +994,36 @@ Translating this to our fingerprints, the fingerprints of two different strings 
 
 \section{Implementing the Clifford et al. Algorithm for Long Patterns with Short Periods Dictionary Matching}
 \label{sec:impl-periodic}
+
+Preprocessing the algorithm is simple and follows the method explained in Section~\ref{ssec:periodic-theory}. The only difference is that, to help check for a non-periodic occurrence, the fingerprint of $|\rho_i|$ characters from pattern $P_i$ is also stored as a second check. Intuitively, one might store $\phi(\rho_i)$ itself. However, this is likely to be incorrect. This is because we don't compare the text with $\rho_i$. Instead, the text is compared with the first $k$ characters of the pattern. Thus if we find a match with pattern head $K_i$, unless $\rho_i | k$, the last $|\rho_i|$ characters of the text will not match $\rho_i$.
+
+Instead, the fingerprint stored is $\phi(p_{k - |\rho_i|}...p_k)$. These are the last $|\rho_i|$ characters of $K_i$. Because $|\rho_i| < k$, it follows that $p_{k - |\rho_i|}...p_k$ is a rotation of $\rho_i$. Therefore, the rest of the pattern will still be repetitions of this string.
+
+\subsection{Catering for Suffixes}
+
+As stated in Section~\ref{ssec:periodic-theory}, the algorithm works under either the assumption that no pattern is a suffix of another pattern, or that we only care if \textit{a pattern} matches, regardless of what that pattern specifically is. For this project, it was decided that it was more important to cater for suffixes--and thus have an algorithm closer to completeness--than it was to know which patterns matched, and thus that route was taken.
+
+While the details are omitted from the paper, adapting the algorithm to cater for suffixes is simple. When computing the tail of each pattern, we check it against the current list of tails in order to avoid duplicates. If $P_i$ is a suffix of $P_j$, then they will have matching tails due to the fact that $|\rho_i|, |\rho_j| \leq k$, and they will also have matching fingerprints, so that is how this case can be detected. We also know that if $P_i$ is a suffix of $P_j$, then whenever there is an occurrence of $P_j$ in the text, there will also be a match for $P_i$. As a result, matches only need to be found for the shorter pattern. So when a match is found for the shared tail, we only need to check the arithmetic progression associated with $K_i$.
+
+\subsection{Checking for a Match}
+
+Alongside the fingerprints of the period, there are a number of difficulties related to how we store the arithmetic progressions and check for a match of the complete pattern. This is again caused by difficulties from $|\rho_i|$ not dividing $k$.
+
+The first point of consideration is the number of instances in the arithmetic progression the first time we find a match for $K_i$. Instead of storing just one match, we need to store $\frac{k}{\rho_i}$, to cater for $|\rho_i| \leq \frac{k}{2}$.
+
+The next question is how do we store the location of the last item in the progression. An intuitive solution would be to merely store it as $j$, the index we reported a match of $K_i$ at. But this leads to problems when checking the solution, as the last occurrence of the pattern will not be at index $j - m_i + \lfloor\frac{m_i}{|\rho_i|}\rfloor.|\rho_i|$, but instead $j - m_i + \lfloor\frac{m_i - k}{|\rho_i|}\rfloor\cdot|\rho_i|$, due to each instance of $K_i$ being found $k \mod |\rho_i|$ indexes after $\rho_i$ itself occurred.
+
+Another option is to log the last occurrence as having occurred at index $j - m_i + \lfloor\frac{k}{|\rho_i|}\rfloor\cdot|\rho_i|$, so that the last index is of the last time $\rho_i$ occurred. This means that we can keep the check for a whole pattern the same. However, it also makes checking if an occurrence is periodic more challenging, as we can no longer simply check if $j$ is $|\rho_i|$ characters apart from the last occurrence.
+
+Out of these options, I opted for storing the location of the last occurrence as $j$. There was little benefit either way, but this option was selected to make it consistent with my fingerprint of $p_{k - |\rho_i|}...p_k$, in that the period is being treated as the $|\rho_i|$-length suffix of $K_i$.
+
+There are two more small changes I made to the algorithm. First, to simplify the check for whole patterns, I adjusted the last occurrence to be at index $j - (m_i - k) \mod |\rho_i|$. And second, the arithmetic progression is only reset upon finding a non-periodic occurrence if the last occurrence is more than $\rho_i$ characters away, to try and reduce the damage caused by collisions in the fingerprints.
+
+\subsection{Adjusting for Patterns Longer than $2k$}
+
+Beyond simply specifying that the patterns should be at least $2k$ characters long with a period of at most length $k$, there are no changes required for preprocessing. This is easy to see because the algorithm was processing these patterns anyway.
+
+The only other change required is for retrieving fingerprints from the buffer, which now stores the last $2k$ fingerprints of the text. Again, this is simple to cater for. Note that we only ever check the fingerprint of the last $k$ characters of the text. Because the buffer is implemented as an array with the oldest fingerprint being at $j \mod 2k$ at text index $j$, the fingerprint of the whole text up until thr last $k$ characters read is at index $(j + k) \mod 2k$. We can use this fingerprint and the current fingerprint of the whole text to figure out the fingerprint of the last $k$ characters by using the suffix function.
 
 \section{Implementing the Clifford et al. Algorithm for Patterns with Long Periods Dictionary Matching}
 \label{sec:impl-long}
