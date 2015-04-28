@@ -232,7 +232,7 @@ Like pattern matching, dictionary matching is also simple to describe intuitivel
 
 Formally, this is defined as follows: We have a text $n$ characters long $T = t_0...t_{n-1}$, and a set of $k$ patterns $\mathcal{P} = \{P_0,...,P_k\}$ of respective lengths $M = \{m_0,...,m_k\}$. Hence a given pattern $P_i$ is a string of $m_i$ characters $p_{i,0}...p{i,m_i-1}$. We output an index $j \in \{\min(M),...,n_1\}$ if $\exists i \in \{0,...,k-1\}$ such that $t_{j-m_i+1}...t_{j} = P_i$.
 
-Note that for this work, we do not care about what patterns have occured in the text, only that a pattern has occured. This is due to a limitation with the algorithm by Clifford et al., which will be discussed in Section~\ref{ssec:periodic-theory}.
+Note that for this work, we do not care about what patterns have occurred in the text, only that a pattern has occurred. This is due to a limitation with the algorithm by Clifford et al., which will be discussed in Section~\ref{ssec:periodic-theory}.
 
 \section{The Streaming Model}
 
@@ -263,7 +263,7 @@ Of course, these are poor solutions to both pattern and dictionary matching. We 
 
 \section{Arbitrary-Precision Arithmetic}
 
-Arbitrary-Precision Arithmetic are libaries which allow for computation of numbers beyond what is capable of a typical machine. Common applications include Cryptography and linear algebra.
+Arbitrary-Precision Arithmetic are libraries which allow for computation of numbers beyond what is capable of a typical machine. Common applications include Cryptography and linear algebra.
 
 Again, little detail will be provided here due to the fact that this is not implemented and only used as an external library. For more information, feel free to visit the GNU Multiple Precision Arithmetic Library (GMP) website at \url{https://gmplib.org/}.
 
@@ -414,7 +414,7 @@ With this structure, we can now look at what we compute as each character of the
 
 After performing the above, we retrieve the oldest VO we have stored at level 1, which has properties $j'$ and $\phi(t_0...t_{j'-1})$. If $j - j' = 2$, we now know that enough characters have passed for us to be able to check if this viable occurrence requires promotion. We remove this occurrence from our list of VOs for level 1 and use the fingerprint suffix operation on our fingerprint of the text and $\phi(t_0...t_{j'-1})$ to retrieve $\phi(t_{j'}...t_j)$. We then check if $\phi(t_{j'}...t_j) = \phi_1$ and if this is the case, we promote this occurrence by storing $j'$ and $\phi(t_0...t_{j'-1})$ in a list of viable occurrences for level 2. Otherwise, we discard the occurrence.
 
-We repeat the above process $\log_2m$ times per character. At the $i$-th level, we check if the oldest VO occured $2^i$ characters back and if so, we then check if the fingerprint of the last $2^i$ characters matches the fingerprint of the $2^i$ prefix of the pattern. If they match, we promote this occurrence to the $i+1$-th level. At the final level, we check if the oldest VO for this level occured $m$ characters ago. If so, we check if the fingerprint of the last $m$ characters of the text matches the fingerprint of the whole pattern. If they do match, then a match is reported at index $j$, where $t_j$ was the last character read.
+We repeat the above process $\log_2m$ times per character. At the $i$-th level, we check if the oldest VO occurred $2^i$ characters back and if so, we then check if the fingerprint of the last $2^i$ characters matches the fingerprint of the $2^i$ prefix of the pattern. If they match, we promote this occurrence to the $i+1$-th level. At the final level, we check if the oldest VO for this level occurred $m$ characters ago. If so, we check if the fingerprint of the last $m$ characters of the text matches the fingerprint of the whole pattern. If they do match, then a match is reported at index $j$, where $t_j$ was the last character read.
 
 This algorithm gives us $O(\log m)$ time per character, but the space complexity is still linear. This can be easily seen if the text and pattern are both strings of the letter $a$. After 6 characters, the list of viable occurrences for each level would look like similar to the example given in Figure~\ref{fig:pp-vos}. Note that level 0 is not included in the aforementioned figure as there are no VOs stored for that level.
 
@@ -529,7 +529,7 @@ The first step to understanding the algorithm as described in the paper is to co
 
 $$\phi{i,j} = \phi(p_{i,0}...p_{i,2^j-1})$$
 
-Each level of the algorithm now contains up to $k$ of these prefix fingerprints, and stores all of them in a static perfect hash table. Along with this, each level stores up to $k$ aritmetic progressions of viable occurrences. When the next character enters the stream, each level checks if one of the arithmetic progressions has a viable occurrence that requires processing. If there is, then the algorithm uses static perfect hashing to check if the last $2^j$ characters in the text match any of the prefixes at that level. If there is a match, that VO is promoted to the next level. Finally, a flag is also specified in the hash table to indicate if the given fingerprint is actually the fingerprint of a whole pattern. If that flag is true, then a match at that index is reported.
+Each level of the algorithm now contains up to $k$ of these prefix fingerprints, and stores all of them in a static perfect hash table. Along with this, each level stores up to $k$ arithmetic progressions of viable occurrences. When the next character enters the stream, each level checks if one of the arithmetic progressions has a viable occurrence that requires processing. If there is, then the algorithm uses static perfect hashing to check if the last $2^j$ characters in the text match any of the prefixes at that level. If there is a match, that VO is promoted to the next level. Finally, a flag is also specified in the hash table to indicate if the given fingerprint is actually the fingerprint of a whole pattern. If that flag is true, then a match at that index is reported.
 
 In terms of complexity, each level requires $O(k)$ space and there are $\log m$ levels, so space usage is $O(k\log m)$ as required. Time complexity depends on how long it takes to figure out if an arithmetic progression needs processing and if so which one. Assuming this can be done in constant time, then each level takes constant time and thus an overall performance of $O(\log m)$ time per character is given.
 
@@ -540,7 +540,7 @@ $$|\rho_i| \geq k; (m_i \geq k \text{ and } |\rho_i| < k); m_i < k$$
 \subsection{Patterns with Long Periods}
 \label{ssec:long-theory}
 
-We start with the case where for every pattern $P_i$ in our dictionary $|\rho_i| \geq k$. We start by defining $Q_i$ to be the $m_i - k$ prefix of the $i$-th pattern. For this algorithm to work, we continue under the assumption that $|\rho_{Q_i}| \geq k$. We will see a brief solution for when this assumption does not hold in the subsubsection at the end of this case.
+We start with the case where for every pattern $P_i$ in our dictionary $|\rho_i| \geq k$. We start by defining $Q_i$ to be the $m_i - k$ prefix of the $i$-th pattern. For this algorithm to work, we continue under the assumption that $|\rho_{Q_i}| \geq k$. We will see a brief solution for when this assumption does not hold in Section~\ref{sssec:edge-case-theory}.
 
 The first part of this case works the same as in the power of two length case. We perform the above algorithm on $\log|Q|$ levels, where $Q$ is the prefix of the longest pattern. If there is a match at a given level, we insert the viable occurrence that matched into a special row, which stores one arithmetic progression for each prefix. At each text index $j$, we process two prefixes. Let $Q_i$ be one of those prefixes processed at $j$, and we perform the following:
 
@@ -571,7 +571,7 @@ The second step we perform is to check if the fingerprint of the last $k$ charac
 
 At this point, we are going to assume that no patterns are a suffix of another pattern. If this is not the case, then it is possible to perform dictionary matching, but it comes at the cost of not knowing which patterns have matched. This is why for our choice of dictionary matching, we do not care about what pattern(s) have matched. It is also why we can only return the index at the end of the instance; the only way we could know the starting index of the would be if we knew what the pattern was, since then we could just simply take the current index and subtract the length of the pattern.
 
-Anyway, either through no pattern being a suffix of any other pattern or through discarding the patterns which do have other patterns as suffixes, we end up in a situation where each pattern has a unique tail. If the last $k$ characters in the stream match the tail of some pattern $P_i$, we check the arithmetic progression associated with that pattern. In order for a match to have occured, there need to have been at least $\lfloor\frac{m_i}{\rho_i}\rfloor$ occurrences of $K_i$ in the progression, and the last occurrence must have happened at index $j - m_i + \lfloor\frac{m_i}{|\rho_i|}\rfloor\cdot|\rho_i|$. If both of these conditions hold, then a match is reported.
+Anyway, either through no pattern being a suffix of any other pattern or through discarding the patterns which do have other patterns as suffixes, we end up in a situation where each pattern has a unique tail. If the last $k$ characters in the stream match the tail of some pattern $P_i$, we check the arithmetic progression associated with that pattern. In order for a match to have occurred, there need to have been at least $\lfloor\frac{m_i}{\rho_i}\rfloor$ occurrences of $K_i$ in the progression, and the last occurrence must have happened at index $j - m_i + \lfloor\frac{m_i}{|\rho_i|}\rfloor\cdot|\rho_i|$. If both of these conditions hold, then a match is reported.
 
 Complexity wise, the progressions can be stored in $O(k)$ space, as can the fingerprints of the tails. The fingerprint of the last $k$ characters in the text stream can be stored by using a circular array of such fingerprints for the last $k$ indexes. Thus space usage is $O(k)$. As for time, the static perfect hashing operations are constant time, as is inserting the occurrence into the arithmetic progressions and checking for a match, so time overall is $O(1)$.
 
@@ -594,7 +594,7 @@ Algorithm~\ref{alg:short-dict-matching} computes the hash table that is used. We
 \label{alg:short-dict-matching}
 \end{algorithm}
 
-At each index $j$, we keep a cyclic buffer of the previous $k'$ fingerprints of the whole stream. We start our binary search by seeing if $\phi(t_{j - k/2 + 1}...t_j)$ is within the hash table and its associated boolean value. If the boolean value is True, we know that there is an occurance of the pattern which ends at this index, so we report it. If the boolean value is false but the key exists in the table, then we know that this fingerprint matches the suffix of a pattern, but not necessarily all of it, so we check the longer suffixes of the text. If there is no key in the table, then we know that no pattern matches this suffix, but they might match shorter ones, so we check shorter suffixes instead. This continues until we either report an instance or run out of search space.
+At each index $j$, we keep a cyclic buffer of the previous $k'$ fingerprints of the whole stream. We start our binary search by seeing if $\phi(t_{j - k/2 + 1}...t_j)$ is within the hash table and its associated boolean value. If the boolean value is True, we know that there is an occurrence of the pattern which ends at this index, so we report it. If the boolean value is false but the key exists in the table, then we know that this fingerprint matches the suffix of a pattern, but not necessarily all of it, so we check the longer suffixes of the text. If there is no key in the table, then we know that no pattern matches this suffix, but they might match shorter ones, so we check shorter suffixes instead. This continues until we either report an instance or run out of search space.
 
 For space complexity, the only space used is the hash function which uses $O(k\log k)$ space to store the fingerprints and their associated booleans and the cyclic buffer, which uses $O(k') \in O(2k) \in O(k)$ space, so the overall space usage is $O(k\log k)$. The only step in the algorithm is the binary search, which takes $O(\log k)$ time per character.
 
@@ -603,7 +603,7 @@ For space complexity, the only space used is the hash function which uses $O(k\l
 \chapter{Project Execution}
 \label{chap:execution}
 
-\section{Implementing the Aho-Corasick Algoritm}
+\section{Aho-Corasick}
 
 \subsection{From Knuth-Morris-Pratt to Aho-Corasick}
 
@@ -687,7 +687,7 @@ In order to cater for this, a few changes have been made to each algorithm. For 
 
 For Algorithm~\ref{alg:ac-failure}, we already know for every state $i$ every character $a \in \Sigma$ such that $\texttt{goto}(i, a) \neq fail$. That is because all of these characters are stored in the $\texttt{match}$ strings, so we can simply iterate through each state's associated string.
 
-Algorithm~\ref{alg:ac-next} is the hardest to remove the alphabet dependency for, but it is still acievable. For the first loop, we only iterate over the characters in state 0's $\texttt{match}_{0}$ string, and set $\texttt{next}(i, a) = 0$ by default. For any other state, denoted $i$, we start by handling the case where $\texttt{goto}(i, a) \neq fail$, by simply iterating through the characters stored in the $\texttt{match}_i$ strings. We then handle the other case by iterating through every character $a \in \texttt{next\_chr}_{\texttt{failure}(i)}$, where $\texttt{next\_chr}_i$ is the string of characters for state $i$'s $\texttt{next}$ function: if $a \notin \texttt{match}_i$, then we know that $\texttt{goto}(i, a) = fail$. If $\exists a \in \Sigma \text{ such that } a \notin \texttt{match}_i \cup \texttt{next\_chr}_{\texttt{failure}(i)}$, it must hold that $\texttt{next}(i, a) = 0$, as it does by default, so we do not need to worry about these characters.
+Algorithm~\ref{alg:ac-next} is the hardest to remove the alphabet dependency for, but it is still achievable. For the first loop, we only iterate over the characters in state 0's $\texttt{match}_{0}$ string, and set $\texttt{next}(i, a) = 0$ by default. For any other state, denoted $i$, we start by handling the case where $\texttt{goto}(i, a) \neq fail$, by simply iterating through the characters stored in the $\texttt{match}_i$ strings. We then handle the other case by iterating through every character $a \in \texttt{next\_chr}_{\texttt{failure}(i)}$, where $\texttt{next\_chr}_i$ is the string of characters for state $i$'s $\texttt{next}$ function: if $a \notin \texttt{match}_i$, then we know that $\texttt{goto}(i, a) = fail$. If $\exists a \in \Sigma \text{ such that } a \notin \texttt{match}_i \cup \texttt{next\_chr}_{\texttt{failure}(i)}$, it must hold that $\texttt{next}(i, a) = 0$, as it does by default, so we do not need to worry about these characters.
 
 \subsection{Removing the $|\Sigma|$ Run Time per Character}
 
@@ -729,7 +729,7 @@ This change requires two lines of the algorithm being modified:
 
 If unspecified, $\texttt{output}(state)$ is 0 by default.
 
-\section{Implementing the Clifford et al. Algorithm for Power of Two Length Dictionary Matching}
+\section{Power of Two Length Patterns}
 
 The rest of this chapter describes the implementation of Clifford, Fontaine, Porat and Sach's algorithm as described in Section~\ref{sec:theory-clifford}. Note that, this algorithm does not achieve $O(\log m)$ time per character as desired, but $O(\log k\log m)$ instead. The reason behind this will be explained later in this section. It is also worth noting, as will be explained in Section~\ref{sec:impl-long} that this is amortised time per character; the real time per character is $O(\log k(k + \log m))$.
 
@@ -809,7 +809,7 @@ For each row $i$, we keep count of the number of unique prefixes in that row. We
 
 This is most of the preprocessing issues explained. The rest of the algorithm works similarly to the way it is described in Section~\ref{sec:theory-clifford}: As each character of the text enters, each row checks if the oldest occurrence stored in any progression can now be tested. If it is tested and succeeds, then it is promoted to the next row and stored using the prefix's period. A few differences are explained below.
 
-Simplest difference first, we do not promote at the final level. Instead, since the final level performs matches against the complete patterns, this level performs a static lookup to see if a full match has occured and if so simply report that match.
+Simplest difference first, we do not promote at the final level. Instead, since the final level performs matches against the complete patterns, this level performs a static lookup to see if a full match has occurred and if so simply report that match.
 
 The second and more complicated difference is what to do if there is a collision in the fingerprints and thus have a viable occurrence that does not fit with the period. We could use the method suggested by Breslauer and Galil in Section~\ref{sec:porat-porat} and simply report a match every time this happens, but this will cause problems once the patterns are of different lengths since we will not know which index to declare a match at. Instead, this implementation simply ignores such occurrences, and prints a warning on $\texttt{stderr}$ explaining that there was a non-periodic occurrence at this index, which prefix causes the occurrence, and that it has been ignored.
 
@@ -896,7 +896,7 @@ It can also be seen that, following this redefinition, the buffer will now need 
 
 For implementation, a circular buffer is not used itself. Instead, a standard array of $2k$ fingerprints have been used instead. The oldest fingerprint at index $j$ is $j \mod 2k$ and serves as the start of the buffer. At the end of the computation for index $j$, the fingerprint at index $j \mod 2k$ is updated to the fingerprint of the whole text seen so far.
 
-\section{Implementing the Clifford et al. Algorithm for Short Patterns Dictionary Matching}
+\section{Short Patterns}
 \label{sec:impl-short}
 
 \subsection{Modifications to the $\texttt{PreProc}$ Algorithm}
@@ -992,7 +992,7 @@ The probability of a collision now depends on the value of our random number $r$
 
 Translating this to our fingerprints, the fingerprints of two different strings $u, v$ of respective lengths $l_u, l_v \leq n$ collide if and only if $l_u = l_v \mod i$. For this algorithm, we only compare strings as long as $2k$. Therefore, as long as $i > 2k$, $r^{l_u} = r^{l_v} \text{ and } r^{-l_u} = r^{-l_v}$ if and only if $l_u = l_v$ and thus we have equivalent probability. However, this is the best case scenario. I have not been able to find a solution for the probability of a collision in general.
 
-\section{Implementing the Clifford et al. Algorithm for Long Patterns with Short Periods Dictionary Matching}
+\section{Long Patterns with Short Periods}
 \label{sec:impl-periodic}
 
 Preprocessing the algorithm is simple and follows the method explained in Section~\ref{ssec:periodic-theory}. The only difference is that, to help check for a non-periodic occurrence, the fingerprint of $|\rho_i|$ characters from pattern $P_i$ is also stored as a second check. Intuitively, one might store $\phi(\rho_i)$ itself. However, this is likely to be incorrect. This is because we don't compare the text with $\rho_i$. Instead, the text is compared with the first $k$ characters of the pattern. Thus if we find a match with pattern head $K_i$, unless $\rho_i | k$, the last $|\rho_i|$ characters of the text will not match $\rho_i$.
@@ -1007,7 +1007,7 @@ While the details are omitted from the paper, adapting the algorithm to cater fo
 
 \subsection{Checking for a Match}
 
-Alongside the fingerprints of the period, there are a number of difficulties related to how we store the arithmetic progressions and check for a match of the complete pattern. This is again caused by difficulties from $|\rho_i|$ not dividing $k$.
+Alongside the fingerprints of the period, there are a number of difficulties related to how we store the arithmetic progressions and check for a match of the complete pattern. This is again caused by difficulties from if $|\rho_i| \nmid k$.
 
 The first point of consideration is the number of instances in the arithmetic progression the first time we find a match for $K_i$. Instead of storing just one match, we need to store $\frac{k}{\rho_i}$, to cater for $|\rho_i| \leq \frac{k}{2}$.
 
@@ -1025,8 +1025,43 @@ Beyond simply specifying that the patterns should be at least $2k$ characters lo
 
 The only other change required is for retrieving fingerprints from the buffer, which now stores the last $2k$ fingerprints of the text. Again, this is simple to cater for. Note that we only ever check the fingerprint of the last $k$ characters of the text. Because the buffer is implemented as an array with the oldest fingerprint being at $j \mod 2k$ at text index $j$, the fingerprint of the whole text up until thr last $k$ characters read is at index $(j + k) \mod 2k$. We can use this fingerprint and the current fingerprint of the whole text to figure out the fingerprint of the last $k$ characters by using the suffix function.
 
-\section{Implementing the Clifford et al. Algorithm for Patterns with Long Periods Dictionary Matching}
+\section{Patterns with Long Periods}
 \label{sec:impl-long}
+
+\subsection{Changes to the Power of Two Length Algorithm}
+
+Since the patterns with long periods algorithm is made as an extension to the power of two length case, I figured it would be best to start with an explanation of the changes made to this algorithm.
+
+The first change to the algorithm is that the final row of the pattern is not processed by the power of two length algorithm. At this level $j$, all prefixes $Q_i$ are either too short--in which case they are not stored in this row--or are $2^{j - 1}$ characters long, in which case they are. As a result, these prefixes can be processed in the extra row with the other $Q_i$-length prefixes.
+
+The second difference is related to what we store in the values for the static perfect hash table. Now we care about more than simply whether or not a pattern ends at a given prefix. This is because when we find a match with some prefix, instead of simply reporting a match, we are now adding the viable occurrence to another row separate from the rest of the power of two length matching. To cater for this, we check during preprocessing if a pattern is going to end before or on the next level. If it is, then we add it to the final row and create an arithmetic progression for it on that row. Finally, we use the index of the arithmetic progression as the value in the hash table, or -1 as a default. When we find a match in a hash table, if the value returned is not -1 then we know that we need to add this viable occurrence to an arithmetic progression on the final row.
+
+\subsection{Catering for Matching Prefixes}
+
+The above solution does have problems however. First, there is the case where we have two different patterns $P_i, P_j$ such that $Q_i = Q_j$. And second, there is the case that $Q_i \neq Q_j$ yet the power of two length prefixes of each case match. We will look at each of these cases in turn.
+
+For the first case, the algorithm itself provides a solution to this problem. When we compute prefix $Q_i$, we check to see if any other pattern we have already processed $P_j$ has $Q_j$ such that $\phi(Q_i) = \phi(Q_j)$. If one such fingerprint does exist, we then append the fingerprint of the $k$-length suffix of $P_i$ to an array of such fingerprints, indexed at $j$ so that it can be easily retrieved when we find a match with $\phi(Q_i)$.
+
+For the second case, we consider a pattern $P_i$ on row $x$. First we notice that $P_i$ will end on this row, so we start adding it to the final row. When we process $Q_i$, we find no patterns with a matching fingerprint $\phi(Q_j)$, and thus assign a prefix for it as well as a list of $k$-length suffixes--initially only containing the suffix of $P_i$ itself. We then compute $\phi(p_{i,0}...p_{i,2^x-1})$ and find that there is a matching fingerprint already. At this pont there are two possibilities:
+
+\begin{enumerate}
+  \item The matching prefix has one or more patterns that terminate on this row. In this case, we don't need another arithmetic progression on the final row to accommodate $P_i$, as we can just the progression already in place, so we just set $Q_i$ to point to that progression.
+  \item The matching prefix doesn't have a pattern that terminates on this row. In this case, we add another arithmetic progression and set $Q_i$ to point to this new progression.
+\end{enumerate}
+
+\subsubsection{An Error in Processing}
+
+The final problem is when do we move the arithmetic progression along. We need to make sure that the progression is only advanced when all prefixes that might have needed to check the progression have seen it. Because there is a delay of up to $\frac{k}{2}$ characters between a prefix needing to check an occurrence and the prefix checking the occurrence, can we ensure that all prefixes have seen this progression $k$ characters after it has originally been checked?
+
+This was the idea implemented, but there is a problem with this reasoning. Consider two prefixes $Q_i, Q_j$ such that $|Q_i| + k < |Q_j|$, yet both share the same progression. In this case, there is no convenient time to remove the progression. If we remove it $k$ characters after $Q_i$ has tested it, $Q_j$ might not have yet tested it. If we remove it $k$ characters after $Q_j$ tested it, then there might be other later occurences in the progression that it is too late for $Q_i$ to test. While this wasn't implemented, we will look at a solution to this problem in the Critical Evaluation.
+
+\subsection{Avoiding the Edge Case}
+
+First, we can more strongly define the edge case. Assume we have a pattern $P_i$ of at least $2k$ characters long such that $|\rho_i| > k$. This pattern has an $(m_i - k)$-length prefix $Q_i$. At this point, the paper assumes that the edge case is if $\rho_{Q_i} < k$. But this only covers some of the case. Recall that the power of two length dictionary matching does not match the text against $Q_i$, but a power of two length prefix of $Q_i$. If this prefix has a period shorter than $k$, then the power of two length dictionary matching algorithm will be able to keep adding occurrences to the final row progression faster than they are removed. This causes the edge case.
+
+\subsection{A Failed Attempt at an Improvement: Checking the Suffixes with Static Perfect Hashing}
+
+\subsection{Adjusting for Patterns Longer than $2k$}
 
 % -----------------------------------------------------------------------------
 
