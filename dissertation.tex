@@ -385,7 +385,7 @@ All of these operations can be completed in constant time.
 
 It is interesting to note that a variant of the Karp-Rabin algorithm can be used for a subset of dictionary matching, where all the patterns are the same length $m$\cite{candan:data}. This can be done by storing a fingerprint of the last $m$ characters read from the text, and using static perfect hashing as described in section \ref{min-perf-hash} to check if the fingerprint of the text matches any fingerprints of the patterns. Using suffix and concatenation tectniques above and storing a circular buffer of the last $m$ characters, we can accomplish this with $O(k + m)$ space and $O(1)$ time per character. However, due to the limitation that all the patterns have to be the same length, this method has not been analysed for this project.
 
-The last point to mention is the probability of a collision. Breslauer and Galil\cite{Breslauer:2014:RSS:2660854.2635814} provide a theorem that if $u$ and $v$ are two different strings of length $l \leq n$, $p \in \theta(n^{2 + \alpha})$ for some level of accuracy $\alpha \geq 0$ and $r \in \mathbb{Z}_p$ is randomly chosen, then the probability that $\phi(u) = \phi(v)$ is smaller than $\frac{1}{n^{1 + \alpha}}$. We will however see in Section~\ref{ssec:short-collisions} why this does not necessarily hold for the dictionary matching algorithm devised by Clifford et al. \cite{clifford:dict-matching}.
+The last point to mention is the probability of a collision. Breslauer and Galil\cite{Breslauer:2014:RSS:2660854.2635814} provide a theorem that if $u$ and $v$ are two different strings of length $l \leq n$, $p \in \theta(n^{2 + \alpha})$ for some level of accuracy $\alpha \geq 0$ and $r \in \mathbb{Z}_p$ is randomly chosen, then the probability that $\phi(u) = \phi(v)$ is smaller than $\frac{1}{n^{1 + \alpha}}$. We will however see in Section~\ref{ssec:short-collisions} why this does not necessarily hold for the dictionary matching algorithm devised by Clifford et al. \cite{2015arXiv150406242C}.
 
 \section{Porat and Porat: Single Pattern Matching in Sublinear Space}
 \label{sec:porat-porat}
@@ -523,7 +523,7 @@ For more information, I recommend the blog \url{https://streamsandpatterns.wordp
 \section{Clifford, Fontaine, Porat and Sach: Dictionary Matching in Sublinear Space}
 \label{sec:theory-clifford}
 
-Clifford et al.\cite{clifford:dict-matching} provided a solution to dictionary matching under the streaming model in less space than it takes to store the pattern. Their solution uses $O(k\log m)$ space and $O(\log m)$ time per character, where $m = \max(M)$. It is worth noting that this description is based off of a version of this paper that was not accept, and the accepted version of the paper will likely have some differences to what is described here. Also note that these are how the algorithm is described in the paper; any changes to how the algorithm works in later chapters are my own work to correct the algorithm.
+Clifford et al.\cite{2015arXiv150406242C} provided a solution to dictionary matching under the streaming model in less space than it takes to store the pattern. Their solution uses $O(k\log m)$ space and $O(\log m)$ time per character, where $m = \max(M)$. It is worth noting that this description is based off of a version of this paper that was not accept, and the accepted version of the paper will likely have some differences to what is described here. Also note that these are how the algorithm is described in the paper; any changes to how the algorithm works in later chapters are my own work to correct the algorithm.
 
 The first step to understanding the algorithm as described in the paper is to consider a subset of the dictionary matching problem, where all the patterns are a power of two in length. This algorithm is very similar to the one described in Section~\ref{sec:porat-porat}, where all the patterns are broken up into $\log m_i$ fingerprints, denoted $\phi_{i,j}$ and defined as follows:
 
@@ -1104,17 +1104,91 @@ The only other change is to adjust the previous fingerprints for a buffer of len
 
 \section{Test Setup}
 
+A common problem with testing pattern matching algorithms is that we need to ensure the text and pattern are large enough to see a payoff. This makes the selection of test data important as we need to make sure that it is a problem that one would expect long patterns for. Alongside this, we also want to make sure the algorithms are exercised as much as possible. In this case, that means we want patterns that can be quite repetitive, to ensure the middle case--long patterns with short periods--is tested.
+
+The data chosen for this in the end was from the Pizza And Chili Corpus. More precisely, I used fifty megabytes of gene DNA sequences from here: \url{http://pizzachili.dcc.uchile.cl/texts/dna/} Gene DNA sequences can satisfy both properties to some degree. First, DNA is an area where we would expect patterns to be very long. Indeed, the fifty megabytes used for these tests were for a single genome. And second, DNA sequences are very repetitive, as they only consist of the characters A, C, G, T for their encoding.
+
+From this text, patterns were generated from substrings of a random length between 1 and some maximum length specified, and were stored in a file named after the number of patterns and their maximum length.
+
+For testing itself, there were several properties measured:
+
+\begin{itemize}
+  \item The number of matches to see how much the algorithms disagreed
+  \item The time taken to build the algorithms
+  \item The average time taken per character for each algorithm
+  \item The size of each algorithm's data structure
+\end{itemize}
+
+Time was measured in clock cycles and then converted approximately into microseconds. For size, the size of the components for each data structure was measured manually. For computing the size of GMP integers, this was done by the size of $\texttt{mp\_limb\_t}$ multiplied by $\texttt{mp\_alloc}$, which indicates the amount of limbs allocated to the integer. The size of the hash table was computed by a CMPH function $\texttt{cmph\_packed\_size}$. A worthwhile question to ask at this point is why are we only measuring the size of the data structure in working . There are two reasons for this. First of all, as will be explained later on, in the current state of the algorithm it is not possible to preprocess the algorithm in sublinear space. And second, this is more akin to what running the algorithm would be like in a streaming setting. For example, when it comes to intrusion detection, we wouldn't preprocess the algorithm on every router. A more likely scenario would be to preprocess the algorithm once, store the data structure in a data file and then set that file up on each router.
+
 \section{Main Results}
 
 \subsection{Performance as Patterns get Longer}
 
+\begin{figure}[t]
+\begin{center}
+  \includegraphics[width=0.5\linewidth]{build_length_1000_10000}
+\end{center}
+\caption{Build time for Clifford et al.'s algorithm against Aho-Corasick}
+\label{fig:long-pattern-build}
+\end{figure}
+
+\begin{figure}[t]
+\begin{center}
+  \includegraphics[width=0.5\linewidth]{time_length_1000_10000}\includegraphics[width=0.5\linewidth]{size_length_1000_10000}
+\end{center}
+\caption{Run time per character and space for Clifford et al.'s algorithm against Aho-Corasick}
+\label{fig:long-pattern-results}
+\end{figure}
+
 \subsection{Performance for Shorter Patterns}
 
+\begin{figure}[t]
+\begin{center}
+  \includegraphics[width=0.5\linewidth]{build_length_200_1000}
+\end{center}
+\caption{Build time for Clifford et al.'s algorithm against Aho-Corasick}
+\label{fig:short-pattern-build}
+\end{figure}
+
+\begin{figure}[t]
+\begin{center}
+  \includegraphics[width=0.5\linewidth]{time_length_200_1000}\includegraphics[width=0.5\linewidth]{size_length_200_1000}
+\end{center}
+\caption{Run time per character and space for Clifford et al.'s algorithm against Aho-Corasick}
+\label{fig:short-pattern-results}
+\end{figure}
+
 \subsection{Performance for More Patterns}
+
+\begin{figure}[t]
+\begin{center}
+  \includegraphics[width=0.5\linewidth]{build_num_200_1000}
+\end{center}
+\caption{Build time for Clifford et al.'s algorithm against Aho-Corasick}
+\label{fig:many-pattern-build}
+\end{figure}
+
+\begin{figure}[t]
+\begin{center}
+  \includegraphics[width=0.5\linewidth]{time_num_200_1000}\includegraphics[width=0.5\linewidth]{size_num_200_1000}
+\end{center}
+\caption{Run time per character and space for Clifford et al.'s algorithm against Aho-Corasick}
+\label{fig:many-pattern-results}
+\end{figure}
 
 \subsection{Profiling Results}
 
 \subsection{Frequency of Edge Cases}
+
+\begin{figure}[t]
+\begin{center}
+  \includegraphics[width=0.5\linewidth]{diff_length_1000_10000}\includegraphics[width=0.5\linewidth]{diff_length_200_1000}\\
+  \includegraphics[width=0.5\linewidth]{diff_num_200_1000}
+\end{center}
+\caption{Difference in number of matches between Aho-Corasick and Cliffort et al. implementation}
+\label{fig:diff-results}
+\end{figure}
 
 \section{Suggested Improvements}
 
