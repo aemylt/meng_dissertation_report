@@ -731,7 +731,7 @@ If unspecified, $\texttt{output}(state)$ is 0 by default.
 
 \section{Power of Two Length Patterns}
 
-The rest of this chapter describes the implementation of Clifford, Fontaine, Porat and Sach's algorithm as described in Section~\ref{sec:theory-clifford}. Note that, this algorithm does not achieve $O(\log m)$ time per character as desired, but $O(\log k\log m)$ instead. The reason behind this will be explained later in this section. It is also worth noting, as will be explained in Section~\ref{sec:impl-long} that this is amortised time per character; the real time per character is $O(\log k(k + \log m))$.
+The rest of this chapter describes the implementation of Clifford, Fontaine, Porat and Sach's algorithm as described in Section~\ref{sec:theory-clifford}. Note that, this algorithm does not achieve $O(\log m)$ time per character as desired, but $O(\log k\log m)$ instead. The reason behind this will be explained later in this section. It is also worth noting, as will be explained in Section~\ref{ssec:static-hash-fail} that in the general case this is amortised time per character; the real time per character is $O(\log k(k + \log m))$. A method for deamortising the solution will be proposed in Critical Evaluation.
 
 \subsection{Implementing Karp and Rabin's Algorithm for Dictionary Matching}
 
@@ -1051,50 +1051,84 @@ For the second case, we consider a pattern $P_i$ on row $x$. First we notice tha
 
 \subsubsection{An Error in Processing}
 
-The final problem is when do we move the arithmetic progression along. We need to make sure that the progression is only advanced when all prefixes that might have needed to check the progression have seen it. Because there is a delay of up to $\frac{k}{2}$ characters between a prefix needing to check an occurrence and the prefix checking the occurrence, can we ensure that all prefixes have seen this progression $k$ characters after it has originally been checked?
+The final question is when do we remove VOs from the arithmetic progression? We need to make sure that the progression is only advanced when all prefixes that might have needed to check the progression have seen it. Because there is a delay of up to $\frac{k}{2}$ characters between a prefix needing to check an occurrence and the prefix checking the occurrence, can we ensure that all prefixes have seen this progression $k$ characters after it has originally been checked?
 
-This was the idea implemented, but there is a problem with this reasoning. Consider two prefixes $Q_i, Q_j$ such that $|Q_i| + k < |Q_j|$, yet both share the same progression. In this case, there is no convenient time to remove the progression. If we remove it $k$ characters after $Q_i$ has tested it, $Q_j$ might not have yet tested it. If we remove it $k$ characters after $Q_j$ tested it, then there might be other later occurences in the progression that it is too late for $Q_i$ to test. While this wasn't implemented, we will look at a solution to this problem in the Critical Evaluation.
+This was the idea implemented, but there is a problem with this reasoning. Consider two prefixes $Q_i, Q_j$ such that $|Q_i| + k < |Q_j|$, yet both share the same progression by having the same power of two length prefix. In this case, there is no convenient time to remove the progression. If we remove it $k$ characters after $Q_i$ has tested it, $Q_j$ might not have yet tested it. If we remove it $k$ characters after $Q_j$ tested it, then there might be other later occurences in the progression that it is too late for $Q_i$ to test. While a solution to this problem wasn't implemented due to time constraints, one will be proposed in the Critical Evaluation chapter among other suggested improvements to the algorithm.
 
 \subsection{Avoiding the Edge Case}
 
 First, we can more strongly define the edge case. Assume we have a pattern $P_i$ of at least $2k$ characters long such that $|\rho_i| > k$. This pattern has an $(m_i - k)$-length prefix $Q_i$. At this point, the paper assumes that the edge case is if $\rho_{Q_i} < k$. But this only covers some of the case. Recall that the power of two length dictionary matching does not match the text against $Q_i$, but a power of two length prefix of $Q_i$. If this prefix has a period shorter than $k$, then the power of two length dictionary matching algorithm will be able to keep adding occurrences to the final row progression faster than they are removed. This causes the edge case.
 
+As for how to avoid the edge case, this can be done when promoting a viable occurrence to the final row. If the location of this VO is less than $k$ characters away from the most recent occurrence stored in the progression, then we know that either the occurrence is non-periodic or that the prefix has a period shorter than $k$. Either way, we can simply ignore this index and not include it in the progression. While this means that some potential matches are skipped, it guarantees that the VOs that are stored are processed within time.
+
 \subsection{A Failed Attempt at an Improvement: Checking the Suffixes with Static Perfect Hashing}
+\label{ssec:static-hash-fail}
+
+One idea I had during implementation was to use static perfect hash tables instead of binary search trees for checking the final suffix. The reasoning for this was that the suffixes don't change, so a static hash table for each $Q_i$ could simply be built at the start of computation and used for constant time searches instead of the $\log k$ time for BSTs. The other appeal for this was that an earlier draft of the paper used static hashing instead of search trees, and was then changed as the constant time performance was not necessary when looking at asymptotes.
+
+However, static perfect hashing does not actually work in this case. We can see this with an example: Consider the dictionary $\mathcal{P} = \{abcdefgh, cdefhg\}$. The respective prefixes for each pattern are $Q_0 = abcdef, Q_1 = cdef$. Table~\ref{tab:static-hash-fail} shows what the power of two length structure looks like for this case.\footnote{Full strings are shown instead of fingerprints for simplicity.} As can be seen, neither pattern shares an arithmetic progression in any level, so they won't share one in the final level either.
+
+\begin{table}[t]
+  \centering
+  \begin{tabular}{|c|c|}
+    \hline
+    Level & Prefixes \\\hline
+    0 & $\{a, c\}$ \\\hline
+    1 & $\{ab, cd\}$ \\\hline
+    2 & $\{abcd\}$ \\\hline
+  \end{tabular}
+  \caption{Data structure for power of two length dictionary matching on patterns $\{abcd, cd\}$.}
+  \label{tab:static-hash-fail}
+\end{table}
+
+The problem is that the patterns have different prefixes, yet because $Q_1$ is a suffix of $Q_0$, both prefixes need to be evaluated at the same index. And because both prefixes need to be tested at the same index, their respective full patterns need to be checked for a match at the same index again 2 characters later. And because the suffixes are different and are stored in different static hash tables, matches are likely to not be reported as we are only allowed to check one hash table.
+
+Binary search trees on the other hand do not have the same problem. Because BSTs are dynamic, if the above situation occurs then we can simply add the other suffixes into the current tree. To achieve this, we store an array of $k$ red-black trees. When a prefix $Q_i$ has found a match at index $j$,\footnote{This means the location that was tested, not the current index of the text, due to the $\frac{k}{2}$ delay.} it inserts fingerprints of all the $k$-length suffixes of patterns which have $Q_i$ as a prefix into the RBT at array index $j \mod k$. Now, when the text reaches index $j'$, the algorithm checks if the fingerprint of the last $k$ characters of the text matches any of the suffixes in the RBT at index $j' \mod k$. If it finds a match, then a match is reported at $j'$. Then, the tree is destroyed and a new tree is created in its place.
+
+One point that has not been addressed yet is how we compare fingerprints for the BST. This is done via a simple call to $\texttt{mpz\_cmp}$ with the two fingerprints $\texttt{finger}$. Because all of the fingerprints that have been inserted into the BST are of length $k$, we do not need to compare $\texttt{r\_k}$ and $\texttt{r\_mk}$.
+
+The worst case time complexity of $O(\log k(k + \log m))$ is caused by the insertion of every suffix into the red-black tree, plus another addition of $O(k)$ time for destroying the tree as well. We will see how we can remove these points and thus achieve a real time result in the Critical Evaluation section.
 
 \subsection{Adjusting for Patterns Longer than $2k$}
+
+As with periodic dictionary matching, there is little that needs modifying in order to adjust this algorithm for patterns longer than $2k$, as this was a subset of patterns the algorithm was written for anyway.
+
+The first change that is made is to the power of two length algorithm. Because the patterns for this problem are specified as being strictly longer than $2k$, even if there is only one pattern in the dictionary it needs to be at least three characters long. As a result, the first level--which only compares single characters--never needs to promote any occurrences to the final row. So the single character hash table does not need to store any variables to indicate the ending of a pattern.
+
+The only other change is to adjust the previous fingerprints for a buffer of length $2k$ now. Again, this is a simple adjustment: When performing the delayed $Q_i$ test, if the test location was $j$, then we simply get the fingerprint at index $j \mod 2k$. Likewise, when performing the suffix comparison at location $j'$, the fingerprint of the past $k$ characters can be found by the suffix of the current text fingerprint with the fingerprint at index $j' \mod 2k$.
 
 % -----------------------------------------------------------------------------
 
 \chapter{Critical Evaluation}
 \label{chap:evaluation}
 
-{\bf A topic-specific chapter, of roughly $10$ pages} 
-\vspace{1cm} 
+\section{Test Setup}
 
-\noindent
-This chapter is intended to evaluate what you did.  The content is highly 
-topic-specific, but for many projects will have flavours of the following:
+\section{Main Results}
 
-\begin{enumerate}
-\item functional  testing, including analysis and explanation of failure 
-      cases,
-\item behavioural testing, often including analysis of any results that 
-      draw some form of conclusion wrt. the aims and objectives,
-      and
-\item evaluation of options and decisions within the project, and/or a
-      comparison with alternatives.
-\end{enumerate}
+\subsection{Performance as Patterns get Longer}
 
-\noindent
-This chapter often acts to differentiate project quality: even if the work
-completed is of a high technical quality, critical yet objective evaluation 
-and comparison of the outcomes is crucial.  In essence, the reader wants to
-learn something, so the worst examples amount to simple statements of fact 
-(e.g., ``graph X shows the result is Y''); the best examples are analytical 
-and exploratory (e.g., ``graph X shows the result is Y, which means Z; this 
-contradicts [1], which may be because I use a different assumption'').  As 
-such, both positive {\em and} negative outcomes are valid {\em if} presented 
-in a suitable manner.
+\subsection{Performance for Shorter Patterns}
+
+\subsection{Performance for More Patterns}
+
+\subsection{Profiling Results}
+
+\subsection{Frequency of Edge Cases}
+
+\section{Suggested Improvements}
+
+\subsection{Deamortisation of the Algorithm}
+
+\subsection{Towards Sublinear Working Space}
+
+\subsection{Picking $p$ Carefully}
+
+\subsection{How Large Must $p$ be?}
+
+\subsection{Do We Really Need Multiple Precision Arithmetic?}
+
+\subsection{Fixing the Edge Cases}
 
 % -----------------------------------------------------------------------------
 
