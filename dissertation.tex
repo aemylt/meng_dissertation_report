@@ -538,7 +538,7 @@ In order to go from this to the general case of any length of pattern, the patte
 
 $$|\rho_i| \geq k; (m_i \geq k \text{ and } |\rho_i| < k); m_i < k$$
 
-\subsection{Patterns with Long Periods}
+\subsection{Patterns with Long Periods (Long Patterns)}
 \label{ssec:long-theory}
 
 We start with the case where for every pattern $P_i$ in our dictionary $|\rho_i| \geq k$. We start by defining $Q_i$ to be the $m_i - k$ prefix of the $i$-th pattern. For this algorithm to work, we continue under the assumption that $|\rho_{Q_i}| \geq k$. We will see a brief solution for when this assumption does not hold in Section~\ref{sssec:edge-case-theory}.
@@ -561,7 +561,7 @@ As for space usage, the power of two length prefixes uses $O(k\log|Q|)$ space. S
 
 As previously mentioned, there is an edge case in the above algorithm if $\exists i \text{ such that } |\rho_{Q_i}| < k$. Any patterns which fall under this case can be processed by using the algorithm for long patterns with short periods described in Section~\ref{ssec:periodic-theory} to process their prefix $Q_i$. Any matches returned from this algorithm can be extended from $m_i - k$ to $m_i$ by a combination of fingerprinting and static perfect hashing.
 
-\subsection{Long Patterns with Short Periods}
+\subsection{Long Patterns with Short Periods (Periodic Patterns)}
 \label{ssec:periodic-theory}
 
 The next case detailed is where the patterns in the dictionary are longer than $k$, but their periods are shorter. In this algorithm, we store a fingerprint of the $k$ length prefix of each pattern, and call the result $K_i$. For each $K_i$, we store a fingerprint of the period of the pattern $\phi(\rho_i)$ and the period's length $|rho_i|$ along with a counter of the number of times it has occurred the index of the last time it occurred in the current arithmetic progression and the fingerprint of the text at the last occurrence.
@@ -732,7 +732,7 @@ If unspecified, $\texttt{output}(state)$ is 0 by default.
 
 \section{Power of Two Length Patterns}
 
-The rest of this chapter describes the implementation of Clifford, Fontaine, Porat and Sach's algorithm as described in Section~\ref{sec:theory-clifford}. Note that, this algorithm does not achieve $O(\log m)$ time per character as desired, but $O(\log k\log m)$ instead. The reason behind this will be explained later in this section. It is also worth noting, as will be explained in Section~\ref{ssec:static-hash-fail} that in the general case this is amortised time per character; the real time per character is $O(\log k(k + \log m))$. A method for deamortising the solution will be proposed in Critical Evaluation.
+The rest of this chapter describes the implementation of Clifford, Fontaine, Porat and Sach's\cite{2015arXiv150406242C} algorithm as described in Section~\ref{sec:theory-clifford}. Note that, this algorithm does not achieve $O(\log m)$ time per character as desired, but $O(\log k\log m)$ instead. The reason behind this will be explained later in this section. It is also worth noting, as will be explained in Section~\ref{ssec:static-hash-fail} that in the general case this is amortised time per character; the real time per character is $O(\log k(k + \log m))$. A method for deamortising the solution will be proposed in Critical Evaluation.
 
 \subsection{Implementing Karp and Rabin's Algorithm for Dictionary Matching}
 
@@ -1057,6 +1057,7 @@ The final question is when do we remove VOs from the arithmetic progression? We 
 This was the idea implemented, but there is a problem with this reasoning. Consider two prefixes $Q_i, Q_j$ such that $|Q_i| + k < |Q_j|$, yet both share the same progression by having the same power of two length prefix. In this case, there is no convenient time to remove the progression. If we remove it $k$ characters after $Q_i$ has tested it, $Q_j$ might not have yet tested it. If we remove it $k$ characters after $Q_j$ tested it, then there might be other later occurences in the progression that it is too late for $Q_i$ to test. While a solution to this problem wasn't implemented due to time constraints, one will be proposed in the Critical Evaluation chapter among other suggested improvements to the algorithm.
 
 \subsection{Avoiding the Edge Case}
+\label{ssec:impl-edge-case}
 
 First, we can more strongly define the edge case. Assume we have a pattern $P_i$ of at least $2k$ characters long such that $|\rho_i| > k$. This pattern has an $(m_i - k)$-length prefix $Q_i$. At this point, the paper assumes that the edge case is if $\rho_{Q_i} < k$. But this only covers some of the case. Recall that the power of two length dictionary matching does not match the text against $Q_i$, but a power of two length prefix of $Q_i$. If this prefix has a period shorter than $k$, then the power of two length dictionary matching algorithm will be able to keep adding occurrences to the final row progression faster than they are removed. This causes the edge case.
 
@@ -1122,25 +1123,25 @@ For testing itself, there were several properties measured:
 
 The programs were compiled using the GNU project C and C++ compiler (GCC) version 4.8.2, with standard arguments $\texttt{-O3}$ set for all safe compiler optimisations and $\texttt{-Wall}$ for all compilation warnings. All tests were run on a 2012 HP Pavillion Notebook running Linux Mint 17 Quiana.
 
-Time was measured in clock cycles and then converted approximately into microseconds. For size, the size of the components for each data structure was measured manually. For computing the size of GMP integers, this was done by the size of $\texttt{mp\_limb\_t}$ multiplied by $\texttt{mp\_alloc}$, which indicates the amount of limbs allocated to the integer. The size of the hash table was computed by a CMPH function $\texttt{cmph\_packed\_size}$. A worthwhile question to ask at this point is why are we only measuring the size of the data structure in working . There are two reasons for this. First of all, as will be explained later on, in the current state of the algorithm it is not possible to preprocess the algorithm in sublinear space. And second, this is more akin to what running the algorithm would be like in a streaming setting. For example, when it comes to intrusion detection, we wouldn't preprocess the algorithm on every router. A more likely scenario would be to preprocess the algorithm once, store the data structure in a data file and then set that file up on each router.
+The total time was measured in clock cycles, converted into microseconds and divided by the length of the text for an average amount of time taken per character. For size, the size of the components for each data structure was measured manually. For computing the size of GMP integers, this was done by the size of $\texttt{mp\_limb\_t}$ multiplied by $\texttt{mp\_alloc}$, which indicates the amount of limbs allocated to the integer. The size of the hash table was computed by a CMPH function $\texttt{cmph\_packed\_size}$. A worthwhile question to ask at this point is why are we only measuring the size of the data structure in working . There are two reasons for this. First of all, as will be explained later on, in the current state of the algorithm it is not possible to preprocess the algorithm in sublinear space. And second, this is more akin to what running the algorithm would be like in a streaming setting. For example, when it comes to intrusion detection, we wouldn't preprocess the algorithm on every router. A more likely scenario would be to preprocess the algorithm once, store the data structure in a data file and then set that file up on each router.
 
 While preprocessing time is not often measured in the streaming model, I decided it was a worthwhile point to investigate here, as preprocessing can be an expensive part of pattern matching computation once the patterns become long enough. We might not care about it for the same reason as above, but I figured some interesting observations might be derivable from it.
 
-Finally, to look at potential optimisations for both algorithms, I ran separate tests with the $\texttt{-pg}$ flag also set. This allowed me to investigate the performance of functions using $\texttt{gprof}$ and thus find bottlenecks.
+Finally, to look at potential optimisations for both algorithms, I ran separate tests with the $\texttt{-pg}$ flag also set. This allowed me to investigate the performance of functions using $\texttt{gprof}$ and thus find bottlenecks. Valgrind would have also been a viable option for profiling and would have potentially offered more accurate results, but takes longer to run due to the fact that the entire program is essentially run in a virtual machine. Because the 50MB text file already makes these algorithms fairly long to run, it was decided that $\texttt{gprof}$ was better for the time available.
 
 \section{Main Results}
 
 \subsection{Performance as Patterns become Longer}
 \label{ssec:long-pattern-results}
 
-Figure~\ref{fig:long-pattern-results} shows the time taken to build the data structures, time taken to process each character, and the size of the data structure for both Aho-Corasick and the new algorith by Clifford et al. for 1000 patterns of uniformly random lengths between 1 and a maximum value ranging from 1,000 to 10,000 characters.
+Figure~\ref{fig:long-pattern-results} shows the time taken to build the data structures, time taken to process each character, and the size of the data structure for both Aho-Corasick and the new algorith by Clifford et al. for 1000 patterns of uniformly random lengths between 1 and a maximum value ranging from 1,000 to 10,000 characters. Five tests were run for each maximum length.
 
 \begin{figure}[t]
 \begin{center}
   \includegraphics[width=0.5\linewidth]{build_length_1000_10000}\\
   \includegraphics[width=0.5\linewidth]{time_length_1000_10000}\includegraphics[width=0.5\linewidth]{size_length_1000_10000}
 \end{center}
-\caption{Build time, run time per character and space for Clifford et al.'s algorithm against Aho-Corasick}
+\caption{Build time, run time per character and space for Clifford et al.'s algorithm against Aho-Corasick over the length of the pattern}
 \label{fig:long-pattern-results}
 \end{figure}
 
@@ -1154,51 +1155,77 @@ The other point that surprised me was how similar these preprocessing times were
 
 Another interesting change in time complexity happens at an average pattern length of 1,000 characters for the algorithm by Clifford et al. when it comes to run time per character. But this time it is in the opposite direction, jumping from just under $35\mu s$ to roughly $40\mu s$ between 1,000 and 2,000 long characters for the average pattern length. This seems to imply that, while the short patterns algorithm is a bottleneck for preprocessing, they are actually one of the faster aspects of the algorithm as far as actual processing is concerned.
 
-As far as actual performance is concerned, the Aho-Corasick algorithm is roughly 40 times faster per character than Clifford et al. One point that surprised me is that beyond the increase at the start, we don't see any noticeable increase in time complexity per character as the average length of the patterns increase. This goes against the theoretical analysis, which states that we should see a logarithmic scaling. This would've made for another good reason to test on even longer patterns were time available to do so.
+As far as actual performance is concerned, the Aho-Corasick algorithm is roughly 80 times faster per character than Clifford et al. One point that surprised me is that beyond the increase at the start, we don't see any noticeable increase in time complexity per character as the average length of the patterns increase. This goes against the theoretical analysis, which states that we should see a logarithmic scaling. This would've made for another good reason to test on even longer patterns were time available to do so.
 
 \subsubsection{Size of Data Structure}
 
 Data structure size was a significant surprise to me. I was expecting the size of the data structure to be less--this is comparing a logarithmic size data structure with a linear size one, after all--but I was not expecting it on the scale shown in the graphs. To give an idea of how significant this difference is, even on the shorter patterns--patterns with an average length of 500 characters long--the data structure for Aho-Corasick was roughly 140 times larger than that of Clifford et al. By the longest average pattern lengths of 5,000 characters, this had grown to approximately 250 times larger.
 
 \subsection{Performance for Shorter Patterns}
+\label{ssec:short-pattern-results}
 
 I was originally going to do further testing on higher number of patterns of similar lengths to the ones in Section~\ref{ssec:long-pattern-results}. However, I decided this was of little interest as we already knew what the result would be if we started testing, for example, 2,000 patterns of 5,000 characters each: Aho-Corasick would remain performing better at time complexity while Clifford et al. would perform better at space. As a result, I figured it was more interesting to try shorter patterns, and see if we could decrease the gap in performance between the two algorithms.
 
-These results are shown in Figure~\ref{fig:short-pattern-results}. Each test now conists of 100 patterns, each pattern of lengths uniformly selected as before except the maximum length now ranges from 200 to 1,000 characters.
+These results are shown in Figure~\ref{fig:short-pattern-results}. Each test now conists of 100 patterns, each pattern of lengths uniformly selected as before except the maximum length now ranges from 200 to 1,000 characters. Again, five tests were run for each maximum length.
 
 \begin{figure}[t]
 \begin{center}
   \includegraphics[width=0.5\linewidth]{build_length_200_1000}\\
   \includegraphics[width=0.5\linewidth]{time_length_200_1000}\includegraphics[width=0.5\linewidth]{size_length_200_1000}
 \end{center}
-\caption{Build time, run time per character and space for Clifford et al.'s algorithm against Aho-Corasick}
+\caption{Build time, run time per character and space for Clifford et al.'s algorithm against Aho-Corasick over the length of the pattern}
 \label{fig:short-pattern-results}
 \end{figure}
 
 \subsubsection{Build Time}
 
+Build time shows similar results as before, though there are some differences. First of all, the spike for cases where all patterns are deemed short is still there, but it is a lot less noticeable. In particular, it has now formed two spikes: One at an average length of 100 characters and another, larger one at 200 characters. This might simply be a granularity issue, and might perhaps be an argument for testing patterns 150, 250 etc. characters long on average, to see if the spike becomes more distinct then.
+
+We can also see the same trend as before in terms of comparing the two algorithms. They start off pretty close when looking at short patterns, but Aho-Corasick then starts taking longer as the patterns grow. From just over 200 characters onwards, the preprocessing time of Clifford et al. is increasing, but a much more gradual rate. There is a bizarre spike at the end of the pattern, however, which will be investigated more when we discuss run time per character.
+
 \subsubsection{Run Time per Character}
+
+Again, we see similar results here as in Section~\ref{ssec:long-pattern-results}. Time taken per character goes up after 200 characters as fewer patterns are deemed short, and that run time is roughly level for the rest of the tests. Overall, the Clifford et al. algorithm takes roughly 80 times longer per character than Aho-Corasick.
+
+One interesting point is that there is a bizarre spike between 450 and 500 characters. We can also notice a spike in the same location for build time. The most likely explanation is that this test is anomalous, potentially caused by a caching issue with GMP or CMPH.
 
 \subsubsection{Size of Data Structure}
 
+For this range of pattern lengths, we are able to see the trend in size for dictionary matching better. In particular, we can see that the case where the patterns are short takes up less space than the long patterns case. It is hard to tell however if this is the result of a constant factor or just due to the fact that the patterns themselves are shorter.
+
+Compared to Aho-Corasick, we still see a saving in space, but the saving is less dramatic. The structure is about 30 times smaller at both the smallest tests--100 characters long on average--and the longest--500 characters on average--but as the algorithms for longer patterns start running at 200 characters on average, this performance drops to twenty times smaller.
+
 \subsection{Performance for More Patterns}
+\label{ssec:many-pattern-results}
+
+The next results, shown in Figure~\ref{fig:many-pattern-results}, display the performance or the two algorithms as the number of patterns increases. The lengths of the patterns are randomly selected between 1 and 2000 characters. The number of patterns covered a range between 200 and 1000. For every number of patterns, five tests were run and the performance of these tests were averaged to give these results.
 
 \begin{figure}[t]
 \begin{center}
   \includegraphics[width=0.5\linewidth]{build_num_200_1000}\\
   \includegraphics[width=0.5\linewidth]{time_num_200_1000}\includegraphics[width=0.5\linewidth]{size_num_200_1000}
 \end{center}
-\caption{Build time, run time per character and space for Clifford et al.'s algorithm against Aho-Corasick}
+\caption{Build time, run time per character and space for Clifford et al.'s algorithm against Aho-Corasick over the number of patterns}
 \label{fig:many-pattern-results}
 \end{figure}
 
 \subsubsection{Build Time}
 
+Here we have the opposite effect to what we had in Sections~\ref{ssec:long-pattern-results} and \ref{ssec:short-pattern-results}, with the two algorithms taking similar lengths of time as before, yet Clifford et al. taking dramatically longer from about 600 patterns onwards. This adds further confirmation to the claim that short patterns are a bottleneck for preprocessing; since patterns are defined as being short relative to the number of patterns, as we add more patterns to the dictionary yet the length of the patterns on average remains the same, more patterns start being processed by the short patterns algorithm.
+
 \subsubsection{Run Time per Character}
+
+Again, we have the opposite effect to what happened in the previous sections. Clifford et al. started roughly 85 times slower, peaked at 400 patterns when it was roughly 90 times slower, and then started to speed up again until it was just over 40 times slower. This supports the theory that the short patterns algorithm is faster than the long patterns case when it comes to processing time.
 
 \subsubsection{Size of Data Structure}
 
-\subsection{Performance for Higher $\alpha$ Value}
+The size of our data structure is comparable to the graph we saw in Section~\ref{ssec:long-pattern-results}. At 200 patterns, the algorithm by Clifford et al. was roughly 60 times smaller than the data structure for Aho-Corasick. By 600 patterns, when just over half of them on average would be deemed short, Aho-Corasick was roughly 95 times larger, and at 1000 patterns it became 260 times larger.
+
+\subsection{Performance as $\alpha$ Increases}
+
+At the end of Section~\ref{sec:kr-fingerprints}, when we discuss the probability of a collision in the fingerprints, we mention that the Karp-Rabin fingerprints take a precision value $\alpha$ during construction. A larger value for $\alpha$ results in a larger prime, as $p \in O(n^{2 + \alpha})$. If we were using native 32 or 64 bit integers, then this would have no effect on performance. But because we are using multiple precision integers, this can affect all aspects of performance measured, as preprocessing time, run time and size all depend on the respective performance of the individual fingerprints being constant.
+
+To analyse this, we measured the performance of the Clifford et al. algorithm with values for $\alpha$ ranging between 0 and 5. For each value of alpha, five tests were run and the average performance of these results were taken. Each test consisted of 100 patterns varying between 1 and 400 characters long. The results of these tests are shown in Figure~\ref{fig:alpha-results}.
 
 \begin{figure}[t]
 \begin{center}
@@ -1209,7 +1236,41 @@ These results are shown in Figure~\ref{fig:short-pattern-results}. Each test now
 \label{fig:alpha-results}
 \end{figure}
 
-\subsection{Frequency of Edge Cases}
+Intuitively, we would expect the performance to increase linearly as $\alpha$ increases. This is because all fingerprints are bounded by $p$, which can be represented in $\log p$ limbs, and $p$ increases exponentially in terms of $\alpha$. Thus we would expect as $\alpha$ increases, the number limbs required to represent $p$ would be $O(\log n^{2 + \alpha}) \in O((2 + \alpha)\log n) \in O(\alpha)$ due to $n$ being a constant.
+
+We can see this change, but the actual scaling is more complex: The performance for all three traits grows at steep rates for $\alpha$ values from 0 to 1 and 2 to 4, before becoming shallower at ranges such as 1-2 and 4-5. This is due to how GMP itself allocates and handles space for limbs. It overcompensates, allocating more limbs than are needed at points to avoid having to do more reallocations later on.
+
+\subsection{Space Consumption for Each Case}
+
+We will to some extent investigate the time taken for each case in Section~\ref{sec:profile-results}, but for now we can look at the space consumption for each of the cases in Clifford et al.'s algorithm. These results are shown in Figure~\ref{fig:case-results}.
+
+One caveat to bear in mind is that the main data structure for this implementation is the structure for long algorithms, and thus contains various shared fingerprints--including the shared buffer of the last $2k$ fingerprints of the text, the fingerprint of the whole text and a fingerprint just for temporary values--and thus is not entirely representative of the space consumption of the algorithm alone. The tests that this might affect are as the number of patterns or $\alpha$ increase, as the size of the shared items only scale in terms of $k$ and $\alpha$.
+
+\begin{figure}[t]
+\begin{center}
+  \includegraphics[width=0.5\linewidth]{part_size_length_1000_10000}\includegraphics[width=0.5\linewidth]{part_size_length_200_1000}
+  \includegraphics[width=0.5\linewidth]{part_size_num_200_1000}\includegraphics[width=0.5\linewidth]{part_size_alpha}
+\end{center}
+\caption{Size of short, periodic and long algorithms for dictionary matching}
+\label{fig:case-results}
+\end{figure}
+
+The first point that can be seen is that the size consumption of long patterns with short periods is too small to even register on these graphs. Unfortunately, I doubt this is due to the algorithm for long patterns with short periods being very efficient in terms of memory. The more likely scenario is that the patterns used to test this work just did not hit this case frequently. This is understandable; even on data as repetitive as DNA we are very unlikely to have genomes repeating enough to be longer than $2k$ while also having a period of at most $k$ characters long. This is especially true when $k$ is in the hundreds or even thousands.
+
+We can also tell from these measurements that, even taking into account the caveat at the start of this section, the main space consumption is the algorithm for long patterns. The long patterns with short periods algorithm has barely any effect due to the reasons stated above, and the short patterns algorithm only becomes the bottleneck in the tests when all patterns are deemed short. In any other case, the total size roughly follows the same curve as the size of the data structure for patterns with long periods.
+
+As for $\alpha$ values, the sizes do scale as expected, but they all follow the same general trends for scaling, merely within a constant factor of each other. This is unsurprising; we do not classify whether a pattern is long, periodic or short based on the value of $\alpha$. Thus a larger $\alpha$ will not affect the number of patterns assigned to each algorithm, which is the main reason for the algorithms scaling differently in the other graphs.
+
+\subsection{Frequency of False Results}
+
+The final aspect I wanted to investigate was how much the two algorithms disagreed in terms of their results. There are two reasons for this analysis:
+
+\begin{enumerate}
+  \item I wanted to see how much the inaccuracy in fingerprints and the introduction of randomness affected the results.
+  \item I wanted to see how frequently the edge cases were hit.
+\end{enumerate}
+
+For this, I measured the number of matches from both algorithms when applying the tests over average pattern lengths and number of patterns described in Sections~\ref{ssec:long-pattern-results}, \ref{ssec:short-pattern-results} and \ref{ssec:many-pattern-results} and computed the difference. Assuming Aho-Corasick ran correctly, I took the number of matches from Aho-Corasick and subtracted the number of matches from Clifford et al. and represented the difference as a percentage of the number of matches made by Aho-Corasick. For number of patterns, I did the same as before and took the average for each test. The results can be seen in Figure~\ref{fig:diff-results}.
 
 \begin{figure}[t]
 \begin{center}
@@ -1220,7 +1281,16 @@ These results are shown in Figure~\ref{fig:short-pattern-results}. Each test now
 \label{fig:diff-results}
 \end{figure}
 
+It is unlikely that these differences have occurred due to collisions in the fingerprints; having run some of these tests multiple times, the number of matches has remained consistent throughout. This means that the more likely scenario is the Clifford et al. algorithm hitting the edge cases.
+
+We can observe that for the graphs where the patterns are increasing, the peaks are where the average pattern length is roughly 2-3 times larger than the number of patterns. We can analyse this with the definition in Section~\ref{ssec:impl-edge-case} in mind. If the average pattern length is 3,000 characters for 1,000 patterns, then the average length of the prefixes $Q_i$ is 2,000 characters, and thus the length processed by power of two matching is 1,024 characters. At this point, the start and end of the pattern only need a few characters in common to have a period shorter than the number of patterns.
+
+This doesn't hold however with the number of misses over number of patterns. Otherwise, the peak would be before 600 patterns, as the average length of each pattern is 1,000 characters. A number of potential reasons could be behind this, from our scale being too granular--we don't measure 300 patterns, which would roughly be the peak in this case--to our averages cancelling out.
+
+The final point to emphasise is that, while these can be pretty severe when looking at the individual tests--the worst case was nearly 18\% of all matches missing--a high degree of this is bad luck with the randomly generated patterns. We can see from the graphs that the peaks are very steep, which implies that while some dictionaries were poor, others matched near-perfectly. When these tests are averaged out, as they are for the number of patterns, the number of misses drops significantly, peaking at less than a quarter of total matches. Even in the cases where mistakes have occurred, it is likely that these were a frequent minority of problematic patterns rather than most patterns hitting the edge case.
+
 \subsection{Profiling Results}
+\label{sec:profile-results}
 
 \section{Suggested Improvements}
 
