@@ -109,6 +109,7 @@
 % add paragraph breaks
 \setlength{\parskip}{1em}
 \renewcommand{\baselinestretch}{1.1}
+\setlength{\parindent}{0em}
 
 % -----------------------------------------------------------------------------
 

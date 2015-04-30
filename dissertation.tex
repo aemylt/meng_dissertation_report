@@ -508,15 +508,16 @@ This was the title of a project I worked on with the Theory \& Algorithms Team a
 
 One of the major steps in this summer project, and the step that led to this very dissertation, is that I created to our knowledge the first implementation of Breslauer and Galil's algorithm from the previous section. The algorithm was tested against a simple amortised version of Knuth-Morris-Pratt on different lengths of pattern against 50MB of English text from the Pizza and Chili Corpus. The results are shown in Figure~\ref{fig:summer-results}.
 
-As can be seen from these results, Breslauer and Galil's algorithm took roughly sixty time longer to run per character, but provided a significant benefit in terms of space as the patterns grew longer.
+As can be seen from these results, Breslauer and Galil's algorithm took roughly sixty time longer to run per character, but provided a significant benefit in terms of space as the patterns grew longer. One of the major bottlenecks however is preprocessing time. This takes significantly longer than Knuth-Morris-Pratt, to the extent that you can see the affect of the KMP component of Breslauer and Galil's algorithm from the drops in build time at every power of two length of pattern--these are the points where a larger portion of the algorithm is being processed by KMP.
 
 For more information, I recommend the blog \url{https://streamsandpatterns.wordpress.com/}, which is where I kept track of my progress over that summer. The website provides more details on the efforts of implementing Breslauer and Galil's algorithm, other algorithms I implemented over that summer, and details on how I implemented the Aho-Corasick algorithm at the start of this project.
 
 \begin{figure}[t]
 \begin{center}
+  \includegraphics[width=0.5\linewidth]{summer_build_time}\\
   \includegraphics[width=0.5\linewidth]{summer_run_time}\includegraphics[width=0.5\linewidth]{summer_size}
 \end{center}
-\caption{Run time and space performance for Breslauer and Galil's algorithm against Knuth-Morris-Pratt}
+\caption{Build time, run time and space performance for Breslauer and Galil's algorithm against Knuth-Morris-Pratt}
 \label{fig:summer-results}
 \end{figure}
 
@@ -1106,89 +1107,120 @@ The only other change is to adjust the previous fingerprints for a buffer of len
 
 A common problem with testing pattern matching algorithms is that we need to ensure the text and pattern are large enough to see a payoff. This makes the selection of test data important as we need to make sure that it is a problem that one would expect long patterns for. Alongside this, we also want to make sure the algorithms are exercised as much as possible. In this case, that means we want patterns that can be quite repetitive, to ensure the middle case--long patterns with short periods--is tested.
 
-The data chosen for this in the end was from the Pizza And Chili Corpus. More precisely, I used fifty megabytes of gene DNA sequences from here: \url{http://pizzachili.dcc.uchile.cl/texts/dna/} Gene DNA sequences can satisfy both properties to some degree. First, DNA is an area where we would expect patterns to be very long. Indeed, the fifty megabytes used for these tests were for a single genome. And second, DNA sequences are very repetitive, as they only consist of the characters A, C, G, T for their encoding.
+The data chosen for this in the end was from the Pizza And Chili Corpus. More precisely, I used fifty megabytes of gene DNA sequences from here: \url{http://pizzachili.dcc.uchile.cl/texts/dna/} Gene DNA sequences can satisfy both properties to some degree. First, DNA is an area where we would expect patterns to be very long. Indeed, the fifty megabytes used for these tests were for a single genome. And second, DNA sequences are very repetitive, as they only consist of the characters A, C, G, T for their encoding. All encodings are in ASCII format for compatibility with my C-based implementations.
 
 From this text, patterns were generated from substrings of a random length between 1 and some maximum length specified, and were stored in a file named after the number of patterns and their maximum length.
 
 For testing itself, there were several properties measured:
 
 \begin{itemize}
-  \item The number of matches to see how much the algorithms disagreed
+  \item The number of matches to see how much the algorithms differed
   \item The time taken to build the algorithms
   \item The average time taken per character for each algorithm
   \item The size of each algorithm's data structure
 \end{itemize}
 
+The programs were compiled using the GNU project C and C++ compiler (GCC) version 4.8.2, with standard arguments $\texttt{-O3}$ set for all safe compiler optimisations and $\texttt{-Wall}$ for all compilation warnings. All tests were run on a 2012 HP Pavillion Notebook running Linux Mint 17 Quiana.
+
 Time was measured in clock cycles and then converted approximately into microseconds. For size, the size of the components for each data structure was measured manually. For computing the size of GMP integers, this was done by the size of $\texttt{mp\_limb\_t}$ multiplied by $\texttt{mp\_alloc}$, which indicates the amount of limbs allocated to the integer. The size of the hash table was computed by a CMPH function $\texttt{cmph\_packed\_size}$. A worthwhile question to ask at this point is why are we only measuring the size of the data structure in working . There are two reasons for this. First of all, as will be explained later on, in the current state of the algorithm it is not possible to preprocess the algorithm in sublinear space. And second, this is more akin to what running the algorithm would be like in a streaming setting. For example, when it comes to intrusion detection, we wouldn't preprocess the algorithm on every router. A more likely scenario would be to preprocess the algorithm once, store the data structure in a data file and then set that file up on each router.
+
+While preprocessing time is not often measured in the streaming model, I decided it was a worthwhile point to investigate here, as preprocessing can be an expensive part of pattern matching computation once the patterns become long enough. We might not care about it for the same reason as above, but I figured some interesting observations might be derivable from it.
+
+Finally, to look at potential optimisations for both algorithms, I ran separate tests with the $\texttt{-pg}$ flag also set. This allowed me to investigate the performance of functions using $\texttt{gprof}$ and thus find bottlenecks.
 
 \section{Main Results}
 
-\subsection{Performance as Patterns get Longer}
+\subsection{Performance as Patterns become Longer}
+\label{ssec:long-pattern-results}
+
+Figure~\ref{fig:long-pattern-results} shows the time taken to build the data structures, time taken to process each character, and the size of the data structure for both Aho-Corasick and the new algorith by Clifford et al. for 1000 patterns of uniformly random lengths between 1 and a maximum value ranging from 1,000 to 10,000 characters.
 
 \begin{figure}[t]
 \begin{center}
-  \includegraphics[width=0.5\linewidth]{build_length_1000_10000}
-\end{center}
-\caption{Build time for Clifford et al.'s algorithm against Aho-Corasick}
-\label{fig:long-pattern-build}
-\end{figure}
-
-\begin{figure}[t]
-\begin{center}
+  \includegraphics[width=0.5\linewidth]{build_length_1000_10000}\\
   \includegraphics[width=0.5\linewidth]{time_length_1000_10000}\includegraphics[width=0.5\linewidth]{size_length_1000_10000}
 \end{center}
-\caption{Run time per character and space for Clifford et al.'s algorithm against Aho-Corasick}
+\caption{Build time, run time per character and space for Clifford et al.'s algorithm against Aho-Corasick}
 \label{fig:long-pattern-results}
 \end{figure}
 
+\subsubsection{Build Time}
+
+The first point that can be noticed is the spike for Clifford et al. at roughly 1,000 characters for average pattern length. I was very curious as to why this spike occured, and in particular how it dropped to to nearly half the time for patterns one thousand characters longer and only again started taking that much time to preprocess again at an average length of 5,000 characters. We will look at profiling this case later, but it is worth noting that an average length of 1,000 characters per pattern over a uniform distribution would put the maximum length at roughly 2,000 characters. Since there are 1,000 patterns in total, this would be the upper limit of the case where all patterns are processed using the short patterns case, which would imply that short patterns is a bottleneck with respect to preprocessing time.
+
+The other point that surprised me was how similar these preprocessing times were. Following the preprocessing times from my summer project and how significantly faster KMP was than Breslauer and Galil, I was expecting something similar here. Instead, the algorithm by Clifford et al. in fact took \textit{less} time in most cases. It seems that the more complex state machine required by Aho-Corasick results in a larger overhead than Knuth-Morris-Pratt. I would've liked to have measured this for even longer patterns, due to the fact that the build time of Clifford et al. is getting closer to that of Aho-Corasick by the time the patterns reach an average length of 5000 characters, but this was not possible due to time constraints.
+
+\subsubsection{Run Time per Character}
+
+Another interesting change in time complexity happens at an average pattern length of 1,000 characters for the algorithm by Clifford et al. when it comes to run time per character. But this time it is in the opposite direction, jumping from just under $35\mu s$ to roughly $40\mu s$ between 1,000 and 2,000 long characters for the average pattern length. This seems to imply that, while the short patterns algorithm is a bottleneck for preprocessing, they are actually one of the faster aspects of the algorithm as far as actual processing is concerned.
+
+As far as actual performance is concerned, the Aho-Corasick algorithm is roughly 40 times faster per character than Clifford et al. One point that surprised me is that beyond the increase at the start, we don't see any noticeable increase in time complexity per character as the average length of the patterns increase. This goes against the theoretical analysis, which states that we should see a logarithmic scaling. This would've made for another good reason to test on even longer patterns were time available to do so.
+
+\subsubsection{Size of Data Structure}
+
+Data structure size was a significant surprise to me. I was expecting the size of the data structure to be less--this is comparing a logarithmic size data structure with a linear size one, after all--but I was not expecting it on the scale shown in the graphs. To give an idea of how significant this difference is, even on the shorter patterns--patterns with an average length of 500 characters long--the data structure for Aho-Corasick was roughly 140 times larger than that of Clifford et al. By the longest average pattern lengths of 5,000 characters, this had grown to approximately 250 times larger.
+
 \subsection{Performance for Shorter Patterns}
 
-\begin{figure}[t]
-\begin{center}
-  \includegraphics[width=0.5\linewidth]{build_length_200_1000}
-\end{center}
-\caption{Build time for Clifford et al.'s algorithm against Aho-Corasick}
-\label{fig:short-pattern-build}
-\end{figure}
+I was originally going to do further testing on higher number of patterns of similar lengths to the ones in Section~\ref{ssec:long-pattern-results}. However, I decided this was of little interest as we already knew what the result would be if we started testing, for example, 2,000 patterns of 5,000 characters each: Aho-Corasick would remain performing better at time complexity while Clifford et al. would perform better at space. As a result, I figured it was more interesting to try shorter patterns, and see if we could decrease the gap in performance between the two algorithms.
+
+These results are shown in Figure~\ref{fig:short-pattern-results}. Each test now conists of 100 patterns, each pattern of lengths uniformly selected as before except the maximum length now ranges from 200 to 1,000 characters.
 
 \begin{figure}[t]
 \begin{center}
+  \includegraphics[width=0.5\linewidth]{build_length_200_1000}\\
   \includegraphics[width=0.5\linewidth]{time_length_200_1000}\includegraphics[width=0.5\linewidth]{size_length_200_1000}
 \end{center}
-\caption{Run time per character and space for Clifford et al.'s algorithm against Aho-Corasick}
+\caption{Build time, run time per character and space for Clifford et al.'s algorithm against Aho-Corasick}
 \label{fig:short-pattern-results}
 \end{figure}
+
+\subsubsection{Build Time}
+
+\subsubsection{Run Time per Character}
+
+\subsubsection{Size of Data Structure}
 
 \subsection{Performance for More Patterns}
 
 \begin{figure}[t]
 \begin{center}
-  \includegraphics[width=0.5\linewidth]{build_num_200_1000}
-\end{center}
-\caption{Build time for Clifford et al.'s algorithm against Aho-Corasick}
-\label{fig:many-pattern-build}
-\end{figure}
-
-\begin{figure}[t]
-\begin{center}
+  \includegraphics[width=0.5\linewidth]{build_num_200_1000}\\
   \includegraphics[width=0.5\linewidth]{time_num_200_1000}\includegraphics[width=0.5\linewidth]{size_num_200_1000}
 \end{center}
-\caption{Run time per character and space for Clifford et al.'s algorithm against Aho-Corasick}
+\caption{Build time, run time per character and space for Clifford et al.'s algorithm against Aho-Corasick}
 \label{fig:many-pattern-results}
 \end{figure}
 
-\subsection{Profiling Results}
+\subsubsection{Build Time}
+
+\subsubsection{Run Time per Character}
+
+\subsubsection{Size of Data Structure}
+
+\subsection{Performance for Higher $\alpha$ Value}
+
+\begin{figure}[t]
+\begin{center}
+  \includegraphics[width=0.5\linewidth]{build_alpha}\\
+  \includegraphics[width=0.5\linewidth]{time_alpha}\includegraphics[width=0.5\linewidth]{size_alpha}
+\end{center}
+\caption{Build time, run time per character and space for Clifford et al.'s algorithm as $\alpha$ increases}
+\label{fig:alpha-results}
+\end{figure}
 
 \subsection{Frequency of Edge Cases}
 
 \begin{figure}[t]
 \begin{center}
-  \includegraphics[width=0.5\linewidth]{diff_length_1000_10000}\includegraphics[width=0.5\linewidth]{diff_length_200_1000}\\
-  \includegraphics[width=0.5\linewidth]{diff_num_200_1000}
+  \includegraphics[width=0.5\linewidth]{diff_num_200_1000}\\
+  \includegraphics[width=0.5\linewidth]{diff_length_1000_10000}\includegraphics[width=0.5\linewidth]{diff_length_200_1000}
 \end{center}
 \caption{Difference in number of matches between Aho-Corasick and Cliffort et al. implementation}
 \label{fig:diff-results}
 \end{figure}
+
+\subsection{Profiling Results}
 
 \section{Suggested Improvements}
 
