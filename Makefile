@@ -16,7 +16,7 @@ ${TARGETS} : %.pdf : %.tex $(wildcard %.bib)
          fi
 	@TEXMFLOCAL="${TEXMFLOCAL}" pdflatex ${*}
 	@TEXMFLOCAL="${TEXMFLOCAL}" hunspell -l -t -i utf-8 ${*}.tex > spellcheck.txt
-	@TEXMFLOCAL="${TEXMFLOCAL}" detex ${*} | wc
+	@TEXMFLOCAL="${TEXMFLOCAL}" texcount ${*}.tex
 
 clean    :
 	@rm -f $(wildcard *.aux *.bbl *.blg *.loa *.lof *.log *.lol *.lot *.nav *.out *.snm *.toc)
