@@ -729,7 +729,7 @@ If unspecified, $\texttt{output}(state)$ is 0 by default.
 
 \section{Power of Two Length Patterns}
 
-The rest of this chapter describes the implementation of Clifford, Fontaine, Porat and Sach's\cite{2015arXiv150406242C} algorithm as described in Section~\ref{sec:theory-clifford}. Note that this implementation does not achieve $O(\log m)$ time per character as desired, but $O(\log k\log m)$ instead. The reason behind this will be explained later in this section. It is also worth noting, as will be explained in Section~\ref{ssec:static-hash-fail} that in the general case this is amortised time per character; the real time per character is $O(\log k(k + \log m))$. A method for deamortising the solution will be proposed in Critical Evaluation.
+The rest of this chapter describes the implementation of Clifford, Fontaine, Porat and Sach's\cite{2015arXiv150406242C} algorithm as described in Section~\ref{sec:theory-clifford}. Note that this implementation does not achieve $O(\log m)$ time per character as desired, but $O(\log k\log m)$ instead. The reason behind this will be explained later in this section. It is also worth noting, as will be explained in Section~\ref{ssec:static-hash-fail} that in the general case this is amortised time per character; the real time per character is $O(\log k(k + \log m))$. A method for deamortising the solution will be proposed in Section~\ref{ssec:deamortise}.
 
 \subsection{Implementing Karp and Rabin's Algorithm for Dictionary Matching}
 
@@ -849,35 +849,7 @@ Note that the edge case -- defined under these new definitions as pattern $P_i$ 
 
 \subsection{Determining the Period of Each Pattern}
 
-The period length of each pattern can be determined via the algorithm described in Listing~\ref{lst:get-periods}. This is based on the way the failure table is computed for Knuth-Morris-Pratt, and simply iterated over each pattern.
-
-In order to avoid more malloc and realloc calls than necessary, the space allocated for the failure table is reused for each pattern, and only reallocated if the next pattern is longer than any previously seen patterns.
-
-Finally, the calculation at the end of the loop is to convert the standard failure table content into the length of the period. Since the final element in the KMP failure table is the length of the longest strict prefix of the pattern that is also a suffix, the difference between that value and the length of the pattern is the point when the pattern starts repeating itself. Thus, we have the period of the pattern.
-
-\begin{lstlisting}[float={t},caption={Computing the period length $|\rho_i|$ for each pattern.},label={lst:get-periods},language=C]
-void get_periods(char **P, int *m, int num_patterns, int *period) {
-    int i, j, k;
-    int *failure;
-    failure = malloc(sizeof(int));
-    int failure_size = 1;
-    for (i = 0; i < num_patterns; i++) {
-        if (m[i] > failure_size) {
-            failure = realloc(failure, sizeof(int) * m[i]);
-            failure_size = m[i];
-        }
-        failure[0] = -1;
-        k = -1;
-        for (j = 1; j < m[i]; j++) {
-            while (k > -1 && P[i][k + 1] != P[i][j]) k = failure[k];
-            if (P[i][k + 1] == P[i][j]) k++;
-            failure[j] = k;
-        }
-        period[i] = m[i] - failure[m[i] - 1] - 1;
-    }
-    free(failure);
-}
-\end{lstlisting}
+The period length of each pattern can be determined by computing the Knuth-Morris-Pratt failure table for each pattern. Since the final element in the KMP failure table is the length of the longest strict prefix of the pattern that is also a suffix, the difference between that value and the length of the pattern is the point when the pattern starts repeating itself. Thus, we can get the period for each pattern by computing $|\rho_i| = m_i - \texttt{failure}_{m_i - 1} - 1$. The -1s are to cater for zero-indexing. To avoid too many memory allocation calls, the failure table is re-used for each pattern and only reallocated if the next pattern is longer than any previous ones.
 
 \subsection{Re-using Buffers}
 
@@ -1041,10 +1013,11 @@ For the second case, we consider a pattern $P_i$ on row $x$. First we notice tha
 \end{enumerate}
 
 \subsubsection{An Error in Processing}
+\label{sssec:error-prob}
 
 The final question is when do we remove VOs from the arithmetic progression? We need to make sure that the progression is only advanced when all prefixes that might have needed to check the progression have seen it. Because there is a delay of up to $\frac{k}{2}$ characters between a prefix needing to check an occurrence and the prefix checking the occurrence, can we ensure that all prefixes have seen this progression $k$ characters after it has originally been checked?
 
-This was the idea implemented, but there is a problem with this reasoning. Consider two prefixes $Q_i, Q_j$ such that $|Q_i| + k < |Q_j|$, yet both share the same progression by having the same power of two length prefix. In this case, there is no convenient time to remove the progression. If we remove it $k$ characters after $Q_i$ has tested it, $Q_j$ might not have yet tested it. If we remove it $k$ characters after $Q_j$ tested it, then there might be other later occurences in the progression that it is too late for $Q_i$ to test. While a solution to this problem wasn't implemented due to time constraints, one will be proposed in the Critical Evaluation chapter among other suggested improvements to the algorithm.
+This was the idea implemented, but there is a problem with this reasoning. Consider two prefixes $Q_i, Q_j$ such that $|Q_i| + k < |Q_j|$, yet both share the same progression by having the same power of two length prefix. In this case, there is no convenient time to remove the progression. If we remove it $k$ characters after $Q_i$ has tested it, $Q_j$ might not have yet tested it. If we remove it $k$ characters after $Q_j$ tested it, then there might be other later occurences in the progression that it is too late for $Q_i$ to test. While a solution to this problem wasn't implemented due to time constraints, one will be proposed in Section~\ref{ssec:error-fix} chapter among other suggested improvements to the algorithm.
 
 \subsection{Avoiding the Edge Case}
 \label{ssec:impl-edge-case}
@@ -1079,7 +1052,7 @@ Binary search trees on the other hand do not have the same problem. Because BSTs
 
 One point that has not been addressed yet is how we compare fingerprints for the BST. This is done via a simple call to \texttt{mpz\_cmp} with the two fingerprints \texttt{finger}. Because all of the fingerprints that have been inserted into the BST are of length $k$, we do not need to compare \texttt{r\_k} and \texttt{r\_mk}.
 
-The worst case time complexity of $O(\log k(k + \log m))$ is caused by the insertion of every suffix into the red-black tree, plus another addition of $O(k)$ time for destroying the tree as well. We will see how we can remove these points and thus achieve a real time result in the Critical Evaluation section.
+The worst case time complexity of $O(\log k(k + \log m))$ is caused by the insertion of every suffix into the red-black tree, plus another addition of $O(k)$ time for destroying the tree as well. We will see how we can remove these points and thus achieve a real time result in the Section~\ref{ssec:deamortise}.
 
 \subsection{Adjusting for Patterns Longer than $2k$}
 
@@ -1358,6 +1331,7 @@ This final section on speeding up the fingerprint operations builds on Sections~
 Plus, 64-bit numbers are both faster and more efficient due to their native implementation, and 64-bit architectures themselves are becoming more widespread. So it is worth testing on fixed-size integers as well to see how much practical performance improves from it.
 
 \subsection{Deamortisating the Algorithm}
+\label{ssec:deamortise}
 
 As mentioned in Section~\ref{ssec:static-hash-fail} the reason for the amortised time complexity is due to how we insert items into and destroying the Red-Black Tree.
 
@@ -1374,6 +1348,9 @@ The first problem is computing the periods. It is possible to compute the period
 The second problem is the $\mathcal{S}$ function for short patterns. Checking this na\"{i}vely -- as is currently done -- requires us to store every pattern. But it can be solved by reading the patterns twice. The first time we read the patterns, we compute the fingerprint of the complete patterns and store these in an array of $k$ fingerprints. The second time we read a pattern $P_i$, we store the fingerprint of every prefix of that pattern in an array of at most $2k$ fingerprints. We then iterate through the other $k$ pattern fingerprints, $\phi_j$, and compute the prefix between $\phi_i$ and $\phi_j$. If this prefix is in the array of prefixes at index $m_i - m_j - 1$, then we know that any suffixes of the pattern at least $m_i - m_j$ characters long have another pattern as a suffix. Once we have iterated over all $k$ pattern fingerprints, we now know the smallest $m_j$ such that $P_j$ is a suffix of $P_i$. Thus, $\mathcal{S}$ now simply checks if the suffix is longer than $m_j$. One might think that we now need to read the patterns a third time for the actual \texttt{PreProc} function now, but this is not the case. Since we have fingerprints of all the prefixes of $P_i$, any suffix fingerprint we need can be worked out from $\phi_i$ and the relevant prefix.
 
 \subsection{Fixing the Final Row}
+\label{ssec:error-fix}
+
+Now we shall describe a proposal for fixing the problem stated in Section~\ref{sssec:error-prob}.
 
 %-----------------------------------------------------------------------------
 
