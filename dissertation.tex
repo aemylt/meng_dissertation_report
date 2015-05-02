@@ -170,48 +170,47 @@ Last, but most certainly not least, I would like to thank my family and friends 
 \chapter{Contextual Background}
 \label{chap:context}
 
-{\bf A compulsory chapter, of roughly $10$ pages}
-\vspace{1cm} 
+\section{Topic Background}
 
-\noindent
-This chapter should describe the project context, and motivate each of
-the proposed aims and objectives.  Ideally, it is written at a fairly 
-high-level, and easily understood by a reader who is technically 
-competent but not an expert in the topic itself.
+\subsection{Sublinear Space Pattern Matching}
 
-In short, the goal is to answer three questions for the reader.  First, 
-what is the project topic, or problem being investigated?  Second, why 
-is the topic important, or rather why should the reader care about it?  
-For example, why there is a need for this project (e.g., lack of similar 
-software or deficiency in existing software), who will benefit from the 
-project and in what way (e.g., end-users, or software developers) what 
-work does the project build on and why is the selected approach either
-important and/or interesting (e.g., fills a gap in literature, applies
-results from another field to a new problem).  Finally, what are the 
-central challenges involved and why are they significant? 
- 
-The chapter should conclude with a concise bullet point list that 
-summarises the aims and objectives.  For example:
+The focus of this project is pattern matching. Pattern matching is a broad range of problems covering the general question of ``Here is a text; here is a pattern; where does this pattern occur in this text?'' While this is merely one question of pattern matching, a number of other related problems also exist:
 
-\begin{quote}
-\noindent
-The high-level objective of this project is to reduce the performance 
-gap between hardware and software implementations of modular arithmetic.  
-More specifically, the concrete aims are:
+\begin{itemize}
+  \item \textbf{k-mismatch:} ``Where does most of this pattern occur within the text?''
+  \item \textbf{Pattern Matching with Wildcards:} ``Where does the pattern occur in the text if we don't care about what characters are in these places?''
+  \item \textbf{Distance Matching:} ``How much does this text differ from this pattern at each index?''
+\end{itemize}
+
+The aspects we care about when measuring the performace of algorithms is the amount of space and time required to solve the problem. For many years the emphasis has been focused around time. This is because improving space consumption for pattern matching problems is difficult; even a na\"{i}ve implementation of pattern matching offers linear space. Besides, it is intuitive for a pattern matching algorithm to require linear space: If we want to match occurrences of a pattern in a text, surely we need to know both the text and the pattern and thus have to store both of them?
+
+In fact, it is easy to perform pattern matching in less space than it takes to store the text. A number of pattern matching algorithms -- such as Knuth-Morris-Pratt\cite{kmp} and Karp-Rabin\cite{5390135} -- work by iterating over each character in the text, and only need to know enough characters in the text to be able to check if the past few characters in the text match the pattern. Thus, we can process the text for these algorithms one character at a time.
+
+\subsection{Dictionary Matching}
+
+\section{Contributions}
+
+\section{Motivation and Significance}
+
+\subsection{Data is Getting Bigger}
+
+\subsection{Why Dictionary Matching?}
+
+\subsection{From Theory to Practice}
+
+\section{Challenges}
+
+\section{Aims and Objectives}
+
+Our overall goal for this project is to reduce the processing size for dictionary matching and improve the current streaming performance over that of Aho-Corasick. In order to achieve this, our concrete objectives are:
 
 \begin{enumerate}
-\item Research and survey literature on public-key cryptography and
-      identify the state of the art in exponentiation algorithms.
-\item Improve the state of the art algorithm so that it can be used
-      in an effective and flexible way on constrained devices.
-\item Implement a framework for describing exponentiation algorithms
-      and populate it with suitable examples from the literature on 
-      an ARM7 platform.
-\item Use the framework to perform a study of algorithm performance
-      in terms of time and space, and show the proposed improvements
-      are worthwhile.
+  \item To develop an implementation of the Aho-Corasick algorithm to act as a benchmark for performance.
+  \item To develop the first implementation of the Clifford et al. algorithm for dictionary matching.
+  \item To implement a test framework in order to measure the performance of these two algorithms on real data.
+  \item To find practical bottlenecks in the Clifford et al. algorithm with regards to space and time.
+  \item To implement potential optimisations and see if and to what degree these improve performance.
 \end{enumerate}
-\end{quote}
 
 %-----------------------------------------------------------------------------
 
