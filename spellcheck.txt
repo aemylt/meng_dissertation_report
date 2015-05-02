@@ -548,6 +548,7 @@ case1
 case2
 case3
 case1
+substrings
 Aho-Corasick.
 mpz
 mpz
@@ -569,5 +570,18 @@ Mersenne
 Mersenne
 Mersenne
 Mersenne
-Deamortisation
+GMP.
+Mersenne
+Deamortisating
+deamortise
+RBT
+RBT
+deamortise
 Sublinear
+sublinear
+na
+i
+vely
+--
+--
+PreProc

@@ -28,9 +28,9 @@
                 % the dissertation subtitle (which can    be blank)
                   subtitle={An Empirical Analysis},
                 % the dissertation     type
-                      type={Research},
+                      type={research},
                 % the year of submission
-                      year={2014} ]{dissertation}
+                      year={2015} ]{dissertation}
 
 \begin{document}
 
@@ -125,7 +125,7 @@ VO &: & A Viable Occurrence, a portion of the text which might match a pattern \
 KMP &: & The Knuth-Morris-Pratt single pattern matching algorithm \\
 BST &: & Binary Search Tree \\
 RBT &: & Red-Black Tree, a specific instance of a binary search tree \\
-CLRS &: & Introduction to Algorithms by Thomas H. Cormen, Charles E. Lieserson, Ronald L. Rivest and Clifford Stein \\
+CLRS &: & Introduction to Algorithms by Cormen, Lieserson, Rivest and Stein \\
 $T$ &: & A text string of $n$ characters \\
 $t_i$ &: & The $i$-th character in T \\
 $\mathcal{P}$ &: & A list of $k$ patterns \\
@@ -377,9 +377,9 @@ $$\phi(T) = \sum_{i = 0}^{n - 1} r^it_i \mod p$$
 Where $p$ is a prime number, and $r$ is a random number such that $1 < r < p$. Alongside the fingerprint $\phi(T)$, we store $r^n \mod p$ and $r^{-n} \mod p$ in a tuple. Using these three properties, we can manipulate the fingerprints to affect the underlying strings in three ways\cite{5438620}. Note that all equations listed below are modulo $p$.
 
 \begin{itemize}
-  \item \textbf{Concatenate:} If we have a fingerprint $\{\phi(u), r^{n_1}, r^{-n_1}\}$ for a string $u$ of length $n_1$ and another fingerprint $\{\phi(v), r^{n_2}, r^{-n_2}\}$ for a string $v$ of length $n_2$, the concatenation of these two strings is $\{\phi(u) + \phi(v)*r^{n_1}, r^{n_1} * r^{n_2}, r^{-n_1} * r^{-n_2}\}$
-  \item \textbf{Prefix:} If we have a fingerprint $\{\phi(uv), r^{n_1}, r^{-n_1}\}$ for a string $uv$ of length $n_1$ and a fingerprint $\{\phi(v), r^{n_2}, r^{-n_2}\}$ for the $n_2$ suffix of $uv$, then we can work out the fingerprint of the $n_1 - n_2$ prefix of $uv$ as $\{\phi(uv) - \phi(v)*r^{n_1}, r^{n_1} * r^{-n_2}, r^{-n_1} * r^{n_2}\}$
-  \item \textbf{Suffix:} If we have a fingerprint $\{\phi(uv), r^{n_1}, r^{-n_1}\}$ for a string $uv$ of length $n_1$ and a fingerprint $\{\phi(u), r^{n_2}, r^{-n_2}\}$ for the $n_2$ prefix of $uv$, then we can work out the fingerprint of the $n_1 - n_2$ suffix of $uv$ as $\{(\phi(uv) - \phi(u))*r^{-n_2}, r^{n_1} * r^{-n_2}, r^{-n_1} * r^{n_2}\}$
+  \item \textbf{Concatenate:} If we have a fingerprint $\{\phi(u), r^{n_1}, r^{-n_1}\}$ for a string $u$ of length $n_1$ and another fingerprint $\{\phi(v), r^{n_2}, r^{-n_2}\}$ for a string $v$ of length $n_2$, the concatenation of these two strings is $\{\phi(u) + \phi(v)\cdot r^{n_1}, r^{n_1} \cdot r^{n_2}, r^{-n_1} \cdot r^{-n_2}\}$
+  \item \textbf{Prefix:} If we have a fingerprint $\{\phi(uv), r^{n_1}, r^{-n_1}\}$ for a string $uv$ of length $n_1$ and a fingerprint $\{\phi(v), r^{n_2}, r^{-n_2}\}$ for the $n_2$ suffix of $uv$, then we can work out the fingerprint of the $n_1 - n_2$ prefix of $uv$ as $\{\phi(uv) - \phi(v)\cdot r^{n_1}, r^{n_1} \cdot r^{-n_2}, r^{-n_1} \cdot r^{n_2}\}$
+  \item \textbf{Suffix:} If we have a fingerprint $\{\phi(uv), r^{n_1}, r^{-n_1}\}$ for a string $uv$ of length $n_1$ and a fingerprint $\{\phi(u), r^{n_2}, r^{-n_2}\}$ for the $n_2$ prefix of $uv$, then we can work out the fingerprint of the $n_1 - n_2$ suffix of $uv$ as $\{(\phi(uv) - \phi(u))\cdot r^{-n_2}, r^{n_1} \cdot r^{-n_2}, r^{-n_1} \cdot r^{n_2}\}$
 \end{itemize}
 
 All of these operations can be completed in constant time.
@@ -655,7 +655,7 @@ The first important decision was how to implement the automaton. As a finite sta
 
 \begin{itemize}
   \item \textbf{Adjacency Matrix:} An item at coordinates $(i,a)$ in the matrix represents an edge in the matrix from state $i$ if the next character is $a$. The value of $(i,j)$ itself is the \texttt{goto} state, and is set to the failure state if there is no subsequent pattern with the next character in the state. This takes constant time travelling between states but $O(m|\Sigma|)$ space.
-  \item \textbf{Adjacency List:} Each item in the list is a tuple $(i, j, a)$, representing an edge from $i$ to $j$ if $a$ is next on the tape. Failure edges are represented by an integer for each state. This requires potentially less space than an adjacency matrix but $O(m * \min(|\Sigma|, m))$ time to move to \texttt{goto} state.
+  \item \textbf{Adjacency List:} Each item in the list is a tuple $(i, j, a)$, representing an edge from $i$ to $j$ if $a$ is next on the tape. Failure edges are represented by an integer for each state. This requires potentially less space than an adjacency matrix but $O(m \min(|\Sigma|, m))$ time to move to \texttt{goto} state.
   \item \textbf{Object Oriented:} A state structure is defined, with an array of pointers to other states it connects to and the next character that needs to be read on the tape for the automaton to enter that state. Failure edges are simply a pointer to failure state. The ferformance is a compromise between an adjacency matrix and an adjacency list, with the same asymptotic space consumption as an adjacency list but $O(\min(|\Sigma|, m))$ time to move to \texttt{goto} state.
 \end{itemize}
 
@@ -738,6 +738,7 @@ My first choice for implementation was to investigate the algorithm described in
 Using these libraries, implemented as described in the two sections below, Karp and Rabin's algorithm was straightforward to implement. The static perfect hash function contained fingerprints of all the patterns. We stored and updated a fingerprint of the last $m$ characters by concatenation and suffix operations using a circular buffer of the last $m$ characters. This offers $O(k + m)$ space and $O(1)$ time per character, as mentioned before.
 
 \subsubsection{Implementing Karp-Rabin Fingerprints}
+\label{sssec:kr-implementation}
 
 The library for Karp-Rabin fingerprints was written using the GNU Multiple-Precision Arithmetic Library (GMP) version 6.0.0 for the C programming language.
 
@@ -756,7 +757,7 @@ The first structure, called a fingerprinter, consists of two multiple precision 
 The integer $r$ is where this library most significantly differs from my summer project. For both implementations, entropy is gathered by reading in data from \texttt{/dev/urandom} and then used to seed the GMP pseudorandom number generator. For the summer project, the integer $r$ was picked using the Mersenne Twister function on \texttt{mpz\_urandomm} with maximum value $p$. But this is not guaranteed to work, as it allows two problematic cases:
 
 \begin{itemize}
-  \item If $r = 0$, then $\phi(S) = \phi(S')$ if $s_0 = s'_0$.\footnote{If the fingerprints are implemented exactly as described in Section~\ref{sec:kr-fingerprints}, then $\phi(S)$ will always match $\phi(S')$. This difference is due to my implementation of the fingerprints.}
+  \item If $r = 0$, then $\phi(S) = \phi(S')$ if $s_0 = s'_0$.\footnote{If the fingerprints are implemented exactly as described in Section~\ref{sec:kr-fingerprints}, then $\phi(S)$ will always match $\phi(S')$. This difference is due to my implementation of the fingerprints, which assumes $r^0 = 1$ and thus simply uses $\phi(s_0) = s_0$.}
   \item If $r = 1$, then $\phi(S) = \phi(S')$ if $S$ is a reordering of the characters in $S'$.
 \end{itemize}
 
@@ -764,7 +765,7 @@ To avoid these two cases, \texttt{mpz\_urandomm} is still used, but the maximum 
 
 The second structure, called a fingerprint, consists of three multiple precision integers: \texttt{finger} refers to the fingerprint of the string itself $\phi(S)$ for a $k$ character string $S$, \texttt{r\_k}, which refers to $r^k$, and \texttt{r\_mk}, which refers to $r^{-k}$.
 
-After space has been allocated, the fingerprints of strings can be computed by a function called \texttt{set\_fingerprint}. This function is implemented as the equation in Section~\ref{sec:kr-fingerprints}, and based on the work from my summer project. However, there was a problem with my summer project's implementation, where the first item was not being computed modulo $p$. This meant that, if the string $S$ was 1 character long and $s_0 \geq p$ -- a case which is easily possible depending on the encoding of the characters in the string and if $p$ is sufficiently small -- then $\phi(S) \geq p$. This was easily fixed by adding an additional modulo operation on the first character of the string. $r^k$ was calculated incrementally as $r*r*r*...*r$, as we required $r^0,r^1...,r^{k-1}$ for computing the fingerprint, and $r^{-k}$ was calculated using \texttt{mpz\_invert} on $r^k$.
+After space has been allocated, the fingerprints of strings can be computed by a function called \texttt{set\_fingerprint}. This function is implemented as the equation in Section~\ref{sec:kr-fingerprints}, and based on the work from my summer project. However, there was a problem with my summer project's implementation, where the first item was not being computed modulo $p$. This meant that, if the string $S$ was 1 character long and $s_0 \geq p$ -- a case which is easily possible depending on the encoding of the characters in the string and if $p$ is sufficiently small -- then $\phi(S) \geq p$. This was easily fixed by adding an additional modulo operation on the first character of the string. $r^k$ was calculated incrementally as $r\cdot r\cdot r\cdot ...\cdot r$, as we required $r^0,r^1...,r^{k-1}$ for computing the fingerprint, and $r^{-k}$ was calculated using \texttt{mpz\_invert} on $r^k$.
 
 Concatenation, prefix and suffix operations are computed as shown in Section~\ref{sec:kr-fingerprints}. The only difference is that, as with setting the fingerprint, $r^{-k}$ was calculated using \texttt{mpz\_invert}.
 
@@ -976,7 +977,7 @@ We can resolve this by comparing more than just the fingerprints. For strings $u
 
 $$\phi(u) = \phi(v), r^{l_u} = r^{l_v} \text{ and } r^{-l_u} = r^{-l_v}$$
 
-$r^{l_u} \text{ and } r^{-l_u}$ are both stored in the fingerprint structure we defined in Section~\ref{sec:kr-fingerprints}. Because CMPH requires string keys for static perfect hash functions, we can make sure these are unique by having the keys be a comma-separated string of $\phi(u),r^{l_u},r^{-l_u}$. Since $r^{l_u}$ and $r^{-l_u}$ are both modulo $p$, their string representations require as much space as there was allocated for the hexadecimal string representation of the fingerprint. Using the size calculated in Section~\ref{sssec:static-hashing-kr}, the overall space required for these strings comes to $3 * (2 * \texttt{\_mp\_size} * \texttt{sizeof}(\texttt{mp\_limb\_t}) + 1)$. Note that we now need three extra bytes instead of one: Two for the commas separating the variables and one for the string terminator.
+$r^{l_u} \text{ and } r^{-l_u}$ are both stored in the fingerprint structure we defined in Section~\ref{sec:kr-fingerprints}. Because CMPH requires string keys for static perfect hash functions, we can make sure these are unique by having the keys be a comma-separated string of $\phi(u),r^{l_u},r^{-l_u}$. Since $r^{l_u}$ and $r^{-l_u}$ are both modulo $p$, their string representations require as much space as there was allocated for the hexadecimal string representation of the fingerprint. Using the size calculated in Section~\ref{sssec:static-hashing-kr}, the overall space required for these strings comes to $3 \cdot (2 \cdot \texttt{\_mp\_size} \cdot \texttt{sizeof}(\texttt{mp\_limb\_t}) + 1)$. Note that we now need three extra bytes instead of one: Two for the commas separating the variables and one for the string terminator.
 
 The probability of a collision now depends on the value of our random number $r$. Because $2 \leq r < p$, it holds that $r$ is in the cyclic group $\mathbb{Z}^*_p$. From this, we can define the set $\langle r \rangle =^{def} \{r^0, r^1,...,1\}$ -- we know that this group eventually terminates by Lagrange's Theorem, as shown in Katz and Lindell\cite{katz:lagrange}. We can define the order of the set $\langle r \rangle$ as the smallest number $i$ such that $r^i = 1$. Katz and Lindell\cite{katz:cyclic-groups} show that if $i$ is the order of $\langle r \rangle$, then $r^x = r^y$ if and only if $x = y \mod i$.
 
@@ -1281,11 +1282,12 @@ The final point to emphasise is that, while these can be pretty severe when look
 \subsection{Profiling Results}
 \label{sec:profile-results}
 
-In order to find bottlenecks, I ran the Clifford et al. algorithm on two test cases:
+In order to find bottlenecks, I ran the Clifford et al. algorithm on three test cases:
 
 \begin{itemize}
-  \item 1000 patterns up to 2000 characters long, to see why there is such a big spike in preprocessing time at this point.
-  \item 1000 patterns up to 4000 characters long, to see how the algorithm performs when roughly half the patterns are short and half are long.
+  \item 1000 patterns up to 2,000 characters long, to see why there is such a big spike in preprocessing time at this point.
+  \item 1000 patterns up to 4,000 characters long, to see how the algorithm performs when roughly half the patterns are short and half are long.
+  \item 1000 patterns up to 10,000 characters long, to see how the algorithm performs when few of the patterns are short.
 \end{itemize}
 
 For both tests, the first point I saw was that the main bottleneck, with roughly 60\% of the total (preprocessing and running) time was actually the function for checking if two fingerprints are equal. The reason is not because the function is a slow one -- on the contrary, it is one of the fastest functions in the entire source code as simply three calls to \texttt{mpz\_equals} -- but it is called so frequently that even if it takes virtually no time to execute, that time still adds up overall. To give an idea of how many times it is called, for the first of the two tests listed above on 50MB of text, it was called nearly 680 million times on the actual processing alone. It was called another 17 million times in preprocessing, resulting in just over 696 million calls to the function in total. The same story is true for the second case, where it was called a total of 825 million times.
@@ -1296,15 +1298,22 @@ As far as calling the equals function for fingerprints, the main cause is the sh
 
 For patterns with long periods, there are two main bottlenecks. The first is shifting patterns. Although \texttt{gprof} itself is not offering much information on where the slowdown is, intuition points towards the Red-Black Tree. In particular, deleting items from the RBT is called frequently and might reasonably cause a drop in performance due to both the heavy reliance on the heap and the $O(\log k)$ bound itself. Unfortunately, there is little further analysis we can do using \texttt{gprof} to verify this. This is because \texttt{gprof} is very poor when it comes to mutual recursion \cite{SPE:SPE562}, which is what you have in the case of RBT source code: \texttt{delete\_case1} calls \texttt{delete\_case2} which calls \texttt{delete\_case3} which might call \texttt{delete\_case1}. The other bottleneck for patterns with long periods is, once again, checking if fingerprints are equal.
 
-\section{Suggested Improvements}
+There was something curious however about the second and third tests. The main bottleneck was short pattern dictionary matching, followed by checking if two fingerprints were equal. What particularly surprised me was that short dictionary matching was now making \textit{more} calls to the function for checking if fingerprints matched, not fewer. But surely if a pattern matching algorithm has fewer patterns then it should result in fewer function calls? And if short patterns is the bottleneck, why is it so much faster when all patterns are short?
+
+This confused me, but then I realised what was actually happening to make short patterns such a bottleneck. The short patterns algorithm takes $O(\log k)$ time in the case where there are \textit{no matches} at a given index, as this is the point when it needs to perform a full binary search. As patterns become longer, fewer patterns are deemed short, and thus there are fewer patterns for this algorithm to match. Because all the patterns generated were substrings of the text, if there are fewer patterns for an algorithm to process then it is less likely to find a match. As a result, when the patterns grew longer, there were fewer matches for short patterns, which meant that worst case time complexity was happening more frequently for this case.
+
+\section{Proposed Improvements}
 
 As can be seen from the past few pages of evaluation, there is a lot that this implementation does well. In particular, the data structure size is a significant advantage over Aho-Corasick. However, there are still a number of points where we can see improvements, in both theory and practice, which can lead to an even better performing algorithm. While none of these were implemented due to lack of time, they can provide some discussion on what choices might have been better for this project, as well as directions for future work.
 
 \subsection{Reducing Bottlenecks}
+\label{sec:reduce-bottle}
 
 Following on from Section~\ref{sec:profile-results}, it only makes sense to discuss the bottlenecks discovered there first of all.
 
 A good place to start in this discussion is, obviously, the major bottleneck found from profiling: Checking if fingerprints are equal. Unfortunately, there are very few things we can do to speed up the run time of \texttt{mpz\_equals} itself, but there is a simple way of cutting down the number of times we need to call it. Instead of using \texttt{mpz\_equals} to compare \texttt{r\_k} and \texttt{r\_mk} to test if the strings are the same length, we could simply add a 32-bit integer to the fingerprint data structure to represent the actual length of the underlying strings and then just compare these integers. This offers the benefit of native integer comparison being significantly faster on a CPU than multiple precision integer comparison. We also now get the added bonus that the probability of different length strings colliding is the same as strings which are the same length, assuming that we are not comparing patterns which are individually gigabytes long. There is an extra four bytes per fingerprint, but particularly for long patterns this cost is affordable. We will look at another potential improvement in Section~\ref{ssec:do-we-need-mpa}, but beyond these two the only other optimisation we can really make to this bottleneck is to reduce the number of calls to this function.
+
+When it comes to checking for duplicate fingerprints during preprocessing, we can reduce the number of equality checks by using a binary search tree instead of linear search. In the case of short pattern matching, this alone can reduce the build time from $O((k\log k)^2)$ to $O(k\log k\log(k\log k))$. We already have a function for comparing fingerprints from Section~\ref{ssec:static-hash-fail}, but this function assumes that the underlying strings are the same length, which we do not have in the short patterns case. This can be rectified by adding an additional integer for string length, as suggested in the above paragraph: We first compare the lengths, and if they are the same length then we compare the fingerprints.
 
 As for the other, not as significant bottleneck from long patterns, shifting the rows, we can potentially make some improvements in this area as well. If the bottleneck is the tree, then we could try replacing the tree with a dynamic hash table, such as lhash\cite{website:openssl-lhash}. Hash tables can achieve better average or even worst case run times than binary search trees, but might have an overhead in space consumption. With lhash in particular, measuring space is difficult, but still possible by using lh\_stats\cite{website:openssl-lhstats}. The other potential slowdown is the fingerprint operations such as concatenation. We will see how we might be able to speed these up in the next few sections.
 
@@ -1320,24 +1329,49 @@ $$s_0r^0\rho + s_1r^1\rho + ... + s_lr^l\rho = (s_0r^0 + s_1r^1 + ... + s_lr^l)\
 
 Thus we can conclude that the modular addition of the Montgomery representation of terms yields the Montgomery representation of their sum.
 
-The other general speedup is a practical one. Throughout this work, I have stuck to using the high-level GMP integer functions for addition, subtraction, multiplication and modulo operations. However, all of these operations also have low level equivalents, with all bar modulo written in assembly languages. The disadvatage is manageability, particularly since these functions require specifying the number of limbs to write. But since all operations are modulo $p$, this number is already known. We can also use the function \texttt{mpz\_init2} to allocate enough limbs to every fingerprint for any possible value, as the low level functions do no memory reallocation themselves.
+The other general speedup is an applied one. Throughout this work, I have stuck to using the high-level GMP integer functions for addition, subtraction, multiplication and modulo operations. However, all of these operations also have low level equivalents, with all bar modulo written in assembly languages. The disadvatage is manageability, particularly since these functions require specifying the number of limbs to write. But since all operations are modulo $p$, this number is already known. We can also use the function \texttt{mpz\_init2} to allocate enough limbs to every fingerprint for any possible value, as the low level functions do no memory reallocation themselves.
 
 \subsection{Picking $p$ More Carefully}
 \label{ssec:pick-p}
 
-Another option as an alternative to Montgomery multiplication is to use Mersenne primes. Mersenne primes are prime numbers of the form $2^p - 1$. Mersenne primes are significantly less frequent than ordinary prime numbers, but are extremely beneficial for modular arithmetic. This is because in binary they are simply a string of 1s, so any modulo operations can simply be evaluated as a bitwise AND. This is much more efficient than Montgomery reduction, but comes at the cost that multiple precision addition and multiplication might be more expensive due to the larger primes.
+Another option as an alternative to Montgomery multiplication is to use Mersenne primes. Mersenne primes are prime numbers of the form $2^p - 1$. Mersenne primes are significantly less frequent than ordinary prime numbers, but are extremely beneficial for modular arithmetic. This is because in binary they are simply a string of 1s, so modulo operations can simply be evaluated as a bitwise AND. This is much more efficient than Montgomery reduction, but comes at the cost that multiple precision addition and multiplication might be more expensive due to the larger primes.
 
-An extra benefit of Mersenne primes is that they are very easy to generate for practical uses. This is because the hard work is done for us by the Great Internet Mersenne Prime Search\cite{website:gimps-known}. This website features the 44 definite smallest Mersenne primes, which range from 3 to $2{32,582,657}-1$. A simple linear search would suffice to find the first prime from the range that is longer than $O(n^{2 + \alpha})$, and we are extremely unlikely to want a text length and accuracy level high enough to require a prime anywhere near this maximum.
+An extra benefit of Mersenne primes is that we do not need to generate and test them ourselves. This is because the hard work is done for us by the Great Internet Mersenne Prime Search\cite{website:gimps-known}. This website features the 44 definite smallest Mersenne primes, which range from 3 to $2^{32,582,657}-1$. A simple linear search would suffice to find the first prime from the range that is longer than $O(n^{2 + \alpha})$, and we are extremely unlikely to want a text length and accuracy level high enough to require a prime anywhere near this maximum.
 
 \subsection{How Large Must $p$ be?}
 \label{ssec:p-size}
 
+Throughout this project, $p$ was selected to be the first prime larger than $n^{2 + \alpha}$, which results in the probability of a collision being $\frac{1}{n^{1 + \alpha}}$ as long at the lengths of the two strings $l \leq n$. However, this probability is not entirely necessary; we know the strings have to be shorter than, $n$, as the strings must be shorter than the text. The longest strings we ever test in our implementation are $\max(m, k)$ characters long. In fact, if we follow the suggested change to fingerprint equality mentioned in Section~\ref{sec:reduce-bottle}, then we will only compare the fingerprints of strings which are at most $m$ characters long.
+
+So how large does $p$ need to be? At the very least, we want $p \in O(m^2)$, in order for the above probabilities to hold. We might also want to include $n$ as a factor towards calculating $p$, given that even if we were to use a hypothetical constant time algorithm we would still need to make at least $n$ tests for equality. But $n$ probably does not need to be as big a factor in determining $p$ as it currently is; throughout all of my testing the only collisions I was ever made aware of where cases when the strings were of different lengths, which can then be modified as explained in Section~\ref{sec:reduce-bottle}.
+
 \subsection{Do We Really Need Multiple Precision Arithmetic?}
 \label{ssec:do-we-need-mpa}
 
-\subsection{Deamortisation of the Algorithm}
+This final section on speeding up the fingerprint operations builds on Sections~\ref{ssec:pick-p} and \ref{ssec:p-size}. As stated in Section~\ref{sssec:kr-implementation}, there are two significant advantages for using GMP. But these advantages don't hold as much water as initially thought:
+
+\begin{itemize}
+  \item Arbitrary precision might matter following the current way that $p$ is defined, but if we were to modify this definition as suggested in Section~\ref{ssec:p-size}, then we probably don't need any integers larger than 64 bits. Even if we were to keep $p$ under the same definition, we can process just under four gigabytes of text just by using 64-bit integers, as $(4 \cdot 2^{30})^2 = 2^{64}$
+  \item Fast prime calculation would certainly not matter if we were to use the list of Mersenne primes explained in Section~\ref{ssec:pick-p}, or even if we just implement the prime testing algorithm ourselves.
+\end{itemize}
+
+Plus, 64-bit numbers are both faster and more efficient due to their native implementation, and 64-bit architectures themselves are becoming more widespread. So it is worth testing on fixed-size integers as well to see how much practical performance improves from it.
+
+\subsection{Deamortisating the Algorithm}
+
+As mentioned in Section~\ref{ssec:static-hash-fail} the reason for the amortised time complexity is due to how we insert items into and destroying the Red-Black Tree.
+
+In order to deamortise inserting items into the RBT, we need two counters: One to keep track of the current prefix being checked and another to keep track of the next suffix that needs to be inserted into the tree. For each index of the text, we perform two steps. A step is either inserting another suffix into the RBT, or checking if the text matches and prefix and if so inserting the first suffix for that prefix into the tree. Because there are only $k$ patterns, we can process all steps in $\frac{k}{2}$ characters as before.
+
+To deamortise destroying the tree, this can be achieved by storing pointers to the next non-empty tree to be destroyed in a queue. At each index, two nodes from the tree at the head of the queue are removed. If the tree at the head of the queue only contained two nodes, it is now empty and this destroyed. If it contained one node, then it is destroyed and another is removed from the next tree in the queue.
 
 \subsection{Towards Sublinear Working Space}
+
+There are two points that prevent us from looking at sublinear working space in the streaming model, both of which are to do with preprocessing. We will investigate both in turn, and provide a compromise where it is possible to solve both if we can view the patterns multiple times.
+
+The first problem is computing the periods. It is possible to compute the periods in a stream\cite{ergun:sublinear-period} using $O(k\log m)$ space and $O(km\log m)$ preprocessing time, but we still need to read the patterns twice: Once for computing the periods and again for the rest of the preprocessing.
+
+The second problem is the $\mathcal{S}$ function for short patterns. Checking this na\"{i}vely -- as is currently done -- requires us to store every pattern. But it can be solved by reading the patterns twice. The first time we read the patterns, we compute the fingerprint of the complete patterns and store these in an array of $k$ fingerprints. The second time we read a pattern $P_i$, we store the fingerprint of every prefix of that pattern in an array of at most $2k$ fingerprints. We then iterate through the other $k$ pattern fingerprints, $\phi_j$, and compute the prefix between $\phi_i$ and $\phi_j$. If this prefix is in the array of prefixes at index $m_i - m_j - 1$, then we know that any suffixes of the pattern at least $m_i - m_j$ characters long have another pattern as a suffix. Once we have iterated over all $k$ pattern fingerprints, we now know the smallest $m_j$ such that $P_j$ is a suffix of $P_i$. Thus, $\mathcal{S}$ now simply checks if the suffix is longer than $m_j$. One might think that we now need to read the patterns a third time for the actual \texttt{PreProc} function now, but this is not the case. Since we have fingerprints of all the prefixes of $P_i$, any suffix fingerprint we need can be worked out from $\phi_i$ and the relevant prefix.
 
 \subsection{Fixing the Final Row}
 
