@@ -60,7 +60,7 @@
 \listoffigures
 \listoftables
 \listofalgorithms
-\lstlistoflistings
+%\lstlistoflistings
 
 % The following sections are part of the front matter, but are not generated
 % automatically by LaTeX; the use of \chapter* means they are not numbered.
@@ -172,19 +172,25 @@ Last, but most certainly not least, I would like to thank my family and friends 
 
 \section{Topic Background}
 
-\subsection{Sublinear Space Pattern Matching}
+\subsection{Pattern Matching in Sublinear Space}
 
 The focus of this project is pattern matching. Pattern matching is a broad range of problems covering the general question of ``Here is a text; here is a pattern; where does this pattern occur in this text?'' While this is merely one question of pattern matching, a number of other related problems also exist:
 
 \begin{itemize}
-  \item \textbf{k-mismatch:} ``Where does most of this pattern occur within the text?''
+  \item \textbf{$k$-mismatch:} ``Where does most of this pattern occur within the text?''
   \item \textbf{Pattern Matching with Wildcards:} ``Where does the pattern occur in the text if we don't care about what characters are in these places?''
-  \item \textbf{Distance Matching:} ``How much does this text differ from this pattern at each index?''
+  \item \textbf{Distance Matching:} ``How much does the text differ from the pattern?''
 \end{itemize}
 
 The aspects we care about when measuring the performace of algorithms is the amount of space and time required to solve the problem. For many years the emphasis has been focused around time. This is because improving space consumption for pattern matching problems is difficult; even a na\"{i}ve implementation of pattern matching offers linear space. Besides, it is intuitive for a pattern matching algorithm to require linear space: If we want to match occurrences of a pattern in a text, surely we need to know both the text and the pattern and thus have to store both of them?
 
-In fact, it is easy to perform pattern matching in less space than it takes to store the text. A number of pattern matching algorithms -- such as Knuth-Morris-Pratt\cite{kmp} and Karp-Rabin\cite{5390135} -- work by iterating over each character in the text, and only need to know enough characters in the text to be able to check if the past few characters in the text match the pattern. Thus, we can process the text for these algorithms one character at a time.
+In fact, it is easy to perform pattern matching in less space than it takes to store the text. A number of pattern matching algorithms -- such as Knuth-Morris-Pratt\cite{kmp} and Karp-Rabin\cite{5390135} -- work by iterating over each character in the text, and only need to know enough characters in the text to be able to check if the past few characters in the text match the pattern. Thus, we can process the text for these algorithms one character at a time and as a result match patterns in less space than it takes to store the text.
+
+However, pattern matching in less space than it takes to store the pattern is more challenging. After all, the logic stated above still holds: How can we find a match against a pattern if we don't even have enough space to know what the pattern is? And indeed, it was shown by Clifford et al.\cite{clifford:black-box} that for many of these problem, this was the best we can achieve without the possibility of errors. Fast forward to 2009, and Benny and Ely Porat\cite{5438620} provided the first solution for pattern matching -- the question asked at the start of this section -- in less space than it takes to store the pattern. To paraphrase the two authors, this result ``[broke] the barrier that held for this problem for a long time.''
+
+Sadly, subsequent work was not as fruitful as one might have hoped. Clifford et al.\cite{DBLP:journals/corr/abs-1106-4412} bleakly proved that for many problems, including distance matching and pattern matching with wildcards listed above, solving them in sublinear space was impossible. Plus, the only other sublinear solution for a pattern matching problem found for three years was also in Porat and Porat's 2009 paper, where they solved $k$-mismatch by running multiple instances of their algorithm. The only other contribution for three years was Breslauer and Galil\cite{Breslauer:2014:RSS:2660854.2635814}, who improved on the performance of Porat and Porat's algorithm in 2011.
+
+Finally, another breakthrough occurred in 2012, when Jalsenius, Porat and Sach\cite{JPS:2013} provided the second pattern matching problem that can be solved in sublinear space. Their solution was for the Parameterised\footnote{Alternatively spelled `Parameterized'.} Matching problem, which declares a match if the text matches the pattern under some one-to-one relabelling of characters. For example, $ababb$ matches $babaa$ by relabelling $a \to b, b \to a$, but $ababb$ cannot match $baaba$ or $ababc$.
 
 \subsection{Dictionary Matching}
 
@@ -202,7 +208,7 @@ In fact, it is easy to perform pattern matching in less space than it takes to s
 
 \section{Aims and Objectives}
 
-Our overall goal for this project is to reduce the processing size for dictionary matching and improve the current streaming performance over that of Aho-Corasick. In order to achieve this, our concrete objectives are:
+Our overall goal for this project is to evaluate whether or not the reduced space for the Clifford et al. algorithm is actually beneficial in practice, and compare the benefits and drawbacks in performance with that of Aho-Corasick. In order to achieve this, our concrete objectives are:
 
 \begin{enumerate}
   \item To develop an implementation of the Aho-Corasick algorithm to act as a benchmark for performance.
@@ -223,7 +229,7 @@ Pattern matching with a single pattern is a simple problem to describe intuitive
 
 More formally, we refer to the text by $T$, and define it as a string of $n$ characters $t_0...t_{n-1}$. Likewise, the pattern is referred to as $P$, and is a string of $m$ characters $p_0...p_{m-1}$. The aim of the text indexing problem is to output indexes $i \in \{m-1,...,n-1\}$ such that $t_{i-m+1}...t_{i} = P$.
 
-It is worth noting that there are many other ways of defining this problem. The most notable differences in this paper are that the text and pattern are indexed at zero instead of one, and that the index at the end of the pattern's occurrence is returned instead of the index at the start. Both of these are done to be intentionally to be consistent with the code implemented: The zero-indexing is because the implementations are written in C, which also uses zero indexing, and reporting the index at the end of the occurrence is to cater for a limitation on the algorithm by Clifford et al. detailed in Section~\ref{ssec:periodic-theory}.
+It is worth noting that there are many other ways of defining this problem. The most notable differences in this paper are that the text and pattern are indexed at zero instead of one, and that the index at the end of the pattern's occurrence is returned instead of the index at the start. Both of these are done to be intentionally to be consistent with the code implemented: The zero-indexing is because the implementations are written in C, which also uses zero indexing, and reporting the index at the end of the occurrence is due to the use of the streaming model, as described in Section~\ref{sec:streaming-model}; we cannot report an instance at the start of the occurrence because we haven't seen the rest of the occurrence yet.
 
 \subsection{Dictionary Matching: Formal Definitions}
 \label{ssec:dict-matching:definitions}
@@ -232,9 +238,10 @@ Like pattern matching, dictionary matching is also simple to describe intuitivel
 
 Formally, this is defined as follows: We have a text $n$ characters long $T = t_0...t_{n-1}$, and a set of $k$ patterns $\mathcal{P} = \{P_0,...,P_k\}$ of respective lengths $M = \{m_0,...,m_k\}$. Hence a given pattern $P_i$ is a string of $m_i$ characters $p_{i,0}...p_{i,m_i-1}$. We output an index $j \in \{\min(M),...,n_1\}$ if $\exists i \in \{0,...,k-1\}$ such that $t_{j-m_i+1}...t_{j} = P_i$.
 
-Note that for this work, we do not care about what patterns have occurred in the text, only that a pattern has occurred. This is due to a limitation with the algorithm by Clifford et al., which will be discussed in Section~\ref{ssec:periodic-theory}.
+Note that for this work, we do not care about what patterns have occurred in the text, only that a pattern has occurred. There is some degree of debate over this -- Aho-Corasick, for example, can return which patterns matched at a given index -- but this definition is the one followed by Clifford et al.\cite{2015arXiv150406242C}.
 
 \section{The Streaming Model}
+\label{sec:streaming-model}
 
 Data streaming is a way of reducing space consumption for certain problems. Under this model, required space is reduced by not processing the entire problem input at once. Instead, the input is provided to the algorithm in portions, delivered via a stream of data. The algorithm processes one portion of the input at a time, and it is required that the algorithm is not allowed to store the entire input.
 
