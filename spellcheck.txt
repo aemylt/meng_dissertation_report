@@ -85,6 +85,13 @@ sublinear
 Aho-Corasick
 ch
 supporting-tech
+Aho
+Corasick's
+Aho-Corasick
+trie
+Aho
+Corasick
+Moore's
 Aho-Corasick.
 Aho-Corasick
 --
