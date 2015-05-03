@@ -24,7 +24,7 @@
 }
 
 \ProcessPgfOptions{/dissertation}
-\LoadClass[10pt,a4paper,twoside]{book}
+\LoadClass[10pt,a4paper,oneside]{book}
 
 % see http://www.ctan.org/tex-archive/macros/latex/required/graphics
 \RequirePackage{graphicx}
@@ -59,6 +59,8 @@
 
 \RequirePackage{tikz}
 \usetikzlibrary{automata,positioning,arrows}
+
+\RequirePackage{verbatim}
 
 \makeatletter
 

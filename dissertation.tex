@@ -102,6 +102,7 @@ but an example is as follows:
 \end{quote}
 
 \chapter*{Supporting Technologies}
+\label{ch:supporting-tech}
 
 \begin{quote}
 \begin{itemize}
@@ -174,7 +175,7 @@ Last, but most certainly not least, I would like to thank my family and friends 
 
 \subsection{Pattern Matching in Sublinear Space}
 
-The focus of this project is pattern matching. Pattern matching is a broad range of problems covering the general question of ``Here is a text; here is a pattern; where does this pattern occur in this text?'' While this is merely one question of pattern matching, a number of other related problems also exist:
+The focus of this project is pattern matching. Pattern matching is a broad range of problems covering the general question of ``Here is a text; here is a pattern; where does this pattern occur in this text?''\footnote{This question specifically is also known as `exact matching'.} While this is merely one question of pattern matching, a number of other related problems also exist:
 
 \begin{itemize}
   \item \textbf{$k$-mismatch:} ``Where does most of this pattern occur within the text?''
@@ -184,17 +185,27 @@ The focus of this project is pattern matching. Pattern matching is a broad range
 
 The aspects we care about when measuring the performace of algorithms is the amount of space and time required to solve the problem. For many years the emphasis has been focused around time. This is because improving space consumption for pattern matching problems is difficult; even a na\"{i}ve implementation of pattern matching offers linear space. Besides, it is intuitive for a pattern matching algorithm to require linear space: If we want to match occurrences of a pattern in a text, surely we need to know both the text and the pattern and thus have to store both of them?
 
-In fact, it is easy to perform pattern matching in less space than it takes to store the text. A number of pattern matching algorithms -- such as Knuth-Morris-Pratt\cite{kmp} and Karp-Rabin\cite{5390135} -- work by iterating over each character in the text, and only need to know enough characters in the text to be able to check if the past few characters in the text match the pattern. Thus, we can process the text for these algorithms one character at a time and as a result match patterns in less space than it takes to store the text.
+In fact, it is easy to perform pattern matching in less space than it takes to store the text. A number of pattern matching algorithms -- such as Knuth-Morris-Pratt \cite{kmp} and Karp-Rabin \cite{5390135} -- work by iterating over each character in the text, and only need to know enough characters in the text to be able to check if the past few characters in the text match the pattern. Thus, we can process the text for these algorithms one character at a time and as a result match patterns in less space than it takes to store the text.
 
-However, pattern matching in less space than it takes to store the pattern is more challenging. After all, the logic stated above still holds: How can we find a match against a pattern if we don't even have enough space to know what the pattern is? And indeed, it was shown by Clifford et al.\cite{clifford:black-box} that for many of these problem, this was the best we can achieve without the possibility of errors. Fast forward to 2009, and Benny and Ely Porat\cite{5438620} provided the first solution for pattern matching -- the question asked at the start of this section -- in less space than it takes to store the pattern. To paraphrase the two authors, this result ``[broke] the barrier that held for this problem for a long time.''
+However, pattern matching in less space than it takes to store the pattern is more challenging. After all, the logic stated above still holds: How can we find a match against a pattern if we don't even have enough space to know what the pattern is? And indeed, it was shown by Clifford et al. \cite{clifford:black-box} that for many of these problem, this was the best we can achieve without the possibility of errors. Fast forward to 2009, and Benny and Ely Porat \cite{5438620} provided the first solution for pattern matching -- the question asked at the start of this section -- in less space than it takes to store the pattern. To paraphrase the two authors, this result ``[broke] the barrier that held for this problem for a long time.''
 
-Sadly, subsequent work was not as fruitful as one might have hoped. Clifford et al.\cite{DBLP:journals/corr/abs-1106-4412} bleakly proved that for many problems, including distance matching and pattern matching with wildcards listed above, solving them in sublinear space was impossible. Plus, the only other sublinear solution for a pattern matching problem found for three years was also in Porat and Porat's 2009 paper, where they solved $k$-mismatch by running multiple instances of their algorithm. The only other contribution for three years was Breslauer and Galil\cite{Breslauer:2014:RSS:2660854.2635814}, who improved on the performance of Porat and Porat's algorithm in 2011.
+Sadly, subsequent work was not as fruitful as one might have hoped. Clifford et al. \cite{DBLP:journals/corr/abs-1106-4412} bleakly proved that for many problems, including distance matching and pattern matching with wildcards listed above, solving them in sublinear space was impossible. Plus, the only other sublinear solution for a pattern matching problem found for three years was also in Porat and Porat's 2009 paper, where they solved $k$-mismatch by running multiple instances of their algorithm. The only other contribution for three years was Breslauer and Galil \cite{Breslauer:2014:RSS:2660854.2635814}, who improved on the performance of Porat and Porat's algorithm in 2011.
 
-Finally, another breakthrough occurred in 2012, when Jalsenius, Porat and Sach\cite{JPS:2013} provided the second pattern matching problem that can be solved in sublinear space. Their solution was for the Parameterised\footnote{Alternatively spelled `Parameterized'.} Matching problem, which declares a match if the text matches the pattern under some one-to-one relabelling of characters. For example, $ababb$ matches $babaa$ by relabelling $a \to b, b \to a$, but $ababb$ cannot match $baaba$ or $ababc$.
+Finally, another breakthrough occurred in 2012, when Jalsenius, Porat and Sach \cite{JPS:2013} provided the second pattern matching problem that can be solved in sublinear space. Their solution was for the Parameterised\footnote{Alternatively spelled `Parameterized'.} Matching problem, which declares a match if the text matches the pattern under some one-to-one relabelling of characters. For example, $ababb$ matches $babaa$ by relabelling $a \to b, b \to a$, but $ababb$ cannot match $baaba$ or $ababc$.
 
 \subsection{Dictionary Matching}
 
-\section{Contributions}
+The specific problem investigated here is dictionary matching. Dictionary matching is a variant of pattern matching, proposed to answer the same question as the original pattern matching problem, but with the problem extended to many patterns. A simple solution is to merely run a pattern matching algorithm such as Knuth-Morris-Pratt several times in parallel, but dictionary matching solutions aim to perform better than solutions written this way.
+
+The question was first proposed by Alfred V. Aho and Margaret J. Corasick in 1975 \cite{Aho:1975:ESM:360825.360855}. Fourty years later, their algorithm still remains a benchmark for solving this problem today. The other common solution was designed four years after Aho-Corasick by Beate Commentz-Walter \cite{commentz-walter:algo} which runs faster on average than Aho-Corasick. But both solutions require enough space to store all occurrences of the pattern. It is possible to achieve less space than this using a variant of Richard M. Karp and M. O. Rabin's 1987 algorithm \cite{5390135}, but only if all patterns are the same length.
+
+It was finally in 2015 that a sublinear space algorithm to the problem of dictionary matching was found by Clifford et al. \cite{2015arXiv150406242C}. Their solution was developed based on the Breslauer and Galil algorithm for sublinear space pattern matching \cite{Breslauer:2014:RSS:2660854.2635814}, and was expanded into an algorithm for matching multiple patterns of any length by breaking the problem into three separate cases.
+
+\section{Aims}
+
+As stated in the subtitle, this project is an empirical analysis of dictionary matching. It was inspired by an eight week project conducted by me for the Theory and Algorithms Group at the University of Bristol during the summer of 2014, which focused on an empirical analysis of algorithms for problems including parameterised matching and exact matching, including to our knowledge the first ever implementation of Breslauer and Galil's algorithm for exact matching in sublinear space. At the same time, researchers in the Theory and Algorithms Group started investigating the concept of dictionary matching in sublinear space, which led to this work as a spiritual successor.
+
+This project looks at the practical performance of sublinear space dictionary matching. The main concern of the work is to see if we can achieve a dramatically smaller amount of space for streaming the text than we can from Aho-Corasick in practice. This consists of two stages. For the first stage, I implement both algorithms in C using external libraries listed in \nameref{ch:supporting-tech}. As part of this stage, I identify interesting points and limitations of both algorithms and discuss how to fix them. For the second stage, evaluation, I design a test bench using a combination of Python to generate patterns and C to measure the performance of the algorithms when run on real texts. Finally, I profile the implementations to identify bottlenecks of the Clifford et al. solution and suggest methods for potential practical optimisations.
 
 \section{Motivation and Significance}
 
@@ -204,9 +215,9 @@ Finally, another breakthrough occurred in 2012, when Jalsenius, Porat and Sach\c
 
 \subsection{From Theory to Practice}
 
-\section{Challenges}
+\section{Risks and Challenges}
 
-\section{Aims and Objectives}
+\section{Central Objectives}
 
 Our overall goal for this project is to evaluate whether or not the reduced space for the Clifford et al. algorithm is actually beneficial in practice, and compare the benefits and drawbacks in performance with that of Aho-Corasick. In order to achieve this, our concrete objectives are:
 
@@ -217,6 +228,8 @@ Our overall goal for this project is to evaluate whether or not the reduced spac
   \item To find practical bottlenecks in the Clifford et al. algorithm with regards to space and time.
   \item To implement potential optimisations and see if and to what degree these improve performance.
 \end{enumerate}
+
+\section{Structure}
 
 %-----------------------------------------------------------------------------
 
@@ -238,12 +251,12 @@ Like pattern matching, dictionary matching is also simple to describe intuitivel
 
 Formally, this is defined as follows: We have a text $n$ characters long $T = t_0...t_{n-1}$, and a set of $k$ patterns $\mathcal{P} = \{P_0,...,P_k\}$ of respective lengths $M = \{m_0,...,m_k\}$. Hence a given pattern $P_i$ is a string of $m_i$ characters $p_{i,0}...p_{i,m_i-1}$. We output an index $j \in \{\min(M),...,n_1\}$ if $\exists i \in \{0,...,k-1\}$ such that $t_{j-m_i+1}...t_{j} = P_i$.
 
-Note that for this work, we do not care about what patterns have occurred in the text, only that a pattern has occurred. There is some degree of debate over this -- Aho-Corasick, for example, can return which patterns matched at a given index -- but this definition is the one followed by Clifford et al.\cite{2015arXiv150406242C}.
+Note that for this work, we do not care about what patterns have occurred in the text, only that a pattern has occurred. There is some degree of debate over this -- Aho-Corasick, for example, can return which patterns matched at a given index -- but this definition is the one followed by Clifford et al. \cite{2015arXiv150406242C}.
 
 \section{The Streaming Model}
 \label{sec:streaming-model}
 
-Data streaming is a way of reducing space consumption for certain problems. Under this model, required space is reduced by not processing the entire problem input at once. Instead, the input is provided to the algorithm in portions, delivered via a stream of data. The algorithm processes one portion of the input at a time, and it is required that the algorithm is not allowed to store the entire input.
+Data streaming \cite{TCS-002} is a way of reducing space consumption for certain problems. Under this model, required space is reduced by not processing the entire problem input at once. Instead, the input is provided to the algorithm in portions, delivered via a stream of data. The algorithm processes one portion of the input at a time, and it is required that the algorithm is not allowed to store the entire input. The model used specifically in this case is called the Time Series Model \cite{TCS-002}.
 
 Under this model, we measure performance by two properties:
 \begin{itemize}
@@ -279,17 +292,17 @@ Little detail will be provided here due to the fact that this is not implemented
 
 For a universe $U$, a hash function $\text{h}$ is static if it can perform lookups for a pre-defined set of keys $S \subseteq U$ to a set of integers $\mathbb{Z}_m$. Said hash function is a static \textit{perfect} hash function if $\forall x \in S, \text{h}(x)$ is collision-free, and thus takes constant time to look up. Finally, a hash function is a \textit{minimal} perfect hash function if $m = |S|$. In other words, a minimal perfect hash function maps a set of $m$ keys to $\mathbb{Z}_m$ without any collisions.
 
-The implementation of minimal perfect hash functions will not be detailed here, as they are used merely as a library and are thus not part of implementation. For further information, I direct the reader to the C Minimal Perfect Hashing Library (CMPH) website: \url{http://cmph.sourceforge.net/} Of particular interest is the paper on the Compress, Hash and Digest algorithm by Belazzougui, Botelho and Dietzfelbinger\cite{belazzougui:chd}, as the algorithm from CMPH used throughout this work.
+The implementation of minimal perfect hash functions will not be detailed here, as they are used merely as a library and are thus not part of implementation. For further information, I direct the reader to the C Minimal Perfect Hashing Library (CMPH) website: \url{http://cmph.sourceforge.net/} Of particular interest is the paper on the Compress, Hash and Digest algorithm by Belazzougui, Botelho and Dietzfelbinger \cite{belazzougui:chd}, as the algorithm from CMPH used throughout this work.
 
 \section{Binary Search Trees}
-A Binary Search Tree (BST)\cite{clrs:bst} is a tree where each node has at most two children and for every node in the tree, all the descendants to the left of the tree have a smaller value than the given node, and those to the right have a larger value. The height of a BST is determined by the longest distance from any leaf to the root of the tree, and a BST is self-balancing if its height is kept small regardless of what items are inserted or removed. Because a lot of BST operations run in time dependent on the height of the tree, keeping this factor small is important.
+A Binary Search Tree (BST) \cite{clrs:bst} is a tree where each node has at most two children and for every node in the tree, all the descendants to the left of the tree have a smaller value than the given node, and those to the right have a larger value. The height of a BST is determined by the longest distance from any leaf to the root of the tree, and a BST is self-balancing if its height is kept small regardless of what items are inserted or removed. Because a lot of BST operations run in time dependent on the height of the tree, keeping this factor small is important.
 
-Of particular note are Red-Black Trees (RBT)\cite{clrs:rbt}, which are the binary search trees used in this project. Their time complexity when containing $n$ items is $O(\log n)$ for insert, search and delete and $O(n)$. Because this is used as a library function and not implemented here, we will not go into detail on how RBTs work. For more information on Red-Black Trees, consult the chapter of Introduction to Algorithms by Cormen, Leiserson, Rivest and Stein (CLRS) cited above, the original paper by Bayer\cite{bayer:rbt}, and the website for the implementation used in this project: \url{http://en.literateprograms.org/Red-black_tree_%28C%29}
+Of particular note are Red-Black Trees (RBT) \cite{clrs:rbt}, which are the binary search trees used in this project. Their time complexity when containing $n$ items is $O(\log n)$ for insert, search and delete and $O(n)$. Because this is used as a library function and not implemented here, we will not go into detail on how RBTs work. For more information on Red-Black Trees, consult the chapter of Introduction to Algorithms by Cormen, Leiserson, Rivest and Stein (CLRS) cited above, the original paper by Bayer \cite{bayer:rbt}, and the website for the implementation used in this project: \url{http://en.literateprograms.org/Red-black_tree_%28C%29}
 
 \section{The Aho-Corasick Algorithm for Dictionary Matching}
 \label{sec:aho-corasick}
 
-The Aho-Corasick Algorithm for Efficient String Matching\cite{Aho:1975:ESM:360825.360855}  --  known hereafter as Aho-Corasick  --  is a deterministic algorithm for dictionary matching. Published in 1975, the algorithm works as a generalisation of Knuth-Morris-Pratt (KMP)\cite{kmp}, extending the state machine from single patterns in KMP to multiple patterns.
+The Aho-Corasick Algorithm for Efficient String Matching \cite{Aho:1975:ESM:360825.360855}  --  known hereafter as Aho-Corasick  --  is a deterministic algorithm for dictionary matching. Published in 1975, the algorithm works as a generalisation of Knuth-Morris-Pratt (KMP) \cite{kmp}, extending the state machine from single patterns in KMP to multiple patterns.
 
 Preprocessing consists of three algorithms. The first, Algorithm~\ref{alg:ac-goto}, produces the \texttt{goto} function, which determines what to do if the next character in the stream is a match. This in essence works by building a suffix tree: We traverse the tree until we either reach the end of the pattern or we hit a leaf, and then append the rest of the pattern to the leaf. Note that $\Sigma$ refers to the alphabet of the patterns and $fail$ is a default fail state for if the \texttt{goto} function cannot find a character for that state.
 
@@ -371,16 +384,16 @@ $queue \gets empty$\\
 
 \subsection{An Alternative: The Commentz-Walter Algorithm}
 
-Much like the way in which Aho-Corasick is an algorithm for dictionary matching based on Knuth-Morris-Pratt, Commentz-Walter\cite{commentz-walter:algo} is an algorithm based on the Boyer-Moore algorithm\cite{Boyer:1977:FSS:359842.359859}, using similar techniques to Aho-Corasick to convert the algorithm from single pattern to multiple patterns. While it is interesting to note as an alternative, particularly because of its time improvement on average cases and the fact that a variant of it is used in the GNU command \texttt{grep},\footnote{See \url{http://git.savannah.gnu.org/cgit/grep.git/tree/src/kwset.c}} it is not implemented in this project. This is because, like Boyer-Moore, the Commentz-Walter algorithm skips indexes in the text, which is not possible in the streaming model.
+Much like the way in which Aho-Corasick is an algorithm for dictionary matching based on Knuth-Morris-Pratt, Commentz-Walter \cite{commentz-walter:algo} is an algorithm based on the Boyer-Moore algorithm \cite{Boyer:1977:FSS:359842.359859}, using similar techniques to Aho-Corasick to convert the algorithm from single pattern to multiple patterns. While it is interesting to note as an alternative, particularly because of its time improvement on average cases and the fact that a variant of it is used in the GNU command \texttt{grep},\footnote{See \url{http://git.savannah.gnu.org/cgit/grep.git/tree/src/kwset.c}} it is not implemented in this project. This is because, like Boyer-Moore, the Commentz-Walter algorithm skips indexes in the text, which is not possible in the streaming model.
 
 \section{Karp-Rabin Fingerprints}
 \label{sec:kr-fingerprints}
 
-Karp-Rabin fingerprints\cite{5390135} are a function $\phi : \Sigma^* \to \mathbb{Z}_p$ for some prime number $p$. For a text $T$ of length $n$ characters, the Karp-Rabin fingerprint is defined as:
+Karp-Rabin fingerprints \cite{5390135} are a function $\phi : \Sigma^* \to \mathbb{Z}_p$ for some prime number $p$. For a text $T$ of length $n$ characters, the Karp-Rabin fingerprint is defined as:
 
 $$\phi(T) = \sum_{i = 0}^{n - 1} r^it_i \mod p$$
 
-Where $p$ is a prime number, and $r$ is a random number such that $1 < r < p$. Alongside the fingerprint $\phi(T)$, we store $r^n \mod p$ and $r^{-n} \mod p$ in a tuple. Using these three properties, we can manipulate the fingerprints to affect the underlying strings in three ways\cite{5438620}. Note that all equations listed below are modulo $p$.
+Where $p$ is a prime number, and $r$ is a random number such that $1 < r < p$. Alongside the fingerprint $\phi(T)$, we store $r^n \mod p$ and $r^{-n} \mod p$ in a tuple. Using these three properties, we can manipulate the fingerprints to affect the underlying strings in three ways \cite{5438620}. Note that all equations listed below are modulo $p$.
 
 \begin{itemize}
   \item \textbf{Concatenate:} If we have a fingerprint $\{\phi(u), r^{n_1}, r^{-n_1}\}$ for a string $u$ of length $n_1$ and another fingerprint $\{\phi(v), r^{n_2}, r^{-n_2}\}$ for a string $v$ of length $n_2$, the concatenation of these two strings is $\{\phi(u) + \phi(v)\cdot r^{n_1}, r^{n_1} \cdot r^{n_2}, r^{-n_1} \cdot r^{-n_2}\}$
@@ -390,16 +403,16 @@ Where $p$ is a prime number, and $r$ is a random number such that $1 < r < p$. A
 
 All of these operations can be completed in constant time.
 
-It is interesting to note that a variant of the Karp-Rabin algorithm can be used for a subset of dictionary matching, where all the patterns are the same length $m$\cite{candan:data}. This can be done by storing a fingerprint of the last $m$ characters read from the text, and using static perfect hashing as described in section \ref{min-perf-hash} to check if the fingerprint of the text matches any fingerprints of the patterns. Using suffix and concatenation tectniques above and storing a circular buffer of the last $m$ characters, we can accomplish this with $O(k + m)$ space and $O(1)$ time per character. However, due to the limitation that all the patterns have to be the same length, this method has not been analysed for this project.
+It is interesting to note that a variant of the Karp-Rabin algorithm can be used for a subset of dictionary matching, where all the patterns are the same length $m$ \cite{candan:data}. This can be done by storing a fingerprint of the last $m$ characters read from the text, and using static perfect hashing as described in section \ref{min-perf-hash} to check if the fingerprint of the text matches any fingerprints of the patterns. Using suffix and concatenation tectniques above and storing a circular buffer of the last $m$ characters, we can accomplish this with $O(k + m)$ space and $O(1)$ time per character. However, due to the limitation that all the patterns have to be the same length, this method has not been analysed for this project.
 
-The last point to mention is the probability of a collision. Breslauer and Galil\cite{Breslauer:2014:RSS:2660854.2635814} provide a theorem that if $u$ and $v$ are two different strings of length $l \leq n$, $p \in \Theta(n^{2 + \alpha})$ for some level of accuracy $\alpha \geq 0$ and $r \in \mathbb{Z}_p$ is randomly chosen, then the probability that $\phi(u) = \phi(v)$ is smaller than $\frac{1}{n^{1 + \alpha}}$. We will however see in Section~\ref{ssec:short-collisions} why this does not necessarily hold for the dictionary matching algorithm devised by Clifford et al. \cite{2015arXiv150406242C}.
+The last point to mention is the probability of a collision. Breslauer and Galil \cite{Breslauer:2014:RSS:2660854.2635814} provide a theorem that if $u$ and $v$ are two different strings of length $l \leq n$, $p \in \Theta(n^{2 + \alpha})$ for some level of accuracy $\alpha \geq 0$ and $r \in \mathbb{Z}_p$ is randomly chosen, then the probability that $\phi(u) = \phi(v)$ is smaller than $\frac{1}{n^{1 + \alpha}}$. We will however see in Section~\ref{ssec:short-collisions} why this does not necessarily hold for the dictionary matching algorithm devised by Clifford et al. \cite{2015arXiv150406242C}.
 
 \section{Porat and Porat: Single Pattern Matching in Sublinear Space}
 \label{sec:porat-porat}
 
-In 2009, Porat and Porat\cite{5438620} provided the first solution to a pattern matching problem in sublinear space to the size of the pattern. Utilising Karp-Rabin fingerprints as described in the previous section, their randomised algorithm for single pattern matching in the streaming model had $O(\log m)$ complexity both in terms of space and time per character.
+In 2009, Porat and Porat \cite{5438620} provided the first solution to a pattern matching problem in sublinear space to the size of the pattern. Utilising Karp-Rabin fingerprints as described in the previous section, their randomised algorithm for single pattern matching in the streaming model had $O(\log m)$ complexity both in terms of space and time per character.
 
-Detailed below is not Porat and Porat's algorithm itself, but a variant of it developed by Breslauer and Galil in 2014\cite{Breslauer:2014:RSS:2660854.2635814}. The two algorithms can be seen as computationally equivalent.
+Detailed below is not Porat and Porat's algorithm itself, but a variant of it developed by Breslauer and Galil in 2014 \cite{Breslauer:2014:RSS:2660854.2635814}. The two algorithms can be seen as computationally equivalent.
 
 Instead of storing the entire pattern in a single fingerprint, the pattern is broken up into $\lfloor \log_2 m\rfloor$ fingerprints, each a power of two prefix of the pattern. These fingerprints denoted $\phi_i$, are computed as follows:
 
@@ -485,22 +498,22 @@ There is however a caution about this method. It must be remembered that we are 
 
 We can check for this when we insert a new VO into an arithmetic progression. If there are two or more VOs already stored, we find the difference between the location and fingerprint of the freshest VO currently stored and the location of this new VO. If these two values are equal to the length and fingerprint of the period, then we store this new VO by incrementing the number of VOs currently stored and continue as usual.
 
-If the above condition does not hold and these two strings do not match despite the fingerprints matching, there is no clear consensus on how to handle this case of a non-periodic VO. Porat and Porat themselves ignore this case, and simply accept that there is a possibility of both false positives and false negatives. On the other hand, Breslauer and Galil\cite{Breslauer:2014:RSS:2660854.2635814} recommend not inserting the occurrence into the pattern, yet reporting the index as a match against the whole pattern anyway to accept some chance of false positives yet still finding all instances of the pattern.
+If the above condition does not hold and these two strings do not match despite the fingerprints matching, there is no clear consensus on how to handle this case of a non-periodic VO. Porat and Porat themselves ignore this case, and simply accept that there is a possibility of both false positives and false negatives. On the other hand, Breslauer and Galil \cite{Breslauer:2014:RSS:2660854.2635814} recommend not inserting the occurrence into the pattern, yet reporting the index as a match against the whole pattern anyway to accept some chance of false positives yet still finding all instances of the pattern.
 
 Independent of whether or not the condition holds, inserting and removing VOs can be performed in constant time and the VOs for a given row can be stored compactly in $O(1)$ space. Because there are $\lfloor\log_2m\rfloor$ levels, the overall algorithm now uses $O(\log m)$ in both space and time per character.
 
 \subsection{Breslauer and Galil: Sublinear Space Pattern Matching in Constant Time per Character}
 \label{ssec:breslauer-galil}
 
-Continued from the work of Porat and Porat above, Breslauer and Galil\cite{Breslauer:2014:RSS:2660854.2635814} created a method for single pattern matching in $O(\log m)$ space and $O(1)$ time per character. Their improvement was based on the fact that all occurrences of the pattern must be at least $|\rho_P|$ characters apart. If $|\rho_P| \geq \log m$, then we can process each level of the algorithm in a round robin fashion, one level per index. Because we are now only processing one level at a time, the time complexity becomes constant.
+Continued from the work of Porat and Porat above, Breslauer and Galil \cite{Breslauer:2014:RSS:2660854.2635814} created a method for single pattern matching in $O(\log m)$ space and $O(1)$ time per character. Their improvement was based on the fact that all occurrences of the pattern must be at least $|\rho_P|$ characters apart. If $|\rho_P| \geq \log m$, then we can process each level of the algorithm in a round robin fashion, one level per index. Because we are now only processing one level at a time, the time complexity becomes constant.
 
 There are three problems to discuss with this algorithm. The first is how do we handle the case where $|\rho_P| < \log m$. The second is that VOs may need to be checked up to $\log m$ characters after they occurred. And the third is that under this proposed method, instances of the whole pattern may not be reported until $\log m$ characters later.
 
-We'll start with the first problem, as the more complex one. Breslauer and Galil's suggestion is to remove the bottom $\log\log m$ rows and instead match the first $2\log m$ characters of the pattern using Knuth-Morris-Pratt\cite{kmp}. The remaining rows match prefixes of doubling length again, from $4\log m$ to $8\log m$ up to $m$. We can check if the condition at the start of this question holds based on the KMP failure table; if $\texttt{failure}(2\log m - 1) + 1 \leq \log m$, then it holds that the period of the $2\log m$ prefix is larger than $\log m$. By extension, we know that $|\rho_P| \geq \log m$ and thus we can do pattern matching via the round robin technique mentioned above.
+We'll start with the first problem, as the more complex one. Breslauer and Galil's suggestion is to remove the bottom $\log\log m$ rows and instead match the first $2\log m$ characters of the pattern using Knuth-Morris-Pratt \cite{kmp}. The remaining rows match prefixes of doubling length again, from $4\log m$ to $8\log m$ up to $m$. We can check if the condition at the start of this question holds based on the KMP failure table; if $\texttt{failure}(2\log m - 1) + 1 \leq \log m$, then it holds that the period of the $2\log m$ prefix is larger than $\log m$. By extension, we know that $|\rho_P| \geq \log m$ and thus we can do pattern matching via the round robin technique mentioned above.
 
 If the above condition does not hold, then we simply extend the length of the prefix processed by KMP until it either eventually does hold or we reach the end of the pattern, in which case the entire pattern is processed by KMP. The only difficulty with this is that KMP uses linear space, so it could consume $O(m)$ space. However, in this case we know that up until the final character, the whole prefix processed by KMP has a period shorter than $\log m$. Because of this, we can perform KMP in $O(\log m)$ space by using only the pattern and failure table of the period.
 
-The only difficulty left with solving the first problem is that KMP is only \textit{amortised} constant time per character; in the worst space it is $O(m)$ time. To solve this, the KMP algorithm is deamortised by use of Galil's\cite{Galil:1981:SMR:322234.322244} real-time implementation.
+The only difficulty left with solving the first problem is that KMP is only \textit{amortised} constant time per character; in the worst space it is $O(m)$ time. To solve this, the KMP algorithm is deamortised by use of Galil's \cite{Galil:1981:SMR:322234.322244} real-time implementation.
 
 The second problem is the easiest to resolve. Instead of storing only one fingerprint of all the previous characters read in the text stream, we use a cyclic buffer of $O(\log m)$ fingerprints, representing the all the previous characters in the text stream up to the last $\log m$ indexes. Now when a VO is checked, it is simply tested against one of these previous fingerprints.
 
@@ -531,7 +544,7 @@ For more information, visit the blog \url{https://streamsandpatterns.wordpress.c
 \section{Clifford, Fontaine, Porat and Sach: Dictionary Matching in Sublinear Space}
 \label{sec:theory-clifford}
 
-Clifford et al.\cite{2015arXiv150406242C} provided a solution to dictionary matching under the streaming model in less space than it takes to store the pattern. Their solution uses $O(k\log m)$ space and $O(\log m)$ time per character, where $m = \max(M)$. It is worth noting that this description is based on a version of this paper that was not accepted, and the accepted version of the paper has some differences to what is described here. Also, please note that this is how the algorithm is described in the paper; any changes in later chapters are my own corrections.
+Clifford et al. \cite{2015arXiv150406242C} provided a solution to dictionary matching under the streaming model in less space than it takes to store the pattern. Their solution uses $O(k\log m)$ space and $O(\log m)$ time per character, where $m = \max(M)$. It is worth noting that this description is based on a version of this paper that was not accepted, and the accepted version of the paper has some differences to what is described here. Also, please note that this is how the algorithm is described in the paper; any changes in later chapters are my own corrections.
 
 The first step to understanding the algorithm as described in the paper is to consider a subset of the dictionary matching problem, where all the patterns are a power of two in length. This algorithm is very similar to the one described in Section~\ref{sec:porat-porat}, where all the patterns are broken up into $\log m_i$ fingerprints, denoted $\phi_{i,j}$ and defined as follows:
 
@@ -606,16 +619,16 @@ For space complexity, the only space used is the hash function which uses $O(k\l
 
 %-----------------------------------------------------------------------------
 
-\chapter{Project Execution}
+\chapter{Implementation of the Algorithms}
 \label{chap:execution}
 
 \section{Aho-Corasick}
 
 \subsection{From Knuth-Morris-Pratt to Aho-Corasick}
 
-As stated in Section~\ref{sec:aho-corasick}, Aho-Corasick\cite{Aho:1975:ESM:360825.360855} is a generalisation of Knuth-Morris-Pratt. Because of this, I decided the most suitable way to implement this algorithm was to start with an implementation of KMP and then generalise it to $k$ patterns.
+As stated in Section~\ref{sec:aho-corasick}, Aho-Corasick \cite{Aho:1975:ESM:360825.360855} is a generalisation of Knuth-Morris-Pratt. Because of this, I decided the most suitable way to implement this algorithm was to start with an implementation of KMP and then generalise it to $k$ patterns.
 
-Most implementations of KMP simply consist of an array of $m$ integers to act as a failure table, a string of $m$ characters for the pattern, and a counter of the number of characters that have matched so far, with the counter reaching $m - 1$ representing the accept state. But this is actually a simplification of the algorithm. As pointed out in CLRS\cite{clrs:kmp}, the correctness of Knuth-Morris-Pratt can be proven because this array, string and integer represent a finite state automaton: The array of integers represent the state the automaton should fall back to if the pattern does not match, the string shows the next character that needs to arrive in the text in order for the automaton to move one state closer to the accept state, and the counter represents the current state the automaton is in, with $m - 1$ being the accept state of the automaton.
+Most implementations of KMP simply consist of an array of $m$ integers to act as a failure table, a string of $m$ characters for the pattern, and a counter of the number of characters that have matched so far, with the counter reaching $m - 1$ representing the accept state. But this is actually a simplification of the algorithm. As pointed out in CLRS \cite{clrs:kmp}, the correctness of Knuth-Morris-Pratt can be proven because this array, string and integer represent a finite state automaton: The array of integers represent the state the automaton should fall back to if the pattern does not match, the string shows the next character that needs to arrive in the text in order for the automaton to move one state closer to the accept state, and the counter represents the current state the automaton is in, with $m - 1$ being the accept state of the automaton.
 
 We can show this with an example: Table~\ref{tab:kmp-pattern-failure} shows the pattern and failure table for the pattern $aabab$, and Figure~\ref{fig:kmp-pattern-failure} shows the state transition diagram for the same pattern.
 
@@ -735,7 +748,7 @@ If unspecified, $\texttt{output}(state)$ is 0 by default.
 
 \section{Power of Two Length Patterns}
 
-The rest of this chapter describes the implementation of Clifford, Fontaine, Porat and Sach's\cite{2015arXiv150406242C} algorithm as described in Section~\ref{sec:theory-clifford}. Note that this implementation does not achieve $O(\log m)$ time per character as desired, but $O(\log k\log m)$ instead. The reason behind this will be explained later in this section. It is also worth noting, as will be explained in Section~\ref{ssec:static-hash-fail} that in the general case this is amortised time per character; the real time per character is $O(\log k(k + \log m))$. A method for deamortising the solution will be proposed in Section~\ref{ssec:deamortise}.
+The rest of this chapter describes the implementation of Clifford, Fontaine, Porat and Sach's \cite{2015arXiv150406242C} algorithm as described in Section~\ref{sec:theory-clifford}. Note that this implementation does not achieve $O(\log m)$ time per character as desired, but $O(\log k\log m)$ instead. The reason behind this will be explained later in this section. It is also worth noting, as will be explained in Section~\ref{ssec:static-hash-fail} that in the general case this is amortised time per character; the real time per character is $O(\log k(k + \log m))$. A method for deamortising the solution will be proposed in Section~\ref{ssec:deamortise}.
 
 \subsection{Implementing Karp and Rabin's Algorithm for Dictionary Matching}
 
@@ -957,7 +970,7 @@ $$\phi(u) = \phi(v), r^{l_u} = r^{l_v} \text{ and } r^{-l_u} = r^{-l_v}$$
 
 $r^{l_u} \text{ and } r^{-l_u}$ are both stored in the fingerprint structure we defined in Section~\ref{sec:kr-fingerprints}. Because CMPH requires string keys for static perfect hash functions, we can make sure these are unique by having the keys be a comma-separated string of $\phi(u),r^{l_u},r^{-l_u}$. Since $r^{l_u}$ and $r^{-l_u}$ are both modulo $p$, their string representations require as much space as there was allocated for the hexadecimal string representation of the fingerprint. Using the size calculated in Section~\ref{sssec:static-hashing-kr}, the overall space required for these strings comes to $3 \cdot (2 \cdot \texttt{\_mp\_size} \cdot \texttt{sizeof}(\texttt{mp\_limb\_t}) + 1)$. Note that we now need three extra bytes instead of one: Two for the commas separating the variables and one for the string terminator.
 
-The probability of a collision now depends on the value of our random number $r$. Because $2 \leq r < p$, it holds that $r$ is in the cyclic group $\mathbb{Z}^*_p$. From this, we can define the set $\langle r \rangle =^{def} \{r^0, r^1,...,1\}$ -- we know that this group eventually terminates by Lagrange's Theorem, as shown in Katz and Lindell\cite{katz:lagrange}. We can define the order of the set $\langle r \rangle$ as the smallest number $i$ such that $r^i = 1$. Katz and Lindell\cite{katz:cyclic-groups} show that if $i$ is the order of $\langle r \rangle$, then $r^x = r^y$ if and only if $x = y \mod i$.
+The probability of a collision now depends on the value of our random number $r$. Because $2 \leq r < p$, it holds that $r$ is in the cyclic group $\mathbb{Z}^*_p$. From this, we can define the set $\langle r \rangle =^{def} \{r^0, r^1,...,1\}$ -- we know that this group eventually terminates by Lagrange's Theorem, as shown in Katz and Lindell \cite{katz:lagrange}. We can define the order of the set $\langle r \rangle$ as the smallest number $i$ such that $r^i = 1$. Katz and Lindell \cite{katz:cyclic-groups} show that if $i$ is the order of $\langle r \rangle$, then $r^x = r^y$ if and only if $x = y \mod i$.
 
 Translating this to our fingerprints, the fingerprints of two different strings $u, v$ of respective lengths $l_u, l_v \leq n$ collide if and only if $l_u = l_v \mod i$. For this algorithm, we only compare strings as long as $2k$. Therefore, as long as $i > 2k$, $r^{l_u} = r^{l_v} \text{ and } r^{-l_u} = r^{-l_v}$ if and only if $l_u = l_v$ and thus we have equivalent probability. However, this is the best case scenario. I have not been able to find a solution for the probability of a collision in general.
 
@@ -1070,7 +1083,7 @@ The only other change is to adjust the previous fingerprints for a buffer of len
 
 %-----------------------------------------------------------------------------
 
-\chapter{Critical Evaluation}
+\chapter{Analysis and Evaluation}
 \label{chap:evaluation}
 
 \section{Test Setup}
@@ -1294,7 +1307,7 @@ A good place to start in this discussion is, obviously, the major bottleneck fou
 
 When it comes to checking for duplicate fingerprints during preprocessing, we can reduce the number of equality checks by using a binary search tree instead of linear search. In the case of short pattern matching, this alone can reduce the build time from $O((k\log k)^2)$ to $O(k\log k\log(k\log k))$. We already have a function for comparing fingerprints from Section~\ref{ssec:static-hash-fail}, but this function assumes that the underlying strings are the same length, which we do not have in the short patterns case. This can be rectified by adding an additional integer for string length, as suggested in the above paragraph: We first compare the lengths, and if they are the same length then we compare the fingerprints.
 
-As for the other, not as significant bottleneck from long patterns, shifting the rows, we can potentially make some improvements in this area as well. If the bottleneck is the tree, then we could try replacing the tree with a dynamic hash table, such as lhash\cite{website:openssl-lhash}. Hash tables can achieve better average or even worst case run times than binary search trees, but might have an overhead in space consumption. With lhash in particular, measuring space is difficult, but still possible by using lh\_stats\cite{website:openssl-lhstats}. The other potential slowdown is the fingerprint operations such as concatenation. We will see how we might be able to speed these up in the next few sections.
+As for the other, not as significant bottleneck from long patterns, shifting the rows, we can potentially make some improvements in this area as well. If the bottleneck is the tree, then we could try replacing the tree with a dynamic hash table, such as lhash \cite{website:openssl-lhash}. Hash tables can achieve better average or even worst case run times than binary search trees, but might have an overhead in space consumption. With lhash in particular, measuring space is difficult, but still possible by using lh\_stats \cite{website:openssl-lhstats}. The other potential slowdown is the fingerprint operations such as concatenation. We will see how we might be able to speed these up in the next few sections.
 
 \subsection{Improving Fingerprint Performance in General}
 
@@ -1315,7 +1328,7 @@ The other general speedup is an applied one. Throughout this work, I have stuck 
 
 Another option as an alternative to Montgomery multiplication is to use Mersenne primes. Mersenne primes are prime numbers of the form $2^p - 1$. Mersenne primes are significantly less frequent than ordinary prime numbers, but are extremely beneficial for modular arithmetic. This is because in binary they are simply a string of 1s, so modulo operations can simply be evaluated as a bitwise AND. This is much more efficient than Montgomery reduction, but comes at the cost that multiple precision addition and multiplication might be more expensive due to the larger primes.
 
-An extra benefit of Mersenne primes is that we do not need to generate and test them ourselves. This is because the hard work is done for us by the Great Internet Mersenne Prime Search\cite{website:gimps-known}. This website features the 44 definite smallest Mersenne primes, which range from 3 to $2^{32,582,657}-1$. A simple linear search would suffice to find the first prime from the range that is longer than $O(n^{2 + \alpha})$, and we are extremely unlikely to want a text length and accuracy level high enough to require a prime anywhere near this maximum.
+An extra benefit of Mersenne primes is that we do not need to generate and test them ourselves. This is because the hard work is done for us by the Great Internet Mersenne Prime Search \cite{website:gimps-known}. This website features the 44 definite smallest Mersenne primes, which range from 3 to $2^{32,582,657}-1$. A simple linear search would suffice to find the first prime from the range that is longer than $O(n^{2 + \alpha})$, and we are extremely unlikely to want a text length and accuracy level high enough to require a prime anywhere near this maximum.
 
 \subsection{How Large Must $p$ be?}
 \label{ssec:p-size}
@@ -1349,7 +1362,7 @@ To deamortise destroying the tree, this can be achieved by storing pointers to t
 
 There are two points that prevent us from looking at sublinear working space in the streaming model, both of which are to do with preprocessing. We will investigate both in turn, and provide a compromise where it is possible to solve both if we can view the patterns multiple times.
 
-The first problem is computing the periods. It is possible to compute the periods for each pattern in a stream\cite{ergun:sublinear-period} using $O(k\log m)$ space and $O(km\log m)$ preprocessing time, but we need to read the patterns three times: Twice for computing the periods using the cited method and a third time for the rest of the preprocessing.
+The first problem is computing the periods. It is possible to compute the periods for each pattern in a stream \cite{ergun:sublinear-period} using $O(k\log m)$ space and $O(km\log m)$ preprocessing time, but we need to read the patterns three times: Twice for computing the periods using the cited method and a third time for the rest of the preprocessing.
 
 The second problem is the $\mathcal{S}$ function for short patterns. Checking this na\"{i}vely -- as is currently done -- requires us to store every pattern. But it can be solved by reading the patterns twice. The first time we read the patterns, we compute the fingerprint of the complete patterns and store these in an array of $k$ fingerprints. The second time we read a pattern $P_i$, we store the fingerprint of every prefix of that pattern in an array of at most $2k$ fingerprints. We then iterate through the other $k$ pattern fingerprints, $\phi_j$, and compute the prefix between $\phi_i$ and $\phi_j$. If this prefix is in the array of prefixes at index $m_i - m_j - 1$, then we know that any suffixes of the pattern at least $m_i - m_j$ characters long have another pattern as a suffix. Once we have iterated over all $k$ pattern fingerprints, we now know the smallest $m_j$ such that $P_j$ is a suffix of $P_i$. Thus, $\mathcal{S}$ now simply checks if the suffix is longer than $m_j$. One might think that we would need to read the patterns a third time for the actual \texttt{PreProc} function now, but this is not the case. Since we have fingerprints of all the prefixes of $P_i$, any suffix fingerprint we need can be worked out from $\phi_i$ and the relevant prefix, so we can run all of the \texttt{PreProc} algorithm without reading the pattern again.
 
@@ -1419,6 +1432,8 @@ enough attention.  Ideally, the chapter will consist of three parts:
 
 \appendix
 
+\begin{comment}
+
 \chapter{An Example Appendix}
 \label{appx:example}
 
@@ -1437,6 +1452,8 @@ limited to
 \noindent
 Note that in line with most research conferences, the marking panel 
 is not obliged to read such appendices.
+
+\end{comment}
 
 % =============================================================================
 
