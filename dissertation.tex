@@ -397,11 +397,11 @@ Much like the way in which Aho-Corasick is an algorithm for dictionary matching 
 \section{Karp-Rabin Fingerprints}
 \label{sec:kr-fingerprints}
 
-Karp-Rabin fingerprints \cite{5390135} are a function $\phi : \Sigma^* \to \mathbb{Z}_p$ for some prime number $p$. For a text $T$ of length $n$ characters, the Karp-Rabin fingerprint is defined as:
+Karp-Rabin fingerprints \cite{5390135} are a function $\phi : \Sigma^* \to \mathcal{F}_p$, where $\mathcal{F}_p$ is the field of integers modulo $p$. For a text $T$ of length $n$ characters, the Karp-Rabin fingerprint is defined as:
 
 $$\phi(T) = \sum_{i = 0}^{n - 1} r^it_i \mod p$$
 
-Where $p$ is a prime number, and $r$ is an integer selected randonly from $\mathbb{Z}^*_p$. Alongside the fingerprint $\phi(T)$, we store $r^n \mod p$ and $r^{-n} \mod p$ in a tuple. Using these three properties, we can manipulate the fingerprints to affect the underlying strings in three ways \cite{5438620}. Note that for simplicity, any equations from this point in the report onwards that feature $r, p$ or the fingerprints of any strings themselves can be assumed to be modulo $p$.
+Where $p$ is a prime number, and $r$ is an integer selected randonly from $\mathcal{F}_p$. Alongside the fingerprint $\phi(T)$, we store $r^n \mod p$ and $r^{-n} \mod p$ in a tuple. Using these three properties, we can manipulate the fingerprints to affect the underlying strings in three ways \cite{5438620}. Note that for simplicity, any equations from this point in the report onwards that feature $r, p$ or the fingerprints of any strings themselves can be assumed to be modulo $p$.
 
 \begin{itemize}
   \item \textbf{Concatenate:} If we have a fingerprint $\{\phi(u), r^{n_1}, r^{-n_1}\}$ for a string $u$ of length $n_1$ and another fingerprint $\{\phi(v), r^{n_2}, r^{-n_2}\}$ for a string $v$ of length $n_2$, the concatenation of these two strings is $\{\phi(u) + \phi(v)\cdot r^{n_1}, r^{n_1} \cdot r^{n_2}, r^{-n_1} \cdot r^{-n_2}\}$
@@ -413,7 +413,7 @@ All of these operations can be completed in constant time.
 
 It is interesting to note that a variant of the Karp-Rabin algorithm can be used for a subset of dictionary matching, where all the patterns are the same length $m$ \cite{candan:data}. This can be done by storing a fingerprint of the last $m$ characters read from the text, and using static perfect hashing as described in section \ref{min-perf-hash} to check if the fingerprint of the text matches any fingerprints of the patterns. Using suffix and concatenation tectniques above and storing a circular buffer of the last $m$ characters, we can accomplish this with $O(k + m)$ space and $O(1)$ time per character. However, due to the limitation that all the patterns have to be the same length, this method has not been analysed for this project.
 
-The last point to mention is the probability of a collision. Breslauer and Galil \cite{Breslauer:2014:RSS:2660854.2635814} provide a theorem that if $u$ and $v$ are two different strings of length $l \leq n$, $p \in \Theta(n^{2 + \alpha})$ for some level of accuracy $\alpha \geq 0$ and $r \in \mathbb{Z}_p$ is randomly chosen, then the probability that $\phi(u) = \phi(v)$ is smaller than $\frac{1}{n^{1 + \alpha}}$. We will however see in Section~\ref{ssec:short-collisions} why this does not necessarily hold for the dictionary matching algorithm devised by Clifford et al. \cite{2015arXiv150406242C}.
+The last point to mention is the probability of a collision. Breslauer and Galil \cite{Breslauer:2014:RSS:2660854.2635814} provide a theorem that if $u$ and $v$ are two different strings of length $l \leq n$, $p \in \Theta(n^{2 + \alpha})$ for some level of accuracy $\alpha \geq 0$ and $r \in \mathcal{F}_p$ is randomly chosen, then the probability that $\phi(u) = \phi(v)$ is smaller than $\frac{1}{n^{1 + \alpha}}$. We will however see in Section~\ref{ssec:short-collisions} why this does not necessarily hold for the dictionary matching algorithm devised by Clifford et al. \cite{2015arXiv150406242C}.
 
 \section{Porat and Porat: Single Pattern Matching in Sublinear Space}
 \label{sec:porat-porat}
@@ -784,7 +784,7 @@ The first structure, called a fingerprinter, consists of two multiple precision 
 The integer $r$ is where this library most significantly differs from my summer project. For both implementations, entropy is gathered by reading in data from \texttt{/dev/urandom} and then used to seed the GMP pseudorandom number generator. For the summer project, the integer $r$ was picked using the Mersenne Twister function on \texttt{mpz\_urandomm} with maximum value $p$. But this is not guaranteed to work, as it allows two problematic cases:
 
 \begin{itemize}
-  \item If $r = 0$, then $\phi(S) = \phi(S')$ if $s_0 = s'_0$.\footnote{If the fingerprints are implemented exactly as described in Section~\ref{sec:kr-fingerprints}, then $\phi(S)$ will always match $\phi(S')$. This difference is due to my implementation of the fingerprints, which assumes $r^0 = 1$ and thus simply uses $\phi(s_0) = s_0$.}
+  \item If $r = 0$, then $\phi(S) = \phi(S')$ if $s_0 = s'_0$.\footnote{If the fingerprints are implemented exactly as described in Section~\ref{sec:kr-fingerprints}, then $\phi(S)$ will always match $\phi(S')$. This difference is due to my implementation of the fingerprints, which assumes $r^0 = 1$ and thus simply uses $\phi(s_0) = s_0$.} This also does not fit a proof in Section~\ref{ssec:short-collisions}, which requires that $r \in \mathbb{Z}^*_p$.
   \item If $r = 1$, then $\phi(S) = \phi(S')$ if $S$ is a reordering of the characters in $S'$.
 \end{itemize}
 
@@ -978,7 +978,7 @@ $$\phi(u) = \phi(v), r^{l_u} = r^{l_v} \text{ and } r^{-l_u} = r^{-l_v}$$
 
 $r^{l_u} \text{ and } r^{-l_u}$ are both stored in the fingerprint structure we defined in Section~\ref{sec:kr-fingerprints}. Because CMPH requires string keys for static perfect hash functions, we can make sure these are unique by having the keys be a comma-separated string of $\phi(u),r^{l_u},r^{-l_u}$. Since $r^{l_u}$ and $r^{-l_u}$ are both modulo $p$, their string representations require as much space as there was allocated for the hexadecimal string representation of the fingerprint. Using the size calculated in Section~\ref{sssec:static-hashing-kr}, the overall space required for these strings comes to $3 \cdot (2 \cdot \texttt{\_mp\_size} \cdot \texttt{sizeof}(\texttt{mp\_limb\_t}) + 1)$. Note that we now need three extra bytes instead of one: Two for the commas separating the variables and one for the string terminator.
 
-The probability of a collision now depends on the value of our random number $r$. Because $2 \leq r < p$, it holds that $r$ is in the cyclic group $\mathbb{Z}^*_p$. From this, we can define the set $\langle r \rangle =^{def} \{r^0, r^1,...,1\}$ -- we know that this group eventually terminates by Lagrange's Theorem, as proven in Theorem 7.14 of \cite{katz:lagrange}. We can define the order of the set $\langle r \rangle$ as the smallest number $i$ such that $r^i = 1$. Katz and Lindell \cite{katz:cyclic-groups} show that if $i$ is the order of $\langle r \rangle$, then $r^x = r^y$ if and only if $x = y \mod i$.
+The probability of a collision now depends on the value of our random number $r$. Because $2 \leq r < p$, it holds that $r$ is in the cyclic group $\mathbb{Z}^*_p$. From this, we can define the set $\langle r \rangle \defeq \{r^0, r^1,...,1\}$ -- we know that this group eventually terminates by Lagrange's Theorem, as proven in Theorem 7.14 of \cite{katz:lagrange}. We can define the order of the set $\langle r \rangle$ as the smallest number $i$ such that $r^i = 1$. Katz and Lindell \cite{katz:cyclic-groups} show that if $i$ is the order of $\langle r \rangle$, then $r^x = r^y$ if and only if $x = y \mod i$.
 
 Translating this to our fingerprints, the fingerprints of two different strings $u, v$ of respective lengths $l_u, l_v \leq n$ collide if and only if $l_u = l_v \mod i$. For this algorithm, we only compare strings as long as $2k$. Therefore, as long as $i > 2k$, $r^{l_u} = r^{l_v} \text{ and } r^{-l_u} = r^{-l_v}$ if and only if $l_u = l_v$ and thus we have equivalent probability. However, this is the best case scenario. I have not been able to find a solution for the probability of a collision in general.
 
@@ -1128,7 +1128,7 @@ Figure~\ref{fig:long-pattern-results} shows the time taken to build the data str
 
 \begin{figure}[t]
 \begin{center}
-  \includegraphics[width=0.5\linewidth]{build_length_1000_10000}\\
+  \includegraphics[width=0.7\linewidth]{build_length_1000_10000}\\
   \includegraphics[width=0.5\linewidth]{time_length_1000_10000}\includegraphics[width=0.5\linewidth]{size_length_1000_10000}
 \end{center}
 \caption{Build time, run time per character and space for Clifford et al.'s algorithm against Aho-Corasick over the length of the pattern}
@@ -1149,7 +1149,9 @@ As far as actual performance is concerned, the Aho-Corasick algorithm is roughly
 
 \subsubsection{Size of Data Structure}
 
-Data structure size was a significant surprise to me. I was expecting the size of the data structure to be less -- this is comparing a logarithmic size data structure with a linear size one, after all -- but I was not expecting it on the scale shown in the graphs. To give an idea of how significant this difference is, even on the shorter patterns -- patterns with an average length of 500 characters long -- the data structure for Aho-Corasick was roughly 140 times larger than that of Clifford et al. By the longest average pattern lengths of 5,000 characters, this had grown to approximately 250 times larger.
+Data structure size was a significant surprise. I was expecting the size of the data structure to be less -- this is comparing a logarithmic size data structure with a linear size one, after all -- but I was not expecting it on the scale shown in the graphs. To give an idea of how significant this difference is, even on the shorter patterns -- patterns with an average length of 500 characters long -- the data structure for Aho-Corasick was roughly 140 times larger than that of Clifford et al. By the longest average pattern lengths of 5,000 characters, this had grown to approximately 250 times larger.
+
+Because of the significant difference in data structure size, I acknowledge that it makes seeing the line difficult. This is a common problem, and a better view of just the size for the Clifford et al. algorithm can be seen in Figure~\ref{fig:case-results}.
 
 \subsection{Performance for Shorter Patterns}
 \label{ssec:short-pattern-results}
@@ -1160,7 +1162,7 @@ These results are shown in Figure~\ref{fig:short-pattern-results}. Each test now
 
 \begin{figure}[t]
 \begin{center}
-  \includegraphics[width=0.5\linewidth]{build_length_200_1000}\\
+  \includegraphics[width=0.7\linewidth]{build_length_200_1000}\\
   \includegraphics[width=0.5\linewidth]{time_length_200_1000}\includegraphics[width=0.5\linewidth]{size_length_200_1000}
 \end{center}
 \caption{Build time, run time per character and space for Clifford et al.'s algorithm against Aho-Corasick over the length of the pattern for shorter patterns}
@@ -1192,7 +1194,7 @@ The next results, shown in Figure~\ref{fig:many-pattern-results}, display the pe
 
 \begin{figure}[t]
 \begin{center}
-  \includegraphics[width=0.5\linewidth]{build_num_200_1000}\\
+  \includegraphics[width=0.7\linewidth]{build_num_200_1000}\\
   \includegraphics[width=0.5\linewidth]{time_num_200_1000}\includegraphics[width=0.5\linewidth]{size_num_200_1000}
 \end{center}
 \caption{Build time, run time per character and space for Clifford et al.'s algorithm against Aho-Corasick over the number of patterns}
@@ -1231,6 +1233,7 @@ Intuitively, we would expect the performance to increase linearly as $\alpha$ in
 We can see this change, but the actual scaling is more complex: The performance for all three traits grows at steep rates for $\alpha$ values from 0 to 1 and 2 to 4, before becoming shallower at ranges such as 1-2 and 4-5. This is due to how GMP itself allocates and handles space for limbs. It overcompensates, allocating more limbs than are needed at points to avoid having to do more reallocations later on.
 
 \subsection{Space Consumption for Each Case}
+\label{ssec:case-size}
 
 We will to some extent investigate the time taken for each case in Section~\ref{sec:profile-results}, but for now we can look at the space consumption for each of the cases in Clifford et al.'s algorithm. These results are shown in Figure~\ref{fig:case-results}.
 
@@ -1238,10 +1241,10 @@ One caveat to bear in mind is that the main data structure for this implementati
 
 \begin{figure}[t]
 \begin{center}
-  \includegraphics[width=0.5\linewidth]{part_size_length_1000_10000}\includegraphics[width=0.5\linewidth]{part_size_length_200_1000}
+  \includegraphics[width=0.45\linewidth]{part_size_length_1000_10000}\includegraphics[width=0.55\linewidth]{part_size_length_200_1000}
   \includegraphics[width=0.5\linewidth]{part_size_num_200_1000}\includegraphics[width=0.5\linewidth]{part_size_alpha}
 \end{center}
-\caption{Size of short, periodic and long algorithms for dictionary matching}
+\caption{Size of short, periodic and long pattern algorithms for dictionary matching}
 \label{fig:case-results}
 \end{figure}
 
@@ -1315,11 +1318,11 @@ A good place to start in this discussion is, obviously, the major bottleneck fou
 
 Even if we truly do not want an extra integer in each fingerprint, we can easily remove one of the equality checks. Note that if $r^k \neq r^{k'}$, then $r^{-k} \neq r^{-k'}$. This can be proven by contradiction: Assume that $r^k \neq r^{k'}$, yet $r^{-k} = r^{-k'}$. We know from the definition of groups \cite{katz:inverse-groups} that $r^k \cdot r^{-k} = 1$. If $r^{-k} = r^{-k'}$ then $r^k \cdot r^{-k'} = 1$ by substitution. By multiplying both sides by $r^{k'}$, we can see the following:
 
-$$r^k \cdot r^{-k} \cdot r^{k'} = 1 \cdot r^{k'} \rightarrow r^k \cdot 1 = r^{k'} \rightarrow r^k = r^{k'}$$
+$$r^k \cdot r^{-k} \cdot r^{k'} = 1 \cdot r^{k'} \Rightarrow r^k \cdot 1 = r^{k'} \Rightarrow r^k = r^{k'}$$
 
 This breaks our assumption, and thus we have reached a contradiction. So when we perform the comparison, we only need to call \texttt{mpz\_equals} on the fingerprint itself and \texttt{r\_k}, saving us one call to the function.
 
-When it comes to checking for duplicate fingerprints during preprocessing, we can reduce the number of equality checks by using a binary search tree instead of linear search. In the case of short pattern matching, this alone can reduce the build time from $O((k\log k)^2)$ to $O(k\log k\log(k\log k))$. We already have a function for comparing fingerprints from Section~\ref{ssec:static-hash-fail}, but this function assumes that the underlying strings are the same length, which we do not have in the short patterns case. This can be rectified by adding an additional integer for string length, as suggested in the above paragraph: We first compare the lengths, and if they are the same length then we compare the fingerprints.
+When it comes to checking for duplicate fingerprints during preprocessing, we can reduce the number of equality checks by using a binary search tree instead of linear search. In the case of short pattern matching, this alone can reduce the build time from $O((k\log k)^2)$ to $O(k\log k\log(k\log k))$. We already have a function for comparing fingerprints from Section~\ref{ssec:static-hash-fail}, but this function assumes that the underlying strings are the same length, which we do not have in the short patterns case. This can be rectified by comparing either the lengths of the underlying string with an additional integer, or \texttt{r\_k} if we don't want to use the extra space.
 
 As for the other, not as significant bottleneck from long patterns, shifting the rows, we can potentially make some improvements in this area as well. If the bottleneck is the tree, then we could try replacing the tree with a dynamic hash table, such as lhash \cite{website:openssl-lhash}. Hash tables can achieve better average or even worst case run times than binary search trees, but might have an overhead in space consumption. With lhash in particular, measuring space is difficult, but still possible by using lh\_stats \cite{website:openssl-lhstats}. The other potential slowdown is the fingerprint operations such as concatenation. We will see how we might be able to speed these up in the next few sections.
 
@@ -1392,32 +1395,19 @@ Each power of two length prefix on the final row only needs to store one VO, as 
 \chapter{Conclusion}
 \label{chap:conclusion}
 
-{\bf A compulsory chapter, of roughly $2$ pages} 
-\vspace{1cm} 
+\section{Main Results}
 
-\noindent
-The concluding chapter of a dissertation is often underutilised because it 
-is too often left too close to the deadline: it is important to allocation
-enough attention.  Ideally, the chapter will consist of three parts:
+\section{Current Status}
 
-\begin{enumerate}
-\item (Re)summarise the main contributions and achievements, in essence
-      summing up the content.
-\item Clearly state the current project status (e.g., ``X is working, Y 
-      is not'') and evaluate what has been achieved with respect to the 
-      initial aims and objectives (e.g., ``I completed aim X outlined 
-      previously, the evidence for this is within Chapter Y'').  There 
-      is no problem including aims which were not completed, but it is 
-      important to evaluate and/or justify why this is the case.
-\item Outline any open problems or future plans.  Rather than treat this
-      only as an exercise in what you {\em could} have done given more 
-      time, try to focus on any unexplored options or interesting outcomes
-      (e.g., ``my experiment for X gave counter-intuitive results, this 
-      could be because Y and would form an interesting area for further 
-      study'' or ``users found feature Z of my software difficult to use,
-      which is obvious in hindsight but not during at design stage; to 
-      resolve this, I could clearly apply the technique of Smith [7]'').
-\end{enumerate}
+\section{Future Work}
+
+\subsection{Implement Later Versions of the Algorithm}
+
+\subsection{Investigate Edge Cases}
+
+\subsection{More Thorough Testing of Periodic Patterns}
+
+\subsection{Other Measurements of Interest}
 
 % =============================================================================
 

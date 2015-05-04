@@ -206,6 +206,8 @@
   $(#1,#2,#3)$%
 }%
 
+\newcommand\defeq{\mathrel{\overset{\makebox[0pt]{\mbox{\normalfont\tiny\sffamily def}}}{=}}}
+
 % =============================================================================
 
 \makeatother
