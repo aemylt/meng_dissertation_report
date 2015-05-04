@@ -109,7 +109,7 @@ but an example is as follows:
 \item I used the GNU Multiple Precision Arithmetic Library (GMP) to support my implementation of Karp-Rabin fingerprints: \url{https://gmplib.org/}
 \item I used the C Minimum Perfect Hashing Library (CMPH) for static perfect hashing: \url{http://cmph.sourceforge.net/}
 \item I used an open-source implementation of Red-Black Trees from \url{http://en.literateprograms.org/Red-black_tree_(C)?oldid=19567}, with some minor adaptations.
-\item The algorithms were tested against 50MB of gene DNA sequences from the Pizza and Chili Corpus: \url{http://pizzachili.dcc.uchile.cl/texts/dna/}
+\item The algorithms were tested against 50MB of gene DNA sequences from the Pizza\&Chili Corpus: \url{http://pizzachili.dcc.uchile.cl/texts/dna/}
 \item The algorithms were profiled using the GNU command \texttt{gprof}
 \end{itemize}
 \end{quote}
@@ -220,6 +220,7 @@ The second reason for investigating low space processing is because there are so
 The above points argue in favour of research into improving the space consumption of pattern matching algorithms. But of course, just because an algorithm uses less space in theory does not always mean that it will in practice. Consider implementations for two different dictionary matching algorithms. One implementation uses less space than the other if the patterns are longer than 1,000 characters on average. In theoretical research, this is great as we know that the algorithm is better once the patterns are large enough. In practice on the other hand, you're very unlikely to use this implementation for bibliographic search. This has been a large push in theoretical computer science recently, to see how much we actually benefit from these algorithms when implemented and applied to real world data.
 
 \section{Challenges}
+\label{sec:challenges}
 
 There were a number of challenges throughout this project. The first and most significant challenge was that while Aho-Corasick is a tried and tested algorithm in both theory and practice over a period of forty years, this new solution by Clifford et al. was not. In fact, the Clifford et al. algorithm was still under development as implementation of the algorithm began. This resulted in some aspects being delayed as the relevant part of the paper was still being designed, and even some problems related to the algorithm itself. These points where the implementation revealed problems with the underlying algorithm will be the main focus of Chapter~\ref{chap:execution}, as these were the most interesting aspects of implementation.
 
@@ -228,12 +229,13 @@ The second challenge is gathering data to test our implementations on for analys
 The third and final challenge is in set up of the test bench and measurement tools. This is important as we need to consider which properties to measure when testing, and how we want to measure them. On the one hand, we want to measure the space required for the data structure as that is a specific property that we care about when investigating streaming algorithms. But on the other hand, measuring the size of the data structure alone is difficult to achieve in practice.
 
 \section{Central Objectives}
+\label{sec:objectives}
 
 Our overall goal for this project is to evaluate whether or not the reduced space for the Clifford et al. algorithm is actually beneficial in practice, and compare the benefits and drawbacks in performance with that of Aho-Corasick. In order to achieve this, our concrete objectives are:
 
 \begin{enumerate}
   \item To develop an implementation of the Aho-Corasick algorithm to act as a benchmark for performance.
-  \item To develop the first implementation of the Clifford et al. algorithm for dictionary matching.
+  \item To develop the first ever implementation of the Clifford et al. algorithm for dictionary matching.
   \item To implement a test framework in order to measure the performance of these two algorithms on real data.
   \item To find practical bottlenecks in the Clifford et al. algorithm with regards to space and time.
   \item To implement potential optimisations and see if and to what degree these improve performance.
@@ -534,7 +536,7 @@ The addition of KMP and the cyclic buffer both take $O(1)$ time to update per ch
 
 This was the title of a project I worked on with the Theory \& Algorithms Team at the University of Bristol in the summer of 2014. The objective of the project was to investigate a number of pattern matching algorithms in the streaming model and see how well they performed in practice. The project ended with a poster being designed and presented at an event held by the Industrial Liason Office.
 
-One of the major steps in this summer project, and the step that led to this very dissertation, is that I created to our knowledge the first implementation of Breslauer and Galil's algorithm from the previous section. The algorithm was tested against a simple amortised version of Knuth-Morris-Pratt on different lengths of pattern against 50MB of English text from the Pizza and Chili Corpus. The results are shown in Figure~\ref{fig:summer-results}.
+One of the major steps in this summer project, and the step that led to this very dissertation, is that I created to our knowledge the first implementation of Breslauer and Galil's algorithm from the previous section. The algorithm was tested against a simple amortised version of Knuth-Morris-Pratt on different lengths of pattern against 50MB of English text from the Pizza\&Chili Corpus. The results are shown in Figure~\ref{fig:summer-results}.
 
 As can be seen from these results, Breslauer and Galil's algorithm took roughly sixty time longer to run per character, but provided a significant benefit in terms of space as the patterns grew longer. One of the major bottlenecks however is preprocessing time. This takes significantly longer than Knuth-Morris-Pratt; to the extent that you can see the effect of the KMP component of Breslauer and Galil's algorithm from the drops in build time at every power of two length of pattern -- these are the points where more of the pattern is being processed by KMP.
 
@@ -857,6 +859,7 @@ Sections~\ref{sec:impl-short}, \ref{sec:impl-periodic} and \ref{sec:impl-long} l
 The algorithms are described in this report in opposite order from how they are described in the original paper. This is intentional, as this was the order I implemented each algorithm in.
 
 \subsection{Redefining the Cases for Each Algorithm}
+\label{ssec:case-redefine}
 
 Alongside the edge case described in Section~\ref{sssec:edge-case-theory}, there is a second case not considered by the paper. Consider a pattern $P_i$ of length $m_i = \frac{3k}{2}$ and period $\rho_i$ such that $|\rho_i| > k$. Because the pattern has a longer period than $k$, it should be processed by the algorithm described in Section~\ref{ssec:long-theory}.
 
@@ -876,7 +879,7 @@ Note that the edge case -- defined under these new definitions as pattern $P_i$ 
 
 \subsection{Determining the Period of Each Pattern}
 
-The period length of each pattern can be determined by computing the Knuth-Morris-Pratt failure table for each pattern. Since the final element in the KMP failure table is the length of the longest strict prefix of the pattern that is also a suffix, the difference between that value and the length of the pattern is the point when the pattern starts repeating itself. Thus, we can get the period for each pattern by computing $|\rho_i| = m_i - \texttt{failure}_{m_i - 1} - 1$. The -1s are to cater for zero-indexing. To avoid too many memory allocation calls, the failure table is re-used for each pattern and only reallocated if the next pattern is longer than any previous ones.
+The period length of each pattern can be determined by computing the Knuth-Morris-Pratt failure table for each pattern. Since the final element in the KMP failure table is the length of the longest strict prefix of the pattern that is also a suffix, the difference between that value and the length of the pattern is the point when the pattern starts repeating itself. Thus, we can get the period for each pattern by computing $|\rho_i| = m_i - \texttt{failure}_{m_i - 1} - 1$. The -1s are to cater for zero-indexing. To avoid too many memory allocation calls, the failure table is reused for each pattern and only reallocated if the next pattern is longer than any previous ones.
 
 \subsection{Re-using Buffers}
 
@@ -1005,7 +1008,7 @@ The next question is how do we store the location of the last item in the progre
 
 Another option is to log the last occurrence as having occurred at index $j - m_i + \lfloor\frac{k}{|\rho_i|}\rfloor\cdot|\rho_i|$, so that the last index is of the last time $\rho_i$ occurred. This means that we can keep the check for a whole pattern the same. However, it also makes checking if an occurrence is periodic more challenging, as we can no longer simply check if $j$ is $|\rho_i|$ characters apart from the last occurrence.
 
-Out of these options, I opted for storing the location of the last occurrence as $j$. There was little benefit either way, but this option was selected to make it consistent with my fingerprint of $p_{k - |\rho_i|}...p_k$, in that the period is being treated as the $|\rho_i|$-length suffix of $K_i$.
+Out of these options, I opted for storing the location of the last occurrence as $j$. There was little benefit either way, but this option was selected to make it consistent with my fingerprint of $p_{k - |\rho_i|}...p_k$, in that the period is being treated as the $|\rho_i|$-length suffix of $K_i$. Regardless of which option we take, we also need to change the number of instances that need to have occurred to $\lfloor \frac{m_i - (k \mod \rho_i)}{\rho_i} \rfloor$, to take into account the $k \mod \rho_i$ gap at the start of the pattern that is not accounted for in the number of occurrences.
 
 There are two more small changes I made to the algorithm. First, to simplify the check for whole patterns, I adjusted the last occurrence to be at index $j - (m_i - k) \mod |\rho_i|$. And second, the arithmetic progression is only reset upon finding a non-periodic occurrence if the last occurrence is more than $\rho_i$ characters away, to try and reduce the damage caused by collisions in the fingerprints.
 
@@ -1053,6 +1056,8 @@ First, we can more strongly define the edge case. Assume we have a pattern $P_i$
 
 As for how to avoid the edge case, this can be done when promoting a viable occurrence to the final row. If the location of this VO is less than $k$ characters away from the most recent occurrence stored in the progression, then we know that either the occurrence is non-periodic or that the prefix has a period shorter than $k$. Either way, we can simply ignore this index and not include it in the progression. While this means that some potential matches are skipped, it guarantees that the VOs that are stored are processed within time.
 
+While this was not implemented, it is also worth noting that we can even better redefine the case for short patterns based on this improved knowledge of the edge case. We can now see that the redefinition in Section~\ref{ssec:case-redefine} does not work if the $|Q_i| \geq k$ yet the power of two length prefix is shorter than $k$. This can be fixed as follows: Let $k'$ be the largest power of two no shorter than $k$. By defining short patterns as $m_i \leq 2k' + k$, this will ensure that the power of two length prefix of the long patterns is always longer than $k$, and thus only the period of these prefixes needs to be a concern.
+
 \subsection{A Failed Attempt at an Improvement: Checking the Suffixes with Static Perfect Hashing}
 \label{ssec:static-hash-fail}
 
@@ -1095,10 +1100,11 @@ The only other change is to adjust the previous fingerprints for a buffer of len
 \label{chap:evaluation}
 
 \section{Test Setup}
+\label{sec:test-setup}
 
 A common problem with testing pattern matching algorithms is that we need to ensure the text and pattern are large enough to see a payoff. This makes the selection of test data important as we need to make sure that it is a problem that one would expect long patterns for. Alongside this, we also want to make sure the algorithms are exercised as much as possible. In this case, that means we want patterns that can be quite repetitive, to ensure the middle case -- long patterns with short periods -- is tested.
 
-The data chosen for this in the end was from the Pizza And Chili Corpus. More precisely, I used fifty megabytes of gene DNA sequences from here: \url{http://pizzachili.dcc.uchile.cl/texts/dna/} Gene DNA sequences can satisfy both properties to some degree. First, DNA is an area where we would expect patterns to be very long. Indeed, the fifty megabytes used for these tests were for a single genome. And second, DNA sequences are very repetitive, as they only consist of the characters A, C, G, T for their encoding. All encodings are in ASCII format for compatibility with my C-based implementations.
+The data chosen for this in the end was from the Pizza\&Chili Corpus. More precisely, I used fifty megabytes of gene DNA sequences from here: \url{http://pizzachili.dcc.uchile.cl/texts/dna/} Gene DNA sequences can satisfy both properties to some degree. First, DNA is an area where we would expect patterns to be very long. Indeed, the fifty megabytes used for these tests were for a single genome. And second, DNA sequences are very repetitive, as they only consist of the characters A, C, G, T for their encoding. All encodings are in ASCII format for compatibility with my C-based implementations.
 
 From this text, patterns were generated from substrings of a random length between 1 and some maximum length specified, and were stored in a file named after the number of patterns and their maximum length.
 
@@ -1113,7 +1119,7 @@ For testing itself, there were several properties measured:
 
 The programs were compiled using the GNU project C and C++ compiler (GCC) version 4.8.2, with standard arguments \texttt{-O3} set for all safe compiler optimisations and \texttt{-Wall} for all compilation warnings. All tests were run on a 2012 HP Pavillion Notebook running Linux Mint 17 Quiana.
 
-The total time was measured in clock cycles, converted into microseconds and divided by the length of the text for an average amount of time taken per character. For size, the size of the components for each data structure was measured manually. For computing the size of GMP integers, this was done by the size of \texttt{mp\_limb\_t} multiplied by \texttt{mp\_alloc}, which indicates the amount of limbs allocated to the integer. The size of the hash table was computed by a CMPH function \texttt{cmph\_packed\_size}. The size of the Red-Black Trees was based on using an integer to keep count of the number of nodes in each tree. A worthwhile question to ask at this point is why are we only measuring the size of the data structure in working . There are two reasons for this. First of all, as will be explained later on, in the current state of the algorithm it is not possible to preprocess the algorithm in sublinear space. And second, this is more akin to what running the algorithm would be like in a streaming setting. For example, when it comes to intrusion detection, we wouldn't preprocess the algorithm on every router. A more likely scenario would be to preprocess the algorithm once, store the data structure in a data file and then set that file up on each router.
+The total time was measured in clock cycles, converted into microseconds and divided by the length of the text for an average amount of time taken per character. For size, the size of the components for each data structure was measured manually. For computing the size of GMP integers, this was done by the size of \texttt{mp\_limb\_t} multiplied by \texttt{mp\_alloc}, which indicates the amount of limbs allocated to the integer. The size of the hash table was computed by a CMPH function \texttt{cmph\_packed\_size}. The size of the Red-Black Trees was based on using an integer to keep count of the number of nodes in each tree. A worthwhile question to ask at this point is why are we only measuring the size of the data structure in working . There are two reasons for this. First of all, as will be explained later on, in the current state of the algorithm it is not possible to preprocess the algorithm in sublinear space. And second, this is more akin to what running the algorithm would be like in a streaming setting. For example, when it comes to intrusion detection, we wouldn't preprocess the algorithm on every router. A more likely scenario would be to preprocess the algorithm once, store the data structure in a configuration file and then set that file up on each router.
 
 While preprocessing time is not often measured in the streaming model, I decided it was a worthwhile point to investigate here, as preprocessing can be an expensive part of pattern matching computation once the patterns become long enough. We might not care about it for the same reason as above, but I figured some interesting observations might be derivable from it.
 
@@ -1253,6 +1259,8 @@ The first point that can be seen is that the size consumption of long patterns w
 We can also tell from these measurements that, even taking into account the caveat at the start of this section, the main space consumption is the algorithm for long patterns. The long patterns with short periods algorithm has barely any effect due to the reasons stated above, and the short patterns algorithm only becomes the bottleneck in the tests when all patterns are deemed short. In any other case, the total size roughly follows the same curve as the size of the data structure for patterns with long periods.
 
 As for $\alpha$ values, the sizes do scale as expected, but they all follow the same general trends for scaling, merely within a constant factor of each other. This is unsurprising; we do not classify whether a pattern is long, periodic or short based on the value of $\alpha$. Thus a larger $\alpha$ will not affect the number of patterns assigned to each algorithm, which is the main reason for the algorithms scaling differently in the other graphs.
+
+The final point to take from this can be seen in the top left graph, covering sets of 1,000 patterns of average lengths varying between 500 and 5,000 characters long. When the average pattern is 3,000 characters long, the number of bytes for the data structure is less than 3,000,000 bytes. From this point onwards in the graph, we can see that the size of the data structure is smaller than the size of the pattern itself.
 
 \subsection{Frequency of False Results}
 
@@ -1397,13 +1405,13 @@ Each power of two length prefix on the final row only needs to store one VO, as 
 
 \section{Main Results}
 
-As far as data structure size alone is concerned, the Clifford et al. algorithm is by far and large the superior of the solutions. Even on relatively short patterns -- the smallest test size was 100 patterns, each of which on average only 100 characters long -- we have a data structure which is 20-30 times smaller than that of Aho-Corasick.
+As far as data structure size alone is concerned, the Clifford et al. algorithm is by far and large the superior of the solutions. Even on relatively short patterns -- the smallest test size was 100 patterns, each of which on average only 100 characters long -- we have a data structure which is 20-30 times smaller than that of Aho-Corasick. What is perhaps even more exciting still is that at 1,000 patterns of 3,000 characters on average, the data structure starts using less space than it takes to even store the pattern.
 
 In terms of overall benefit, the answer is more difficult. For our smallest test range -- 100 pattens of maximum lengths 200-1,000 characters -- while we do see a 20-30 factor reduction in size as stated in the above paragraph, the average time per character is 60-80 times longer than before, and thus the benefit is not worth the drawbacks. But as the patterns start getting longer, we can see a more worthwhile benefit to using the Clifford et al. approach; on 1,000 patterns of maximum length 1,000 characters, Aho-Corasick only gives us a 60 times factor in speed while using 140 times more space.
 
 As for when the number of patterns increase, we can see a payoff start at roughly 600 patterns of average length 2,000 characters long, when Clifford et al. uses roughly eighty times more time yet ninety five times less space. Since the average length of the patterns for these sets of patterns is approximately 1,000 characters long, this means a total of 600,000 characters is where we start seeing a benefit in these tests. But it should be remembered, of course, that it is not just the total length of the patterns, but also how long each pattern is relative to the number of patterns that affect the performance of the Clifford et al. algorithm, so this is not guaranteed to be a constant break-even point.
 
-As for comparative performance of preprocessing time, Clifford et al. takes roughly the same amount of time if not less than Aho-Corasick, as long as the majority of patterns are not short. If most patterns are short, then Clifford et al. can take dramatically longer time.
+As for comparative performance of preprocessing time, Clifford et al. takes roughly the same amount of time if not less than Aho-Corasick, as long as the majority of patterns are not short. If most patterns are short, then Clifford et al. can take dramatically longer time. For this case, we have also proposed a potential optimisation by reducing the number of fingerprint equality checks required to look for duplicates.
 
 Our results from profiling show that the majority of overhead is from short patterns, and in particular the number of equality checks made by the short patterns algorithm. What is particularly interesting is that the algorithm for short patterns has the worst performance when there are few if any matches in the text. This combined with the paragraph about preprocessing time above makes for a question of priorities: Do we want most patterns to be short and thus have worse preprocessing time, or few patterns to be short and thus have worse run time?
 
@@ -1411,15 +1419,46 @@ The final point we can note is that chances are we do not need the prime number 
 
 \section{Current Status}
 
+The Aho-Corasick algorithm has been implemented correctly, so Objective 1 specified in Section~\ref{sec:objectives} is complete. Towards the end of the testing there was some profiling attempted to see deeper where the bottleneck for preprocessing Aho-Corasick was, but this was not able to yield any results in time and was not a required point anyway. Analysis of the Clifford et al. algorithm, as the younger of the two methods, was more important for this project.
+
+Objective 2 has not been fully completed, due to the fact that the edge case defined in Section~\ref{ssec:impl-edge-case} has not been implemented, nor has the error in the current implementation described in Section~\ref{sssec:error-prob} been fixed, and the algorithm has not been deamortised. But for the edge case I have done analysis to detect and explain the test cases most likely to cause problems, and suggestions have been made for both deamortising the algorithm and fixing the error. Other than those points, the three main cases for the Clifford et al. algorithm have been implemented, and thus the majority of this objective has been satisfied.
+
+Objective 3 has been completely satisfied. The test framework is also designed to be generic, so it can generate and run any number of patterns of any maximum length given any text file. This is done by specifying the text file, number of patterns and their maximum length when you call the pattern generation script, and then specifying the location of the text and patterns files when you run the algorithm tester. The only potential improvement would be to investigate the performance of periodic patterns further, as this was the only aspect that could not be tested entirely based on the data selected.
+
+Objective 4 has been satisfied to the full extent that it can be, given the shortcomings of Objective 2. I ran profiling tools on different tests to get an idea of what aspects of performance change depending on how many of the patterns are deemed long or short and where bottlenecks lie for each case.
+
+Objective 5 has been satisfied in part. While optimisations have not been implemented to investigate how much of a saving can be made, we have proposed a number of potential improvements based on the bottlenecks found during work on Objective 4.
+
 \section{Future Work}
 
 \subsection{Implement Later Versions of the Algorithm}
 
-\subsection{More Thorough Testing of Periodic Patterns}
+As stated in Section~\ref{sec:challenges}, one of the major difficulties in this work was that the algorithm was still undergoing development while I was implementing it. As it stands, the most recent version of the algorithm, and thus the version that is published, has included the work of another author alongside the four mentioned in the title of Section~\ref{sec:theory-clifford}, and now has a performance of $O(\log\log(k + m))$ time per character. This algorithm is developed as an extension to the version implemented in this project, and thus this work can be used as a stepping stone in the direction of implementing the final version.
 
-\subsection{More Thorough Comparison and Testing}
+It is also worth noting that it might be possible to improve the algorithm further. There is no currently known lower bound for the algorithm, so a constant time solution might be achievable. This is a very difficult task however, and would require a strong combination of both theory and applied work to have both an algorithm and an implementation.
 
-\subsection{Comparison with Breslauer and Galil}
+\subsection{Improvements Towards the Test Bench}
+
+While the test bench implemented has proven sufficient for the purposes of this project, future work could be invested into redesigning the test bench as follows, based on the experimental setup for the Pizza\&Chili Corpus \cite{website:pizza-setup}. Instead of preprocessing and running the algorithm as one program, we run the preprocessing as one program and store the data structure in a configuration file. Then, we run the algorithm with another program, specifying the file containing the data structure.
+
+This setup allows an even closer representation of what we would expect in a streaming context, such as the router devised in Section~\ref{sec:test-setup}. It also allows for more accurate and fine-grained analysis, such as the following, again based on the Pizza\&Chili Corpus experimental setup:
+
+\begin{itemize}
+  \item Preprocessing time
+  \item Preprocessing working space
+  \item Disk space for the data structure file
+  \item Time to load the configuration file
+  \item Working space required to find matches in the streamed text
+  \item Average and Worst-Case time per character
+\end{itemize}
+
+Another opportunity that can come from improving the test bench is the opportunity to investigate more solutions, such as the performance of simply running $k$ instances of Breslauer and Galil's algorithm.
+
+\subsection{Multiple Texts and Patterns}
+
+Alongside dictionary matching, there has been some work on pattern matching with multiple texts in the streaming model \cite{DBLP:journals/corr/abs-1202-3470}. But no research has currently been found on multiple texts and multiple patterns, let alone any solution in sublinear space. This is an appealing area if you consider a router, which processes data packets coming from many different sources (IPs and ports), and thus can be modelled as an algorithm matching against multiple text streams.
+
+A simple solution with Aho-Corasick and static hashing would be to reuse the finite state machine and simply use $l$ integers to describe the state for each stream, thus achieving $O(l + \sum_{i = 0}{k - 1}m_i)$ space and $O(l)$ time per character, if $l$ is the number of text streams. Another would be to apply $l$ instances of the Clifford et al. algorithm, and thus achieve $O(lk\log m)$ space and $O(l\log\log(k + m))$ time per character. But there is potential to improve on these bounds in theoretical work and then analyse them in empirical research.
 
 % =============================================================================
 

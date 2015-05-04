@@ -52,6 +52,7 @@ Corasick's
 Cormen
 deamortise
 deamortised
+deamortised.
 deamortising
 Deamortising
 Dietzfelbinger
@@ -69,6 +70,7 @@ gprof
 grep
 i
 init2
+IPs
 j
 Jalsenius
 Karp-Rabin
@@ -124,6 +126,7 @@ Rivest
 Sach
 Sach.
 Sach's
+setup
 Setup
 snprintf
 speedup
