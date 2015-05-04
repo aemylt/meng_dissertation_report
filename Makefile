@@ -15,7 +15,7 @@ ${TARGETS} : %.pdf : %.tex $(wildcard %.bib)
 	   TEXMFLOCAL="${TEXMFLOCAL}" bibtex ${*} ;      \
          fi
 	@TEXMFLOCAL="${TEXMFLOCAL}" pdflatex ${*}
-	@TEXMFLOCAL="${TEXMFLOCAL}" hunspell -l -t -i utf-8 ${*}.tex > spellcheck.txt
+	@TEXMFLOCAL="${TEXMFLOCAL}" hunspell -l -t -i utf-8 ${*}.tex | sort | uniq > spellcheck.txt
 	@TEXMFLOCAL="${TEXMFLOCAL}" texcount ${*}.tex
 
 clean    :

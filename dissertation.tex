@@ -183,7 +183,7 @@ The focus of this project is pattern matching. Pattern matching is a broad range
   \item \textbf{Distance Matching:} ``How much does the text differ from the pattern?''
 \end{itemize}
 
-The aspects we care about when measuring the performace of algorithms is the amount of space and time required to solve the problem. For many years the emphasis has been focused around time. This is because improving space consumption for pattern matching problems is difficult; even a na\"{i}ve implementation of pattern matching offers linear space. Besides, it is intuitive for a pattern matching algorithm to require linear space: If we want to match occurrences of a pattern in a text, surely we need to know both the text and the pattern and thus have to store both of them?
+The aspects we care about when measuring the performance of algorithms is the amount of space and time required to solve the problem. For many years the emphasis has been focused around time. This is because improving space consumption for pattern matching problems is difficult; even a na\"{i}ve implementation of pattern matching offers linear space. Besides, it is intuitive for a pattern matching algorithm to require linear space: If we want to match occurrences of a pattern in a text, surely we need to know both the text and the pattern and thus have to store both of them?
 
 In fact, it is easy to perform pattern matching in less space than it takes to store the text. A number of pattern matching algorithms -- such as Knuth-Morris-Pratt \cite{kmp} and Karp-Rabin \cite{5390135} -- work by iterating over each character in the text, and only need to know enough characters in the text to be able to check if the past few characters in the text match the pattern. Thus, we can process the text for these algorithms one character at a time and as a result match patterns in less space than it takes to store the text.
 
@@ -197,7 +197,7 @@ Finally, another breakthrough occurred in 2012, when Jalsenius, Porat and Sach \
 
 The specific problem investigated here is dictionary matching. Dictionary matching is a variant of pattern matching, proposed to answer the same question as the original pattern matching problem, but with the problem extended to many patterns. A simple solution is to merely run a pattern matching algorithm such as Knuth-Morris-Pratt several times in parallel, but dictionary matching solutions aim to perform better than solutions written this way.
 
-The question was first proposed by Alfred V. Aho and Margaret J. Corasick in 1975 \cite{Aho:1975:ESM:360825.360855}. Fourty years later, their algorithm -- also known throughout this paper as Aho-Corasick -- still remains a benchmark for solving this problem today. The other common solution was designed four years after Aho-Corasick by Beate Commentz-Walter \cite{commentz-walter:algo} which runs faster on average than Aho-Corasick. But both solutions require enough space to store all occurrences of the pattern. It is possible to achieve less space than this using a variant of Richard M. Karp and M. O. Rabin's 1987 algorithm \cite{5390135}, but only if all patterns are the same length.
+The question was first proposed by Alfred V. Aho and Margaret J. Corasick in 1975 \cite{Aho:1975:ESM:360825.360855}. Forty years later, their algorithm -- also known throughout this paper as Aho-Corasick -- still remains a benchmark for solving this problem today. The other common solution was designed four years after Aho-Corasick by Beate Commentz-Walter \cite{commentz-walter:algo} which runs faster on average than Aho-Corasick. But both solutions require enough space to store all occurrences of the pattern. It is possible to achieve less space than this using a variant of Richard M. Karp and M. O. Rabin's 1987 algorithm \cite{5390135}, but only if all patterns are the same length.
 
 It was finally in 2015 that a sublinear space algorithm to the problem of dictionary matching was found by Clifford et al. \cite{2015arXiv150406242C}. Their solution was developed based on the Breslauer and Galil algorithm for sublinear space pattern matching \cite{Breslauer:2014:RSS:2660854.2635814}, and was expanded into an algorithm for matching multiple patterns of any length by breaking the problem into three separate cases.
 
@@ -525,7 +525,7 @@ The only difficulty left with solving the first problem is that KMP is only \tex
 
 The second problem is the easiest to resolve. Instead of storing only one fingerprint of all the previous characters read in the text stream, we use a cyclic buffer of $O(\log m)$ fingerprints, representing the all the previous characters in the text stream up to the last $\log m$ indexes. Now when a VO is checked, it is simply tested against one of these previous fingerprints.
 
-To deal with the third problem of an instance being reported up to $\log m$ characters after it occurred, Breslauer and Galil's solution is to simply process the final level of the pattern  --  the level that matces the whole pattern  --  at every index, instead of once every $\log m$ indexes. Because even the shortest prefix is $4\log m$ characters long and the delay for processing a VO is only at most $O(\log m)$, each level is guaranteed to receive a viable occurrence before it needs to process that VO itself.
+To deal with the third problem of an instance being reported up to $\log m$ characters after it occurred, Breslauer and Galil's solution is to simply process the final level of the pattern  --  the level that matches the whole pattern  --  at every index, instead of once every $\log m$ indexes. Because even the shortest prefix is $4\log m$ characters long and the delay for processing a VO is only at most $O(\log m)$, each level is guaranteed to receive a viable occurrence before it needs to process that VO itself.
 
 The addition of KMP and the cyclic buffer both take $O(1)$ time to update per character, and the round robin method brings the time for the rest of the algorithm down to constant per index as well. All of the components added have contributed at most $O(\log m)$ space. Thus the overall complexity is $O(\log m)$ space and constant time per character.
 
@@ -1363,7 +1363,7 @@ This final section on speeding up the fingerprint operations builds on Sections~
 
 Plus, 64-bit numbers are both faster and more efficient due to their native implementation, and 64-bit architectures themselves are becoming more widespread. So it is worth testing on fixed-size integers as well to see how much practical performance improves from it.
 
-\subsection{Deamortisating the Algorithm}
+\subsection{Deamortising the Algorithm}
 \label{ssec:deamortise}
 
 As mentioned in Section~\ref{ssec:static-hash-fail} the reason for the amortised time complexity is due to how we insert items into and destroying the Red-Black Tree.
