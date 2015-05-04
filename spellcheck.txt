@@ -65,6 +65,9 @@ Knuth-Morris-Pratt
 Aho
 Corasick
 Fourty
+--
+Aho-Corasick
+--
 Aho-Corasick
 Beate
 Commentz-Walter
@@ -92,6 +95,8 @@ trie
 Aho
 Corasick
 Moore's
+Aho-Corasick
+Aho-Corasick
 Aho-Corasick.
 Aho-Corasick
 --
@@ -124,9 +129,6 @@ CLRS
 Bayer
 Aho-Corasick
 Aho-Corasick
---
-Aho-Corasick
---
 Knuth-Morris-Pratt
 KMP
 KMP
@@ -152,6 +154,7 @@ Commentz-Walter
 Karp-Rabin
 Karp-Rabin
 Karp-Rabin
+randonly
 tuple.
 Karp-Rabin
 tectniques
@@ -438,7 +441,6 @@ CMPH
 --
 Lagrange's
 Lindell
-Lindell
 --
 --
 -length
@@ -566,6 +568,8 @@ Aho-Corasick.
 mpz
 mpz
 mk
+GMP
+mpz
 lhash
 lhash
 lh

@@ -197,7 +197,7 @@ Finally, another breakthrough occurred in 2012, when Jalsenius, Porat and Sach \
 
 The specific problem investigated here is dictionary matching. Dictionary matching is a variant of pattern matching, proposed to answer the same question as the original pattern matching problem, but with the problem extended to many patterns. A simple solution is to merely run a pattern matching algorithm such as Knuth-Morris-Pratt several times in parallel, but dictionary matching solutions aim to perform better than solutions written this way.
 
-The question was first proposed by Alfred V. Aho and Margaret J. Corasick in 1975 \cite{Aho:1975:ESM:360825.360855}. Fourty years later, their algorithm still remains a benchmark for solving this problem today. The other common solution was designed four years after Aho-Corasick by Beate Commentz-Walter \cite{commentz-walter:algo} which runs faster on average than Aho-Corasick. But both solutions require enough space to store all occurrences of the pattern. It is possible to achieve less space than this using a variant of Richard M. Karp and M. O. Rabin's 1987 algorithm \cite{5390135}, but only if all patterns are the same length.
+The question was first proposed by Alfred V. Aho and Margaret J. Corasick in 1975 \cite{Aho:1975:ESM:360825.360855}. Fourty years later, their algorithm -- also known throughout this paper as Aho-Corasick -- still remains a benchmark for solving this problem today. The other common solution was designed four years after Aho-Corasick by Beate Commentz-Walter \cite{commentz-walter:algo} which runs faster on average than Aho-Corasick. But both solutions require enough space to store all occurrences of the pattern. It is possible to achieve less space than this using a variant of Richard M. Karp and M. O. Rabin's 1987 algorithm \cite{5390135}, but only if all patterns are the same length.
 
 It was finally in 2015 that a sublinear space algorithm to the problem of dictionary matching was found by Clifford et al. \cite{2015arXiv150406242C}. Their solution was developed based on the Breslauer and Galil algorithm for sublinear space pattern matching \cite{Breslauer:2014:RSS:2660854.2635814}, and was expanded into an algorithm for matching multiple patterns of any length by breaking the problem into three separate cases.
 
@@ -219,7 +219,13 @@ The second reason for investigating low space processing is because there are so
 
 The above points argue in favour of research into improving the space consumption of pattern matching algorithms. But of course, just because an algorithm uses less space in theory does not always mean that it will in practice. Consider implementations for two different dictionary matching algorithms. One implementation uses less space than the other if the patterns are longer than 1,000 characters on average. In theoretical research, this is great as we know that the algorithm is better once the patterns are large enough. In practice on the other hand, you're very unlikely to use this implementation for bibliographic search. This has been a large push in theoretical computer science recently, to see how much we actually benefit from these algorithms when implemented and applied to real world data.
 
-\section{Risks and Challenges}
+\section{Challenges}
+
+There were a number of challenges throughout this project. The first and most significant challenge was that while Aho-Corasick is a tried and tested algorithm in both theory and practice over a period of forty years, this new solution by Clifford et al. was not. In fact, the Clifford et al. algorithm was still under development as implementation of the algorithm began. This resulted in some aspects being delayed as the relevant part of the paper was still being designed, and even some problems related to the algorithm itself. These points where the implementation revealed problems with the underlying algorithm will be the main focus of Chapter~\ref{chap:execution}, as these were the most interesting aspects of implementation.
+
+The second challenge is gathering data to test our implementations on for analysis. This is important for two main reasons. Firstly, we want patterns which are interesting enough to show differences in the behaviour of the two algorithms, but we also want these patterns to be realistic for applications that would be using that data for. And secondly, we care about this as the nature of the data affects the way the patterns perform; Aho-Corasick will perform differently if the patterns are $a, aa, aaa, aaaa, aaaaa$ to if the patterns are five purely randomly generated strings.
+
+The third and final challenge is in set up of the test bench and measurement tools. This is important as we need to consider which properties to measure when testing, and how we want to measure them. On the one hand, we want to measure the space required for the data structure as that is a specific property that we care about when investigating streaming algorithms. But on the other hand, measuring the size of the data structure alone is difficult to achieve in practice.
 
 \section{Central Objectives}
 
@@ -232,8 +238,6 @@ Our overall goal for this project is to evaluate whether or not the reduced spac
   \item To find practical bottlenecks in the Clifford et al. algorithm with regards to space and time.
   \item To implement potential optimisations and see if and to what degree these improve performance.
 \end{enumerate}
-
-\section{Structure}
 
 %-----------------------------------------------------------------------------
 
@@ -306,7 +310,7 @@ Of particular note are Red-Black Trees (RBT) \cite{clrs:rbt}, which are the bina
 \section{The Aho-Corasick Algorithm for Dictionary Matching}
 \label{sec:aho-corasick}
 
-The Aho-Corasick Algorithm for Efficient String Matching \cite{Aho:1975:ESM:360825.360855}  --  known hereafter as Aho-Corasick  --  is a deterministic algorithm for dictionary matching. Published in 1975, the algorithm works as a generalisation of Knuth-Morris-Pratt (KMP) \cite{kmp}, extending the state machine from single patterns in KMP to multiple patterns.
+The Aho-Corasick Algorithm for Efficient String Matching \cite{Aho:1975:ESM:360825.360855} is a deterministic algorithm for dictionary matching. Published in 1975, the algorithm works as a generalisation of Knuth-Morris-Pratt (KMP) \cite{kmp}, extending the state machine from single patterns in KMP to multiple patterns.
 
 Preprocessing consists of three algorithms. The first, Algorithm~\ref{alg:ac-goto}, produces the \texttt{goto} function, which determines what to do if the next character in the stream is a match. This in essence works by building a suffix tree: We traverse the tree until we either reach the end of the pattern or we hit a leaf, and then append the rest of the pattern to the leaf. Note that $\Sigma$ refers to the alphabet of the patterns and $fail$ is a default fail state for if the \texttt{goto} function cannot find a character for that state.
 
@@ -397,7 +401,7 @@ Karp-Rabin fingerprints \cite{5390135} are a function $\phi : \Sigma^* \to \math
 
 $$\phi(T) = \sum_{i = 0}^{n - 1} r^it_i \mod p$$
 
-Where $p$ is a prime number, and $r$ is a random number such that $1 < r < p$. Alongside the fingerprint $\phi(T)$, we store $r^n \mod p$ and $r^{-n} \mod p$ in a tuple. Using these three properties, we can manipulate the fingerprints to affect the underlying strings in three ways \cite{5438620}. Note that all equations listed below are modulo $p$.
+Where $p$ is a prime number, and $r$ is an integer selected randonly from $\mathbb{Z}^*_p$. Alongside the fingerprint $\phi(T)$, we store $r^n \mod p$ and $r^{-n} \mod p$ in a tuple. Using these three properties, we can manipulate the fingerprints to affect the underlying strings in three ways \cite{5438620}. Note that for simplicity, any equations from this point in the report onwards that feature $r, p$ or the fingerprints of any strings themselves can be assumed to be modulo $p$.
 
 \begin{itemize}
   \item \textbf{Concatenate:} If we have a fingerprint $\{\phi(u), r^{n_1}, r^{-n_1}\}$ for a string $u$ of length $n_1$ and another fingerprint $\{\phi(v), r^{n_2}, r^{-n_2}\}$ for a string $v$ of length $n_2$, the concatenation of these two strings is $\{\phi(u) + \phi(v)\cdot r^{n_1}, r^{n_1} \cdot r^{n_2}, r^{-n_1} \cdot r^{-n_2}\}$
@@ -974,7 +978,7 @@ $$\phi(u) = \phi(v), r^{l_u} = r^{l_v} \text{ and } r^{-l_u} = r^{-l_v}$$
 
 $r^{l_u} \text{ and } r^{-l_u}$ are both stored in the fingerprint structure we defined in Section~\ref{sec:kr-fingerprints}. Because CMPH requires string keys for static perfect hash functions, we can make sure these are unique by having the keys be a comma-separated string of $\phi(u),r^{l_u},r^{-l_u}$. Since $r^{l_u}$ and $r^{-l_u}$ are both modulo $p$, their string representations require as much space as there was allocated for the hexadecimal string representation of the fingerprint. Using the size calculated in Section~\ref{sssec:static-hashing-kr}, the overall space required for these strings comes to $3 \cdot (2 \cdot \texttt{\_mp\_size} \cdot \texttt{sizeof}(\texttt{mp\_limb\_t}) + 1)$. Note that we now need three extra bytes instead of one: Two for the commas separating the variables and one for the string terminator.
 
-The probability of a collision now depends on the value of our random number $r$. Because $2 \leq r < p$, it holds that $r$ is in the cyclic group $\mathbb{Z}^*_p$. From this, we can define the set $\langle r \rangle =^{def} \{r^0, r^1,...,1\}$ -- we know that this group eventually terminates by Lagrange's Theorem, as shown in Katz and Lindell \cite{katz:lagrange}. We can define the order of the set $\langle r \rangle$ as the smallest number $i$ such that $r^i = 1$. Katz and Lindell \cite{katz:cyclic-groups} show that if $i$ is the order of $\langle r \rangle$, then $r^x = r^y$ if and only if $x = y \mod i$.
+The probability of a collision now depends on the value of our random number $r$. Because $2 \leq r < p$, it holds that $r$ is in the cyclic group $\mathbb{Z}^*_p$. From this, we can define the set $\langle r \rangle =^{def} \{r^0, r^1,...,1\}$ -- we know that this group eventually terminates by Lagrange's Theorem, as proven in Theorem 7.14 of \cite{katz:lagrange}. We can define the order of the set $\langle r \rangle$ as the smallest number $i$ such that $r^i = 1$. Katz and Lindell \cite{katz:cyclic-groups} show that if $i$ is the order of $\langle r \rangle$, then $r^x = r^y$ if and only if $x = y \mod i$.
 
 Translating this to our fingerprints, the fingerprints of two different strings $u, v$ of respective lengths $l_u, l_v \leq n$ collide if and only if $l_u = l_v \mod i$. For this algorithm, we only compare strings as long as $2k$. Therefore, as long as $i > 2k$, $r^{l_u} = r^{l_v} \text{ and } r^{-l_u} = r^{-l_v}$ if and only if $l_u = l_v$ and thus we have equivalent probability. However, this is the best case scenario. I have not been able to find a solution for the probability of a collision in general.
 
@@ -1159,7 +1163,7 @@ These results are shown in Figure~\ref{fig:short-pattern-results}. Each test now
   \includegraphics[width=0.5\linewidth]{build_length_200_1000}\\
   \includegraphics[width=0.5\linewidth]{time_length_200_1000}\includegraphics[width=0.5\linewidth]{size_length_200_1000}
 \end{center}
-\caption{Build time, run time per character and space for Clifford et al.'s algorithm against Aho-Corasick over the length of the pattern}
+\caption{Build time, run time per character and space for Clifford et al.'s algorithm against Aho-Corasick over the length of the pattern for shorter patterns}
 \label{fig:short-pattern-results}
 \end{figure}
 
@@ -1181,7 +1185,7 @@ For this range of pattern lengths, we are able to see the trend in size for dict
 
 Compared to Aho-Corasick, we still see a saving in space, but the saving is less dramatic. The structure is about 30 times smaller at both the smallest tests -- 100 characters long on average -- and the longest -- 500 characters on average -- but as the algorithms for longer patterns start running at 200 characters on average, this performance drops to twenty times smaller.
 
-\subsection{Performance for More Patterns}
+\subsection{Performance over Number of Patterns}
 \label{ssec:many-pattern-results}
 
 The next results, shown in Figure~\ref{fig:many-pattern-results}, display the performance or the two algorithms as the number of patterns increases. The lengths of the patterns are randomly selected between 1 and 2000 characters. The number of patterns covered a range between 200 and 1000. For every number of patterns, five tests were run and the performance of these tests were averaged to give these results.
@@ -1307,7 +1311,13 @@ As can be seen from the past few pages of evaluation, there is a lot that this i
 
 Following on from Section~\ref{sec:profile-results}, it only makes sense to discuss the bottlenecks discovered there first of all.
 
-A good place to start in this discussion is, obviously, the major bottleneck found from profiling: Checking if fingerprints are equal. Unfortunately, there are very few things we can do to speed up the run time of \texttt{mpz\_equals} itself, but there is a simple way of cutting down the number of times we need to call it. Instead of using \texttt{mpz\_equals} to compare \texttt{r\_k} and \texttt{r\_mk} to test if the strings are the same length, we could simply add a 32-bit integer to the fingerprint data structure to represent the actual length of the underlying strings and then just compare these integers. This offers the benefit of native integer comparison being significantly faster on a CPU than multiple precision integer comparison. We also now get the added bonus that the probability of different length strings colliding is the same as strings which are the same length, assuming that we are not comparing patterns which are individually gigabytes long. There is an extra four bytes per fingerprint, but particularly for long patterns this cost is affordable. We will look at another potential improvement in Section~\ref{ssec:do-we-need-mpa}, but beyond these two the only other optimisation we can really make to this bottleneck is to reduce the number of calls to this function.
+A good place to start in this discussion is, obviously, the major bottleneck found from profiling: Checking if fingerprints are equal. Unfortunately, there are very few things we can do to speed up the run time of \texttt{mpz\_equals} itself, but there is a simple way of cutting down the number of times we need to call it. Instead of using \texttt{mpz\_equals} to compare \texttt{r\_k} and \texttt{r\_mk} to test if the strings are the same length, we could simply add a 32-bit integer to the fingerprint data structure to represent the actual length of the underlying strings and then just compare these integers. This offers the benefit of native integer comparison being significantly faster on a CPU than multiple precision integer comparison. We also now get the added bonus that the probability of different length strings colliding is the same as strings which are the same length, assuming that we are not comparing patterns which are individually gigabytes long. There is an extra four bytes per fingerprint, but particularly for long patterns this cost is affordable. We will look at another potential improvement in Section~\ref{ssec:do-we-need-mpa} where we question the benefits and drawbacks of using GMP in the first place, but beyond these two the only other optimisation we can really make to this bottleneck is to reduce the number of calls to this function.
+
+Even if we truly do not want an extra integer in each fingerprint, we can easily remove one of the equality checks. Note that if $r^k \neq r^{k'}$, then $r^{-k} \neq r^{-k'}$. This can be proven by contradiction: Assume that $r^k \neq r^{k'}$, yet $r^{-k} = r^{-k'}$. We know from the definition of groups \cite{katz:inverse-groups} that $r^k \cdot r^{-k} = 1$. If $r^{-k} = r^{-k'}$ then $r^k \cdot r^{-k'} = 1$ by substitution. By multiplying both sides by $r^{k'}$, we can see the following:
+
+$$r^k \cdot r^{-k} \cdot r^{k'} = 1 \cdot r^{k'} \rightarrow r^k \cdot 1 = r^{k'} \rightarrow r^k = r^{k'}$$
+
+This breaks our assumption, and thus we have reached a contradiction. So when we perform the comparison, we only need to call \texttt{mpz\_equals} on the fingerprint itself and \texttt{r\_k}, saving us one call to the function.
 
 When it comes to checking for duplicate fingerprints during preprocessing, we can reduce the number of equality checks by using a binary search tree instead of linear search. In the case of short pattern matching, this alone can reduce the build time from $O((k\log k)^2)$ to $O(k\log k\log(k\log k))$. We already have a function for comparing fingerprints from Section~\ref{ssec:static-hash-fail}, but this function assumes that the underlying strings are the same length, which we do not have in the short patterns case. This can be rectified by adding an additional integer for string length, as suggested in the above paragraph: We first compare the lengths, and if they are the same length then we compare the fingerprints.
 
@@ -1317,15 +1327,15 @@ As for the other, not as significant bottleneck from long patterns, shifting the
 
 While Sections~\ref{ssec:pick-p}, \ref{ssec:p-size} and \ref{ssec:do-we-need-mpa} look at methods related to how we select our prime number $p$ for optimising purposes, this section will look at two general ways of speeding up the performance of fingerprint operations. In particular, there are two broad ways we will look at optimising the algorithm.
 
-The first is a theoretical proposal. We can see that this scheme uses a lot of modular multiplication operations. More importantly, all of these operations have the same modulus $p$. Intuitively, this makes this case a strong contender for Montgomery multiplication \cite{montgomery:multiplication}. Montgomery multiplication works by representing each symbol $a$ as $a\rho \mod p$, where $\rho$ is the smallest number that satisfies $\rho = b^i > p$, where $b$ is the size of each limb in bits and $i$ is an integer. Montgomery multiplication means that, given two integers $a\rho\mod p, b\rho\mod p$, we can compute and return $ab\rho\mod p$. More importantly, we can achieve this without any division, which modulo operations (including GMP) typically rely on. The cost of this is that as each character is processed, we need to convert that character into its Montgomery representation.
+The first is a theoretical proposal. We can see that this scheme uses a lot of modular multiplication operations. More importantly, all of these operations have the same modulus $p$. Intuitively, this makes this case a strong contender for Montgomery multiplication \cite{montgomery:multiplication}. Montgomery multiplication works by representing each symbol $a$ as $aR \mod p$, where $R$ is an integer that satisfies $R = b^i > p$, where $b$ is the size of each limb in bits and $i$ is an integer. Montgomery multiplication means that, given two integers $aR\mod p, bR\mod p$, we can compute and return $abR\mod p$. More importantly, we can achieve this without any division, which modulo operations (including GMP) typically rely on. The cost of this is that as each character is processed, we need to convert that character into its Montgomery representation.
 
-One problem with this is that we are doing more than simply modular multiplication: We are also doing addition modulo $p$. Thankfully however, we can see that addition of Montgomery representations works as well from the following fingerprint for a string $S$ where all characters are in Montgomery representation:
+One problem with this is that we are doing more than just modular multiplication: We are also doing addition modulo $p$. Thankfully however, we can see that addition of Montgomery representations works as well by considering the following fingerprint for a string $S$ where all characters are in Montgomery representation:
 
-$$s_0r^0\rho + s_1r^1\rho + ... + s_lr^l\rho = (s_0r^0 + s_1r^1 + ... + s_lr^l)\rho = \phi(S)\rho \mod p$$
+$$s_0r^0R + s_1r^1R + ... + s_lr^lR = (s_0r^0 + s_1r^1 + ... + s_lr^l)R = \phi(S)R \mod p$$
 
 Thus we can conclude that the modular addition of the Montgomery representation of terms yields the Montgomery representation of their sum.
 
-The other general speedup is an applied one. Throughout this work, I have stuck to using the high-level GMP integer functions for addition, subtraction, multiplication and modulo operations. However, all of these operations also have low level equivalents, with all bar modulo written in assembly languages. The disadvatage is manageability, particularly since these functions require specifying the number of limbs to write. But since all operations are modulo $p$, this number is already known. We can also use the function \texttt{mpz\_init2} to allocate enough limbs to every fingerprint for any possible value, as the low level functions do no memory reallocation themselves.
+The other general speedup is an applied one. Throughout this work, I have stuck to using the high-level GMP integer functions for addition, subtraction, multiplication and modulo operations. However, all of these operations also have low level equivalents, with all bar modulo written in assembly languages. The disadvatage is manageability, particularly since these functions require specifying the number of limbs to write. But since all operations are modulo $p$, this number is already known; we just specify the number of limbs required to store $p$ and allow the rest to overflow. We can also use the function \texttt{mpz\_init2} to allocate enough limbs to every fingerprint for any possible value, as the low level functions do no memory reallocation themselves.
 
 \subsection{Picking $p$ More Carefully}
 \label{ssec:pick-p}
