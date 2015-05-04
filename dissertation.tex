@@ -303,9 +303,9 @@ For a universe $U$, a hash function $\text{h}$ is static if it can perform looku
 The implementation of minimal perfect hash functions will not be detailed here, as they are used merely as a library and are thus not part of implementation. For further information, I direct the reader to the C Minimal Perfect Hashing Library (CMPH) website: \url{http://cmph.sourceforge.net/} Of particular interest is the paper on the Compress, Hash and Digest algorithm by Belazzougui, Botelho and Dietzfelbinger \cite{belazzougui:chd}, as the algorithm from CMPH used throughout this work.
 
 \section{Binary Search Trees}
-A Binary Search Tree (BST) \cite{clrs:bst} is a tree where each node has at most two children and for every node in the tree, all the descendants to the left of the tree have a smaller value than the given node, and those to the right have a larger value. The height of a BST is determined by the longest distance from any leaf to the root of the tree, and a BST is self-balancing if its height is kept small regardless of what items are inserted or removed. Because a lot of BST operations run in time dependent on the height of the tree, keeping this factor small is important.
+A Binary Search Tree (BST) \cite[pp 286-298]{clrs} is a tree where each node has at most two children and for every node in the tree, all the descendants to the left of the tree have a smaller value than the given node, and those to the right have a larger value. The height of a BST is determined by the longest distance from any leaf to the root of the tree, and a BST is self-balancing if its height is kept small regardless of what items are inserted or removed. Because a lot of BST operations run in time dependent on the height of the tree, keeping this factor small is important.
 
-Of particular note are Red-Black Trees (RBT) \cite{clrs:rbt}, which are the binary search trees used in this project. Their time complexity when containing $n$ items is $O(\log n)$ for insert, search and delete and $O(n)$. Because this is used as a library function and not implemented here, we will not go into detail on how RBTs work. For more information on Red-Black Trees, consult the chapter of Introduction to Algorithms by Cormen, Leiserson, Rivest and Stein (CLRS) cited above, the original paper by Bayer \cite{bayer:rbt}, and the website for the implementation used in this project: \url{http://en.literateprograms.org/Red-black_tree_%28C%29}
+Of particular note are Red-Black Trees (RBT) \cite[pp 308-338]{clrs}, which are the binary search trees used in this project. Their time complexity when containing $n$ items is $O(\log n)$ for insert, search and delete and $O(n)$. Because this is used as a library function and not implemented here, we will not go into detail on how RBTs work. For more information on Red-Black Trees, consult the chapter of Introduction to Algorithms by Cormen, Leiserson, Rivest and Stein (CLRS) cited above, the original paper by Bayer \cite{bayer:rbt}, and the website for the implementation used in this project: \url{http://en.literateprograms.org/Red-black_tree_%28C%29}
 
 \section{The Aho-Corasick Algorithm for Dictionary Matching}
 \label{sec:aho-corasick}
@@ -636,7 +636,7 @@ For space complexity, the only space used is the hash function which uses $O(k\l
 
 As stated in Section~\ref{sec:aho-corasick}, Aho-Corasick \cite{Aho:1975:ESM:360825.360855} is a generalisation of Knuth-Morris-Pratt. Because of this, I decided the most suitable way to implement this algorithm was to start with an implementation of KMP and then generalise it to $k$ patterns.
 
-Most implementations of KMP simply consist of an array of $m$ integers to act as a failure table, a string of $m$ characters for the pattern, and a counter of the number of characters that have matched so far, with the counter reaching $m - 1$ representing the accept state. But this is actually a simplification of the algorithm. As pointed out in CLRS \cite{clrs:kmp}, the correctness of Knuth-Morris-Pratt can be proven because this array, string and integer represent a finite state automaton: The array of integers represent the state the automaton should fall back to if the pattern does not match, the string shows the next character that needs to arrive in the text in order for the automaton to move one state closer to the accept state, and the counter represents the current state the automaton is in, with $m - 1$ being the accept state of the automaton.
+Most implementations of KMP simply consist of an array of $m$ integers to act as a failure table, a string of $m$ characters for the pattern, and a counter of the number of characters that have matched so far, with the counter reaching $m - 1$ representing the accept state. But this is actually a simplification of the algorithm. As pointed out in CLRS \cite[pp 1002-1011]{clrs}, the correctness of Knuth-Morris-Pratt can be proven because this array, string and integer represent a finite state automaton: The array of integers represent the state the automaton should fall back to if the pattern does not match, the string shows the next character that needs to arrive in the text in order for the automaton to move one state closer to the accept state, and the counter represents the current state the automaton is in, with $m - 1$ being the accept state of the automaton.
 
 We can show this with an example: Table~\ref{tab:kmp-pattern-failure} shows the pattern and failure table for the pattern $aabab$, and Figure~\ref{fig:kmp-pattern-failure} shows the state transition diagram for the same pattern.
 
@@ -978,7 +978,7 @@ $$\phi(u) = \phi(v), r^{l_u} = r^{l_v} \text{ and } r^{-l_u} = r^{-l_v}$$
 
 $r^{l_u} \text{ and } r^{-l_u}$ are both stored in the fingerprint structure we defined in Section~\ref{sec:kr-fingerprints}. Because CMPH requires string keys for static perfect hash functions, we can make sure these are unique by having the keys be a comma-separated string of $\phi(u),r^{l_u},r^{-l_u}$. Since $r^{l_u}$ and $r^{-l_u}$ are both modulo $p$, their string representations require as much space as there was allocated for the hexadecimal string representation of the fingerprint. Using the size calculated in Section~\ref{sssec:static-hashing-kr}, the overall space required for these strings comes to $3 \cdot (2 \cdot \texttt{\_mp\_size} \cdot \texttt{sizeof}(\texttt{mp\_limb\_t}) + 1)$. Note that we now need three extra bytes instead of one: Two for the commas separating the variables and one for the string terminator.
 
-The probability of a collision now depends on the value of our random number $r$. Because $2 \leq r < p$, it holds that $r$ is in the cyclic group $\mathbb{Z}^*_p$. From this, we can define the set $\langle r \rangle \defeq \{r^0, r^1,...,1\}$ -- we know that this group eventually terminates by Lagrange's Theorem, as proven in Theorem 7.14 of \cite{katz:lagrange}. We can define the order of the set $\langle r \rangle$ as the smallest number $i$ such that $r^i = 1$. Katz and Lindell \cite{katz:cyclic-groups} show that if $i$ is the order of $\langle r \rangle$, then $r^x = r^y$ if and only if $x = y \mod i$.
+The probability of a collision now depends on the value of our random number $r$. Because $2 \leq r < p$, it holds that $r$ is in the cyclic group $\mathbb{Z}^*_p$ \cite[pp 254-256]{katz}. From this, we can define the set $\langle r \rangle \defeq \{r^0, r^1,...,1\}$ -- we know that this group eventually terminates by Lagrange's Theorem, as proven in Theorem 7.14 of \cite[p 253]{katz}. We can define the order of the set $\langle r \rangle$ as the smallest number $i$ such that $r^i = 1$. Katz and Lindell \cite[pp 274-277]{katz} show that if $i$ is the order of $\langle r \rangle$, then $r^x = r^y$ if and only if $x = y \mod i$.
 
 Translating this to our fingerprints, the fingerprints of two different strings $u, v$ of respective lengths $l_u, l_v \leq n$ collide if and only if $l_u = l_v \mod i$. For this algorithm, we only compare strings as long as $2k$. Therefore, as long as $i > 2k$, $r^{l_u} = r^{l_v} \text{ and } r^{-l_u} = r^{-l_v}$ if and only if $l_u = l_v$ and thus we have equivalent probability. However, this is the best case scenario. I have not been able to find a solution for the probability of a collision in general.
 
@@ -1124,7 +1124,7 @@ Finally, to look at potential optimisations for both algorithms, I ran separate 
 \subsection{Performance as Patterns become Longer}
 \label{ssec:long-pattern-results}
 
-Figure~\ref{fig:long-pattern-results} shows the time taken to build the data structures, time taken to process each character, and the size of the data structure for both Aho-Corasick and the new algorith by Clifford et al. for 1000 patterns of uniformly random lengths between 1 and a maximum value ranging from 1,000 to 10,000 characters. Five tests were run for each maximum length.
+Figure~\ref{fig:long-pattern-results} shows the time taken to build the data structures, time taken to process each character, and the size of the data structure for both Aho-Corasick and the new algorith by Clifford et al. for 1,000 patterns of uniformly random lengths between 1 and a maximum value ranging from 1,000 to 10,000 characters. Five tests were run for each maximum length.
 
 \begin{figure}[t]
 \begin{center}
@@ -1211,7 +1211,7 @@ Again, we have the opposite effect to what happened in the previous sections. Cl
 
 \subsubsection{Size of Data Structure}
 
-The size of our data structure is comparable to the graph we saw in Section~\ref{ssec:long-pattern-results}. At 200 patterns, the algorithm by Clifford et al. was roughly 60 times smaller than the data structure for Aho-Corasick. By 600 patterns, when just over half of them on average would be deemed short, Aho-Corasick was roughly 95 times larger, and at 1000 patterns it became 260 times larger.
+The size of our data structure is comparable to the graph we saw in Section~\ref{ssec:long-pattern-results}. At 200 patterns, the algorithm by Clifford et al. was roughly 60 times smaller than the data structure for Aho-Corasick. By 600 patterns, when just over half of them on average would be deemed short, Aho-Corasick was roughly 95 times larger, and at 1,000 patterns it became 260 times larger.
 
 \subsection{Performance as $\alpha$ Increases}
 
@@ -1288,9 +1288,9 @@ The final point to emphasise is that, while these can be pretty severe when look
 In order to find bottlenecks, I ran the Clifford et al. algorithm on three test cases:
 
 \begin{itemize}
-  \item 1000 patterns up to 2,000 characters long, to see why there is such a big spike in preprocessing time at this point.
-  \item 1000 patterns up to 4,000 characters long, to see how the algorithm performs when roughly half the patterns are short and half are long.
-  \item 1000 patterns up to 10,000 characters long, to see how the algorithm performs when few of the patterns are short.
+  \item 1,000 patterns up to 2,000 characters long, to see why there is such a big spike in preprocessing time at this point.
+  \item 1,000 patterns up to 4,000 characters long, to see how the algorithm performs when roughly half the patterns are short and half are long.
+  \item 1,000 patterns up to 10,000 characters long, to see how the algorithm performs when few of the patterns are short.
 \end{itemize}
 
 For both tests, the first point I saw was that the main bottleneck, with roughly 60\% of the total (preprocessing and running) time was actually the function for checking if two fingerprints are equal. The reason is not because the function is a slow one -- on the contrary, it is one of the fastest functions in the entire source code as simply three calls to \texttt{mpz\_equals} -- but it is called so frequently that even if it takes virtually no time to execute, that time still adds up overall. To give an idea of how many times it is called, for the first of the two tests listed above on 50MB of text, it was called nearly 680 million times on the actual processing alone. It was called another 17 million times in preprocessing, resulting in just over 696 million calls to the function in total. The same story is true for the second case, where it was called a total of 825 million times.
@@ -1316,7 +1316,7 @@ Following on from Section~\ref{sec:profile-results}, it only makes sense to disc
 
 A good place to start in this discussion is, obviously, the major bottleneck found from profiling: Checking if fingerprints are equal. Unfortunately, there are very few things we can do to speed up the run time of \texttt{mpz\_equals} itself, but there is a simple way of cutting down the number of times we need to call it. Instead of using \texttt{mpz\_equals} to compare \texttt{r\_k} and \texttt{r\_mk} to test if the strings are the same length, we could simply add a 32-bit integer to the fingerprint data structure to represent the actual length of the underlying strings and then just compare these integers. This offers the benefit of native integer comparison being significantly faster on a CPU than multiple precision integer comparison. We also now get the added bonus that the probability of different length strings colliding is the same as strings which are the same length, assuming that we are not comparing patterns which are individually gigabytes long. There is an extra four bytes per fingerprint, but particularly for long patterns this cost is affordable. We will look at another potential improvement in Section~\ref{ssec:do-we-need-mpa} where we question the benefits and drawbacks of using GMP in the first place, but beyond these two the only other optimisation we can really make to this bottleneck is to reduce the number of calls to this function.
 
-Even if we truly do not want an extra integer in each fingerprint, we can easily remove one of the equality checks. Note that if $r^k \neq r^{k'}$, then $r^{-k} \neq r^{-k'}$. This can be proven by contradiction: Assume that $r^k \neq r^{k'}$, yet $r^{-k} = r^{-k'}$. We know from the definition of groups \cite{katz:inverse-groups} that $r^k \cdot r^{-k} = 1$. If $r^{-k} = r^{-k'}$ then $r^k \cdot r^{-k'} = 1$ by substitution. By multiplying both sides by $r^{k'}$, we can see the following:
+Even if we truly do not want an extra integer in each fingerprint, we can easily remove one of the equality checks. Note that if $r^k \neq r^{k'}$, then $r^{-k} \neq r^{-k'}$. This can be proven by contradiction: Assume that $r^k \neq r^{k'}$, yet $r^{-k} = r^{-k'}$. We know from the definition of groups \cite[p 250]{katz} that $r^k \cdot r^{-k} = 1$. If $r^{-k} = r^{-k'}$ then $r^k \cdot r^{-k'} = 1$ by substitution. By multiplying both sides by $r^{k'}$, we can see the following:
 
 $$r^k \cdot r^{-k} \cdot r^{k'} = 1 \cdot r^{k'} \Rightarrow r^k \cdot 1 = r^{k'} \Rightarrow r^k = r^{k'}$$
 
@@ -1388,7 +1388,7 @@ The second problem is the $\mathcal{S}$ function for short patterns. Checking th
 
 Now we shall describe a proposal for fixing the problem stated in Section~\ref{sssec:error-prob}. Instead of having prefixes share the same progression if they have matching power of two length prefixes, all prefixes have their own arithmetic progressions, thus removing the risk of deleting VOs affecting other prefixes. To achieve this, we replace the arithmetic progressions for the final row with a single viable occurrence for each power of two length prefix. Then for every prefix $Q_i$, we check if the VO for $Q_i$'s power of two length prefix is new by checking its location to determine if it was inserted within the last $\frac{k}{2}$ text indexes. If it was inserted within this time, then we add the VO to the end of $Q_i$'s arithmetic progression. We then check the oldest occurrence in $Q_i$'s arithmetic progression and run the rest of the algorithm as usual. To deamortise this work, we process two prefixes at a time in a round robin manner.
 
-Each power of two length prefix on the final row only needs to store one VO, as it will be added to the relevant arithmetic progressions within $\frac{k}{2}$ indexes after being inserted and it is assumed that the period of these prefixes is greater than $k$.\footnote{Coincidentally, this change allows us to strengthen the edge case to the period only needing to be longer than $\frac{k}{2}$.} We know that items don't get added to the arithmetic progressions faster than they can be removed either, because each arithmetic progression is evaluated at the same rate as well. The extra space required for these arithmetic progressions and viable occurrences is $O(k)$.
+Each power of two length prefix on the final row only needs to store one VO, as it will be added to the relevant arithmetic progressions within $\frac{k}{2}$ indexes after being inserted and it is assumed that the period of these prefixes is greater than $k$.\footnote{Incidentally, this change allows us to strengthen the edge case to the period of the prefix only needing to be at least as long as $\frac{k}{2}$.} We know that items don't get added to the arithmetic progressions faster than they can be removed either, because each arithmetic progression is evaluated at the same rate as well. The extra space required for these arithmetic progressions and viable occurrences is $O(k)$.
 
 %-----------------------------------------------------------------------------
 
@@ -1397,17 +1397,29 @@ Each power of two length prefix on the final row only needs to store one VO, as 
 
 \section{Main Results}
 
+As far as data structure size alone is concerned, the Clifford et al. algorithm is by far and large the superior of the solutions. Even on relatively short patterns -- the smallest test size was 100 patterns, each of which on average only 100 characters long -- we have a data structure which is 20-30 times smaller than that of Aho-Corasick.
+
+In terms of overall benefit, the answer is more difficult. For our smallest test range -- 100 pattens of maximum lengths 200-1,000 characters -- while we do see a 20-30 factor reduction in size as stated in the above paragraph, the average time per character is 60-80 times longer than before, and thus the benefit is not worth the drawbacks. But as the patterns start getting longer, we can see a more worthwhile benefit to using the Clifford et al. approach; on 1,000 patterns of maximum length 1,000 characters, Aho-Corasick only gives us a 60 times factor in speed while using 140 times more space.
+
+As for when the number of patterns increase, we can see a payoff start at roughly 600 patterns of average length 2,000 characters long, when Clifford et al. uses roughly eighty times more time yet ninety five times less space. Since the average length of the patterns for these sets of patterns is approximately 1,000 characters long, this means a total of 600,000 characters is where we start seeing a benefit in these tests. But it should be remembered, of course, that it is not just the total length of the patterns, but also how long each pattern is relative to the number of patterns that affect the performance of the Clifford et al. algorithm, so this is not guaranteed to be a constant break-even point.
+
+As for comparative performance of preprocessing time, Clifford et al. takes roughly the same amount of time if not less than Aho-Corasick, as long as the majority of patterns are not short. If most patterns are short, then Clifford et al. can take dramatically longer time.
+
+Our results from profiling show that the majority of overhead is from short patterns, and in particular the number of equality checks made by the short patterns algorithm. What is particularly interesting is that the algorithm for short patterns has the worst performance when there are few if any matches in the text. This combined with the paragraph about preprocessing time above makes for a question of priorities: Do we want most patterns to be short and thus have worse preprocessing time, or few patterns to be short and thus have worse run time?
+
+The final point we can note is that chances are we do not need the prime number $p$ for our fingerprints to be a large as it currently is. Even for $\alpha = 0$, we saw no difference in number of matches than we did for larger values of $\alpha$, yet we did see an increase in preprocessing time, run time per character and size of the data structure.
+
 \section{Current Status}
 
 \section{Future Work}
 
 \subsection{Implement Later Versions of the Algorithm}
 
-\subsection{Investigate Edge Cases}
-
 \subsection{More Thorough Testing of Periodic Patterns}
 
-\subsection{Other Measurements of Interest}
+\subsection{More Thorough Comparison and Testing}
+
+\subsection{Comparison with Breslauer and Galil}
 
 % =============================================================================
 
