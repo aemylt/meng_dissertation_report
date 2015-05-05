@@ -3,9 +3,7 @@
 0'
 0's
 0.south
--1
 1s
--1s
 2cm
 50MB
 Aho
@@ -14,6 +12,7 @@ Aho-Corasick.
 alloc
 Allyx
 al.'s
+arithmatic
 Bayer
 Beate
 Beddows
@@ -123,7 +122,8 @@ Sublinear
 substrings
 supporting-tech
 -th
-thr
+tp
+tradeoff
 trie
 tuple
 tuple.
