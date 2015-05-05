@@ -51,55 +51,25 @@
 
 \makedecl
 
-% LaTeX automatically generates a table of contents, plus associated lists 
-% of figures, tables and algorithms.  The former is a compulsory part of the
-% dissertation, but if you do not require the latter they can be suppressed
-% by simply commenting out the associated macro.
-
-\tableofcontents
-\listoffigures
-\listoftables
-\listofalgorithms
-%\lstlistoflistings
-
-% The following sections are part of the front matter, but are not generated
-% automatically by LaTeX; the use of \chapter* means they are not numbered.
-
 %-----------------------------------------------------------------------------
 
 \chapter*{Executive Summary}
 
-{\bf A compulsory section, of at most $1$ page} 
-\vspace{1cm} 
+This dissertation is about dictionary matching: the problem of checking where one or more of several patterns occur in a body of text. Dictionary matching is a widely used problem for many areas in Computer Science, with applications ranging from Bioinformatics \cite{15713233} to intrusion detection \cite{1354682}. Problems such as the ones stated above require the ability to match large patterns, but the most widely used algorithm for dictionary matching was invented forty years ago and tested on data dramatically smaller in size. Even more concerning is that the authors of the algorithm themselves state in the original paper that the size of the data structure might make it unappealing for some applications \cite{Aho:1975:ESM:360825.360855}.
 
-\noindent
-This section should pr\'{e}cis the project context, aims and objectives,
-and main contributions and achievements; the same section may be called
-an abstract elsewhere.  The goal is to ensure the reader is clear about 
-what the topic is, what you have done within this topic, {\em and} what 
-your view of the outcome is.
+As the data we want to process has grown larger over time, to the extent that it is starting to grow faster than our ability to store all of it, there has been a significant push in the theory community to reduce the space required for processing. In particular, since 2009 \cite{5438620}, it has been shown that we can in fact solve some pattern matching problems in less space than it takes to even store the patterns, let alone the texts themselves. Most recently, it was shown this year \cite{2015arXiv150406242C} that you can solve the dictionary matching problem in less space than it takes to store all the patterns.
 
-The former aspects should be guided by your specification: essentially 
-this section is a (very) short version of what is typically the first 
-chapter.  The latter aspects should be presented as a concise, factual 
-bullet point list.  The points will of course differ for each project, 
-but an example is as follows:
+However, just because algorithms perform better in theory does not always mean that they will do the same in practice. If it only performs better on patterns dramatically larger than you would ever be expected to process then there is no reason to use that algorithm for a given problem. This brings us to the focus of this project, within which I aim to implement this space efficient solution for dictionary matching and see how it compares to the traditional solution when tested on real data.
 
-\begin{quote}
-\noindent
+\section*{Main Achievements}
+
 \begin{itemize}
-\item I spent $120$ hours collecting material on and learning about the 
-      Java garbage-collection sub-system. 
-\item I wrote a total of $5000$ lines of source code, comprising a Linux 
-      device driver for a robot (in C) and a GUI (in Java) that is 
-      used to control it.
-\item I designed a new algorithm for computing the non-linear mapping 
-      from A-space to B-space using a genetic algorithm, see page $17$.
-\item I implemented a version of the algorithm proposed by Jones and 
-      Smith in [6], see page $12$, corrected a mistake in it, and 
-      compared the results with several alternatives.
+  \item I implemented a streaming version of the Aho-Corasick \cite{Aho:1975:ESM:360825.360855} algorithm.
+  \item I implemented the first version of the Clifford et al. \cite{2015arXiv150406242C} algorithm. As part of this, I found a number of issues with the version of the paper used for this implementation, and either fixed them or provided further analysis on them.
+  \item I developed a test bench using python to generate patterns and C to run the text and patterns on the two implementations. The test bench is set up to allow any number of patterns of lengths randomly generated between 1 and some maximum length from any body of text.
+  \item I analysed the Clifford et al. algorithm using profiling tools to notice bottlenecks in the algorithm's performance.
+  \item I suggested a number of optimisations to the algorithm based on the bottlenecks found during profiling.
 \end{itemize}
-\end{quote}
 
 \chapter*{Supporting Technologies}
 \label{ch:supporting-tech}
@@ -150,6 +120,20 @@ Everyone on my course has had an impact on me over the past four years. In parti
 I would like to acknowledge David Beddows, Derek Bekoe, Timothy Lewis and Jonathan Walsh for remaining a stable household for the past three years -- four in the case of David and Timothy.
 
 Last, but most certainly not least, I would like to thank my family and friends for the infinite support, happiness and love they have given me my entire life.
+
+% LaTeX automatically generates a table of contents, plus associated lists 
+% of figures, tables and algorithms.  The former is a compulsory part of the
+% dissertation, but if you do not require the latter they can be suppressed
+% by simply commenting out the associated macro.
+
+\tableofcontents
+\listoffigures
+\listoftables
+\listofalgorithms
+%\lstlistoflistings
+
+% The following sections are part of the front matter, but are not generated
+% automatically by LaTeX; the use of \chapter* means they are not numbered.
 
 % =============================================================================
 
@@ -205,7 +189,7 @@ It was finally in 2015 that a sublinear space algorithm to the problem of dictio
 
 As stated in the subtitle, this project is an empirical analysis of dictionary matching. It was inspired by an eight week project conducted by me for the Theory and Algorithms Group at the University of Bristol during the summer of 2014, which focused on an empirical analysis of algorithms for problems including parameterised matching and exact matching, including to our knowledge the first ever implementation of Breslauer and Galil's algorithm for exact matching in sublinear space. At the same time, researchers in the Theory and Algorithms Group started investigating the concept of dictionary matching in sublinear space, which led to this work as a spiritual successor.
 
-This project looks at the practical performance of sublinear space dictionary matching. The main concern of the work is to see if we can achieve a dramatically smaller amount of space for streaming the text than we can from Aho-Corasick in practice. This consists of two stages. For the first stage, I implement both algorithms in C using external libraries listed in \nameref{ch:supporting-tech}. As part of this stage, I identify interesting points and limitations of both algorithms and discuss how to fix them. For the second stage, evaluation, I design a test bench using a combination of Python to generate patterns and C to measure the performance of the algorithms when run on real texts. Finally, I profile the implementations to identify bottlenecks of the Clifford et al. solution and suggest methods for potential practical optimisations.
+This project looks at the practical performance of sublinear space dictionary matching. The main concern of the work is to see if we can achieve a dramatically smaller amount of space for streaming the text than we can from Aho-Corasick in practice. This consists of two stages. For the first stage, I implement both algorithms in C using external libraries listed in \nameref{ch:supporting-tech}. As part of this stage, I identify interesting points and limitations of both algorithms and discuss how to fix them. For the second stage, evaluation, I design a test bench using a combination of python to generate patterns and C to measure the performance of the algorithms when run on real texts. Finally, I profile the implementations to identify bottlenecks of the Clifford et al. solution and suggest methods for potential practical optimisations.
 
 \section{Motivation and Significance}
 
@@ -1433,7 +1417,7 @@ Objective 5 has been satisfied in part. While optimisations have not been implem
 
 \subsection{Implement Later Versions of the Algorithm}
 
-As stated in Section~\ref{sec:challenges}, one of the major difficulties in this work was that the algorithm was still undergoing development while I was implementing it. As it stands, the most recent version of the algorithm, and thus the version that is published, has included the work of another author alongside the four mentioned in the title of Section~\ref{sec:theory-clifford}, and now has a performance of $O(\log\log(k + m))$ time per character. This algorithm is developed as an extension to the version implemented in this project, and thus this work can be used as a stepping stone in the direction of implementing the final version.
+As stated in Section~\ref{sec:challenges}, one of the major difficulties in this work was that the algorithm was still undergoing development while I was implementing it. As it stands, the most recent version of the algorithm, and thus the version that is published, has included the work of another author alongside the four mentioned in the title of Section~\ref{sec:theory-clifford}, and now has a performance of $O(\log\log(k + m))$ time per character. This version also fixes the problem of periodic patterns requiring that either no pattern is a suffix of any other pattern or that we do not know which pattern matched by binary search, at the cost of a log factor. This algorithm is developed as an extension to the version implemented in this project, and thus this work can be used as a stepping stone in the direction of implementing the final version.
 
 It is also worth noting that it might be possible to improve the algorithm further. There is no currently known lower bound for the algorithm, so a constant time solution might be achievable. This is a very difficult task however, and would require a strong combination of both theory and applied work to have both an algorithm and an implementation.
 
@@ -1486,29 +1470,6 @@ A simple solution with Aho-Corasick and static hashing would be to reuse the fin
 % the associated macro, LaTeX manages them appropriatly.
 
 \appendix
-
-\begin{comment}
-
-\chapter{An Example Appendix}
-\label{appx:example}
-
-Content which is not central to, but may enhance the dissertation can
-be included in one or more appendices; examples include, but are not 
-limited to
-
-\begin{itemize}
-\item lengthy mathematical proofs, numerical or graphical results
-      which are summarised in the main body,
-\item sample or example calculations, 
-      and
-\item results of user studies or questionnaires.
-\end{itemize}
-
-\noindent
-Note that in line with most research conferences, the marking panel 
-is not obliged to read such appendices.
-
-\end{comment}
 
 % =============================================================================
 
