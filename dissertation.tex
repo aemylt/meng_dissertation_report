@@ -387,7 +387,7 @@ Karp-Rabin fingerprints \cite{5390135} are a function $\phi : \Sigma^* \to \math
 
 $$\phi(T) = \sum_{i = 0}^{n - 1} r^it_i \mod p$$
 
-Where $p$ is a prime number, and $r$ is an integer selected randonly from $\mathcal{F}_p$. Alongside the fingerprint $\phi(T)$, we store $r^n \mod p$ and $r^{-n} \mod p$ in a tuple. Using these three properties, we can manipulate the fingerprints to affect the underlying strings in three ways \cite{5438620}. Note that for simplicity, any equations from this point in the report onwards that feature $r, p$ or the fingerprints of any strings themselves can be assumed to be modulo $p$.
+Where $p$ is a prime number, and $r$ is an integer selected at random from $\mathcal{F}_p$. Alongside the fingerprint $\phi(T)$, we store $r^n \mod p$ and $r^{-n} \mod p$ in a tuple. Using these three properties, we can manipulate the fingerprints to affect the underlying strings in three ways \cite{5438620}. Note that for simplicity, any equations from this point in the report onwards that feature $r, p$ or the fingerprints of any strings themselves can be assumed to be modulo $p$.
 
 \begin{itemize}
   \item \textbf{Concatenate:} If we have a fingerprint $\{\phi(u), r^{n_1}, r^{-n_1}\}$ for a string $u$ of length $n_1$ and another fingerprint $\{\phi(v), r^{n_2}, r^{-n_2}\}$ for a string $v$ of length $n_2$, the concatenation of these two strings is $\{\phi(u) + \phi(v)\cdot r^{n_1}, r^{n_1} \cdot r^{n_2}, r^{-n_1} \cdot r^{-n_2}\}$
@@ -397,7 +397,7 @@ Where $p$ is a prime number, and $r$ is an integer selected randonly from $\math
 
 All of these operations can be completed in constant time.
 
-It is interesting to note that a variant of the Karp-Rabin algorithm can be used for a subset of dictionary matching, where all the patterns are the same length $m$ \cite{candan:data}. This can be done by storing a fingerprint of the last $m$ characters read from the text, and using static perfect hashing as described in section \ref{min-perf-hash} to check if the fingerprint of the text matches any fingerprints of the patterns. Using suffix and concatenation tectniques above and storing a circular buffer of the last $m$ characters, we can accomplish this with $O(k + m)$ space and $O(1)$ time per character. However, due to the limitation that all the patterns have to be the same length, this method has not been analysed for this project.
+It is interesting to note that a variant of the Karp-Rabin algorithm can be used for a subset of dictionary matching, where all the patterns are the same length $m$ \cite{candan:data}. This can be done by storing a fingerprint of the last $m$ characters read from the text, and using static perfect hashing as described in section \ref{min-perf-hash} to check if the fingerprint of the text matches any fingerprints of the patterns. Using suffix and concatenation techniques above and storing a circular buffer of the last $m$ characters, we can accomplish this with $O(k + m)$ space and $O(1)$ time per character. However, due to the limitation that all the patterns have to be the same length, this method has not been analysed for this project.
 
 The last point to mention is the probability of a collision. Breslauer and Galil \cite{Breslauer:2014:RSS:2660854.2635814} provide a theorem that if $u$ and $v$ are two different strings of length $l \leq n$, $p \in \Theta(n^{2 + \alpha})$ for some level of accuracy $\alpha \geq 0$ and $r \in \mathcal{F}_p$ is randomly chosen, then the probability that $\phi(u) = \phi(v)$ is smaller than $\frac{1}{n^{1 + \alpha}}$. We will however see in Section~\ref{ssec:short-collisions} why this does not necessarily hold for the dictionary matching algorithm devised by Clifford et al. \cite{2015arXiv150406242C}.
 
@@ -669,7 +669,7 @@ The first important decision was how to implement the automaton. As a finite sta
 \begin{itemize}
   \item \textbf{Adjacency Matrix:} An item at coordinates $(i,a)$ in the matrix represents an edge in the matrix from state $i$ if the next character is $a$. The value of $(i,j)$ itself is the \texttt{goto} state, and is set to the failure state if there is no subsequent pattern with the next character in the state. This takes constant time travelling between states but $O(m|\Sigma|)$ space.
   \item \textbf{Adjacency List:} Each item in the list is a tuple $(i, j, a)$, representing an edge from $i$ to $j$ if $a$ is next on the tape. Failure edges are represented by an integer for each state. This requires potentially less space than an adjacency matrix but $O(m \min(|\Sigma|, m))$ time to move to \texttt{goto} state.
-  \item \textbf{Object Oriented:} A state structure is defined, with an array of pointers to other states it connects to and the next character that needs to be read on the tape for the automaton to enter that state. Failure edges are simply a pointer to failure state. The ferformance is a compromise between an adjacency matrix and an adjacency list, with the same asymptotic space consumption as an adjacency list but $O(\min(|\Sigma|, m))$ time to move to \texttt{goto} state.
+  \item \textbf{Object Oriented:} A state structure is defined, with an array of pointers to other states it connects to and the next character that needs to be read on the tape for the automaton to enter that state. Failure edges are simply a pointer to failure state. The performance is a compromise between an adjacency matrix and an adjacency list, with the same asymptotic space consumption as an adjacency list but $O(\min(|\Sigma|, m))$ time to move to \texttt{goto} state.
 \end{itemize}
 
 My initial decision was to use the object oriented approach. Implementing Knuth-Morris-Pratt in this form is easy: When constructing the \texttt{goto} edge, we just iterate through each character in the pattern and connect a new state to the most recent state made. When both constructing the failure pointer and processing the text, we just use the standard KMP algorithm, only using pointers to states instead of integers. And when destroying the automaton at the end, we just recursively call the destroy function on the \texttt{goto} item in the automaton. Note that we don't worry about destroying the node pointed to along the failure edge, as we know that will be destroyed later.
@@ -687,12 +687,12 @@ In the end, a hybrid method was used for representing the automaton, combining a
 
 This has the same performance as the object oriented approach, both in terms of time and space.
 
-One detail to remember is that the current state is the index of several arrays. Thus, we cannot have our start state as -1 anymore. This is easy to remedy, by replacing the start with 0. This is the only discrepancy between our terms for KMP above and our work on Aho-Corasick below.
+One detail to remember is that the current state is the index of several arrays. Thus, we cannot have our start state as -1 any more. This is easy to remedy, by replacing the start with 0. This is the only discrepancy between our terms for KMP above and our work on Aho-Corasick below.
 
 \subsection{Removing the $\Sigma$ Dependency from Preprocessing}
 \label{ssec:ac-hashing}
 
-One of the major problems with the Aho-Corasick algorithm as it is defined in Section~\ref{sec:aho-corasick} is that Algorthms~\ref{alg:ac-goto}, \ref{alg:ac-failure} and \ref{alg:ac-next} all rely on knowing the complete alphabet at preprocessing time. This is not guaranteed under the streaming model, and requires multiple passes over the text and pattern.
+One of the major problems with the Aho-Corasick algorithm as it is defined in Section~\ref{sec:aho-corasick} is that Algorithms~\ref{alg:ac-goto}, \ref{alg:ac-failure} and \ref{alg:ac-next} all rely on knowing the complete alphabet at preprocessing time. This is not guaranteed under the streaming model, and requires multiple passes over the text and pattern.
 
 In order to cater for this, a few changes have been made to each algorithm. For Algorithm~\ref{alg:ac-goto}, we change it by specifying the result the output from \texttt{goto} if the next character does not match $failure = 0$. This removes the need for the final loop entirely on that case.
 
@@ -801,7 +801,7 @@ Asymptotically, the space is not affected by this change. We only need to store 
 
 The next step of implementation was to look at patterns which are all the same power of two length. This essentially works as a combination of Porat and Porat's algorithm with the Karp-Rabin algorithm implemented in the previous section.
 
-The first step is to determine the length of the longest pattern $m$, and then use this to compute $\log m$, so that we can allocate enough rows for the pattern. This is straighforward: Iterate through all of the pattern lengths to find the longest, and use bit shifting to compute $\log m$.
+The first step is to determine the length of the longest pattern $m$, and then use this to compute $\log m$, so that we can allocate enough rows for the pattern. This is straightforward: Iterate through all of the pattern lengths to find the longest, and use bit shifting to compute $\log m$.
 
 Because the very first row, which matches prefixes one character long, doesn't need any arithmetic progressions stored, we just process those characters live as they come in on the stream. Thus we actually only need $\log m - 1$ rows. For this reason, we handle the first row differently. Instead of having an array of progressions for it, we have a static hash table to check each character $t_j$ as it enters the stream to determine if it matches the prefix of some pattern, and then insert it into level 0 if there is a match. We don't use the fingerprint static hash table described above for these prefixes. Instead, because these prefixes are only one character long, we use the static hash table used in Section~\ref{ssec:ac-hashing}, which is faster than hashing $\phi(t_j)$.
 
@@ -936,7 +936,7 @@ $\mathcal{H}_3.\text{insert}(\phi(p_0...p_{m_i}), 1)$
   \label{tab:preproc-results-correct}
 \end{table}
 
-Another point worth mentioning is how the function $\mathcal{S}$ is computed. For a string $S$ of $m$ characters, we iterate through every pattern in the dictionary $P_i$ and check if $m_i \leq m$. If that check holds, we then use na\"{i}ve pattern matcing to check if $s_{m - m_i}...s_{m - 1} = P_i$. This was the easiest solution to implement, and we can see at testing whether or not this is a bottleneck of the algorithm.
+Another point worth mentioning is how the function $\mathcal{S}$ is computed. For a string $S$ of $m$ characters, we iterate through every pattern in the dictionary $P_i$ and check if $m_i \leq m$. If that check holds, we then use na\"{i}ve pattern matching to check if $s_{m - m_i}...s_{m - 1} = P_i$. This was the easiest solution to implement, and we can see at testing whether or not this is a bottleneck of the algorithm.
 
 \subsection{Adjusting for Patterns Shorter than $2k$}
 
@@ -1019,7 +1019,7 @@ The above solution does have problems however. First, there is the case where we
 
 For the first case, the algorithm itself provides a solution to this problem. When we compute prefix $Q_i$, we check to see if any other pattern we have already processed $P_j$ has $Q_j$ such that $\phi(Q_i) = \phi(Q_j)$. If one such fingerprint does exist, we then append the fingerprint of the $k$-length suffix of $P_i$ to an array of such fingerprints, indexed at $j$ so that it can be easily retrieved when we find a match with $\phi(Q_i)$.
 
-For the second case, we consider a pattern $P_i$ on row $x$. First we notice that $P_i$ will end on this row, so we start adding it to the final row. When we process $Q_i$, we find no patterns with a matching fingerprint $\phi(Q_j)$, and thus assign a prefix for it as well as a list of $k$-length suffixes -- initially only containing the suffix of $P_i$ itself. We then compute $\phi(p_{i,0}...p_{i,2^x-1})$ and find that there is a matching fingerprint already. At this pont there are two possibilities:
+For the second case, we consider a pattern $P_i$ on row $x$. First we notice that $P_i$ will end on this row, so we start adding it to the final row. When we process $Q_i$, we find no patterns with a matching fingerprint $\phi(Q_j)$, and thus assign a prefix for it as well as a list of $k$-length suffixes -- initially only containing the suffix of $P_i$ itself. We then compute $\phi(p_{i,0}...p_{i,2^x-1})$ and find that there is a matching fingerprint already. At this point there are two possibilities:
 
 \begin{enumerate}
   \item The matching prefix has one or more patterns that terminate on this row. In this case, we don't need another arithmetic progression on the final row to accommodate $P_i$, as we can just the progression already in place, so we just set $Q_i$ to point to that progression.
@@ -1031,7 +1031,7 @@ For the second case, we consider a pattern $P_i$ on row $x$. First we notice tha
 
 The final question is when do we remove VOs from the arithmetic progression? We need to make sure that the progression is only advanced when all prefixes that might have needed to check the progression have seen it. Because there is a delay of up to $\frac{k}{2}$ characters between a prefix needing to check an occurrence and the prefix checking the occurrence, can we ensure that all prefixes have seen this progression $k$ characters after it has originally been checked?
 
-This was the idea implemented, but there is a problem with this reasoning. Consider two prefixes $Q_i, Q_j$ such that $|Q_i| + k < |Q_j|$, yet both share the same progression by having the same power of two length prefix. In this case, there is no convenient time to remove the progression. If we remove it $k$ characters after $Q_i$ has tested it, $Q_j$ might not have yet tested it. If we remove it $k$ characters after $Q_j$ tested it, then there might be other later occurences in the progression that it is too late for $Q_i$ to test. While a solution to this problem wasn't implemented due to time constraints, one will be proposed in Section~\ref{ssec:error-fix} chapter among other suggested improvements to the algorithm.
+This was the idea implemented, but there is a problem with this reasoning. Consider two prefixes $Q_i, Q_j$ such that $|Q_i| + k < |Q_j|$, yet both share the same progression by having the same power of two length prefix. In this case, there is no convenient time to remove the progression. If we remove it $k$ characters after $Q_i$ has tested it, $Q_j$ might not have yet tested it. If we remove it $k$ characters after $Q_j$ tested it, then there might be other later occurrences in the progression that it is too late for $Q_i$ to test. While a solution to this problem wasn't implemented due to time constraints, one will be proposed in Section~\ref{ssec:error-fix} chapter among other suggested improvements to the algorithm.
 
 \subsection{Avoiding the Edge Case}
 \label{ssec:impl-edge-case}
@@ -1114,7 +1114,7 @@ Finally, to look at potential optimisations for both algorithms, I ran separate 
 \subsection{Performance as Patterns become Longer}
 \label{ssec:long-pattern-results}
 
-Figure~\ref{fig:long-pattern-results} shows the time taken to build the data structures, time taken to process each character, and the size of the data structure for both Aho-Corasick and the new algorith by Clifford et al. for 1,000 patterns of uniformly random lengths between 1 and a maximum value ranging from 1,000 to 10,000 characters. Five tests were run for each maximum length.
+Figure~\ref{fig:long-pattern-results} shows the time taken to build the data structures, time taken to process each character, and the size of the data structure for both Aho-Corasick and the new algorithm by Clifford et al. for 1,000 patterns of uniformly random lengths between 1 and a maximum value ranging from 1,000 to 10,000 characters. Five tests were run for each maximum length.
 
 \begin{figure}[t]
 \begin{center}
@@ -1127,7 +1127,7 @@ Figure~\ref{fig:long-pattern-results} shows the time taken to build the data str
 
 \subsubsection{Build Time}
 
-The first point that can be noticed is the spike for Clifford et al. at roughly 1,000 characters for average pattern length. I was very curious as to why this spike occured, and in particular how it dropped to to nearly half the time for patterns one thousand characters longer and only again started taking that much time to preprocess again at an average length of 5,000 characters. We will look at profiling this case later, but it is worth noting that an average length of 1,000 characters per pattern over a uniform distribution would put the maximum length at roughly 2,000 characters. Since there are 1,000 patterns in total, this would be the upper limit of the case where all patterns are processed using the short patterns case, which would imply that short patterns is a bottleneck with respect to preprocessing time.
+The first point that can be noticed is the spike for Clifford et al. at roughly 1,000 characters for average pattern length. I was very curious as to why this spike occurred, and in particular how it dropped to to nearly half the time for patterns one thousand characters longer and only again started taking that much time to preprocess again at an average length of 5,000 characters. We will look at profiling this case later, but it is worth noting that an average length of 1,000 characters per pattern over a uniform distribution would put the maximum length at roughly 2,000 characters. Since there are 1,000 patterns in total, this would be the upper limit of the case where all patterns are processed using the short patterns case, which would imply that short patterns is a bottleneck with respect to preprocessing time.
 
 The other point that surprised me was how similar these preprocessing times were. Following the preprocessing times from my summer project and how significantly faster KMP was than Breslauer and Galil, I was expecting something similar here. Instead, the algorithm by Clifford et al. in fact took \textit{less} time in most cases. It seems that the more complex state machine required by Aho-Corasick results in a larger overhead than Knuth-Morris-Pratt. I would've liked to have measured this for even longer patterns, due to the fact that the build time of Clifford et al. is getting closer to that of Aho-Corasick by the time the patterns reach an average length of 5000 characters, but this was not possible due to time constraints.
 
@@ -1148,7 +1148,7 @@ Because of the significant difference in data structure size, I acknowledge that
 
 I was originally going to do further testing on higher number of patterns of similar lengths to the ones in Section~\ref{ssec:long-pattern-results}. However, I decided this was of little interest as we already knew what the result would be if we started testing, for example, 2,000 patterns of 5,000 characters each: Aho-Corasick would remain performing better at time complexity while Clifford et al. would perform better at space. As a result, I figured it was more interesting to try shorter patterns, and see if we could decrease the gap in performance between the two algorithms.
 
-These results are shown in Figure~\ref{fig:short-pattern-results}. Each test now conists of 100 patterns, each pattern of lengths uniformly selected as before except the maximum length now ranges from 200 to 1,000 characters. Again, five tests were run for each maximum length.
+These results are shown in Figure~\ref{fig:short-pattern-results}. Each test now consists of 100 patterns, each pattern of lengths uniformly selected as before except the maximum length now ranges from 200 to 1,000 characters. Again, five tests were run for each maximum length.
 
 \begin{figure}[t]
 \begin{center}
@@ -1262,7 +1262,7 @@ For this, I measured the number of matches from both algorithms when applying th
   \includegraphics[width=0.5\linewidth]{diff_num_200_1000}\\
   \includegraphics[width=0.5\linewidth]{diff_length_1000_10000}\includegraphics[width=0.5\linewidth]{diff_length_200_1000}
 \end{center}
-\caption{Difference in number of matches between Aho-Corasick and Cliffort et al. implementation}
+\caption{Difference in number of matches between Aho-Corasick and Clifford et al. implementation}
 \label{fig:diff-results}
 \end{figure}
 
@@ -1330,7 +1330,7 @@ $$s_0r^0R + s_1r^1R + ... + s_lr^lR = (s_0r^0 + s_1r^1 + ... + s_lr^l)R = \phi(S
 
 Thus we can conclude that the modular addition of the Montgomery representation of terms yields the Montgomery representation of their sum.
 
-The other general speedup is an applied one. Throughout this work, I have stuck to using the high-level GMP integer functions for addition, subtraction, multiplication and modulo operations. However, all of these operations also have low level equivalents, with all bar modulo written in assembly languages. The disadvatage is manageability, particularly since these functions require specifying the number of limbs to write. But since all operations are modulo $p$, this number is already known; we just specify the number of limbs required to store $p$ and allow the rest to overflow. We can also use the function \texttt{mpz\_init2} to allocate enough limbs to every fingerprint for any possible value, as the low level functions do no memory reallocation themselves.
+The other general speedup is an applied one. Throughout this work, I have stuck to using the high-level GMP integer functions for addition, subtraction, multiplication and modulo operations. However, all of these operations also have low level equivalents, with all bar modulo written in assembly languages. The disadvantage is manageability, particularly since these functions require specifying the number of limbs to write. But since all operations are modulo $p$, this number is already known; we just specify the number of limbs required to store $p$ and allow the rest to overflow. We can also use the function \texttt{mpz\_init2} to allocate enough limbs to every fingerprint for any possible value, as the low level functions do no memory reallocation themselves.
 
 \subsection{Picking $p$ More Carefully}
 \label{ssec:pick-p}

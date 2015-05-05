@@ -11,12 +11,9 @@
 Aho
 Aho-Corasick
 Aho-Corasick.
-algorith
-Algorthms
 alloc
 Allyx
 al.'s
-anymore.
 Bayer
 Beate
 Beddows
@@ -37,7 +34,6 @@ case3
 ch
 CHD
 Chili
-Cliffort
 CLRS
 cmp
 cmph
@@ -45,7 +41,6 @@ CMPH
 CMPH.
 Coaluca
 Commentz-Walter
-conists
 Corasick
 Corasick's
 Cormen
@@ -55,8 +50,6 @@ deamortised.
 deamortising
 Deamortising
 Dietzfelbinger
-disadvatage
-ferformance
 fingerprinter
 Galil
 Galil's
@@ -87,7 +80,6 @@ Lieserson
 Lindell
 M.
 Markus
-matcing
 Mersenne
 -mismatch
 mk
@@ -97,8 +89,6 @@ mpz
 na
 nextprime
 -O3
-occured
-occurences
 parameterised
 Parameterised
 Parameterized'.
@@ -106,7 +96,6 @@ Pavillion
 payoff
 payoff.
 -pg
-pont
 Porat
 Porat's
 PreProc
@@ -114,7 +103,6 @@ preprocess
 pseudorandom
 Quiana.
 Rabin's
-randonly
 Rapha
 RBT
 RBT.
@@ -131,12 +119,10 @@ speedup
 start.south
 stats
 stderr
-straighforward
 sublinear
 Sublinear
 substrings
 supporting-tech
-tectniques
 -th
 thr
 trie
