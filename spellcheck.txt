@@ -94,7 +94,6 @@ Parameterised
 Parameterized'.
 Pavillion
 payoff
-payoff.
 -pg
 Porat
 Porat's
