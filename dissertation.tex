@@ -175,7 +175,7 @@ However, pattern matching in less space than it takes to store the pattern is mo
 
 Sadly, subsequent work was not as fruitful as one might have hoped. Clifford et al. \cite{DBLP:journals/corr/abs-1106-4412} bleakly proved that for many problems, including distance matching and pattern matching with wildcards listed above, solving them in sublinear space was impossible. Plus, the only sublinear solution for another pattern matching problem found for three years was also in Porat and Porat's 2009 paper, where they solved $k$-mismatch by running multiple instances of their algorithm. The only other contribution for three years was Breslauer and Galil \cite{Breslauer:2014:RSS:2660854.2635814}, who improved on the performance of Porat and Porat's algorithm in 2011.
 
-Finally, another breakthrough occurred in 2012, when Jalsenius, Porat and Sach \cite{JPS:2013} provided the second pattern matching problem that can be solved in sublinear space. Their solution was for the Parameterised\footnote{Alternatively spelled `Parameterized'.} Matching problem, which declares a match if the text matches the pattern under some one-to-one relabelling of characters. For example, $ababb$ matches $babaa$ by relabelling $a \to b, b \to a$, but $ababb$ cannot match $baaba$ or $ababc$.
+Finally, another breakthrough occurred in 2012, when Jalsenius, Porat and Sach \cite{JPS:2013} provided the second pattern matching problem that can be solved in sublinear space. Their solution was for the Parameterised Matching problem, which declares a match if the text matches the pattern under some one-to-one relabelling of characters. For example, $ababb$ matches $babaa$ by relabelling $a \to b, b \to a$, but $ababb$ cannot match $baaba$ or $ababc$.
 
 \subsection{Dictionary Matching}
 
@@ -609,7 +609,7 @@ Algorithm~\ref{alg:short-dict-matching} computes the hash table that is used. We
 
 At each index $j$, we keep a cyclic buffer of the previous $k'$ fingerprints of the whole stream. We start our binary search by seeing if $\phi(t_{j - k/2 + 1}...t_j)$ is within the hash table and its associated boolean value. If the boolean value is True; we know that there is an occurrence of the pattern which ends at this index, so we report it. If the boolean value is False but the key exists in the table, then we know that this fingerprint matches the suffix of a pattern, but not necessarily all of it, so we check the longer suffixes of the text. If there is no key in the table, then we know that no pattern matches this suffix, but a pattern might match shorter ones, so we check shorter suffixes instead. This continues until we either report an instance or run out of search space.
 
-For space complexity, the only space used is the hash function which uses $O(k\log k)$ space to store the fingerprints and their associated booleans, and the cyclic buffer, which uses $O(k') \in O(2k) \in O(k)$ space, so the overall space usage is $O(k\log k)$. The only step in the algorithm is the binary search, which takes $O(\log k)$ time per character.
+For space complexity, the only space used is the hash function which uses $O(k\log k)$ space to store the fingerprints and their associated boolean values, and the cyclic buffer, which uses $O(k') \in O(2k) \in O(k)$ space, so the overall space usage is $O(k\log k)$. The only step in the algorithm is the binary search, which takes $O(\log k)$ time per character.
 
 %-----------------------------------------------------------------------------
 
@@ -840,7 +840,7 @@ Now for each character in the text, we iterate over each level and use the stati
 
 Sections~\ref{sec:impl-short}, \ref{sec:impl-periodic} and \ref{sec:impl-long} look at implementing each of the three algorithms by Clifford et al. described in Section~\ref{sec:theory-clifford} for the general case of dictionary matching. This section provides some general points which apply to all three algorithms.
 
-The algorithms are described in this report in opposite order tp the original paper. This is intentional, as this was the order in which I implemented each algorithm.
+The algorithms are described in this report in opposite order to the original paper. This is intentional, as this was the order in which I implemented each algorithm.
 
 \subsection{Redefining the Cases for Each Algorithm}
 \label{ssec:case-redefine}
@@ -1323,7 +1323,7 @@ As for the other less significant bottleneck from long patterns, shifting the ro
 
 While Sections~\ref{ssec:pick-p}, \ref{ssec:p-size} and \ref{ssec:do-we-need-mpa} look at methods related to how we select our prime number $p$ for optimising purposes, this section will look at two general ways of speeding up the performance of fingerprint operations.
 
-The first is a theoretical proposal. We can see that this scheme uses a lot of modular multiplication operations. More importantly, all of these operations have the same modulus $p$. Intuitively, this makes this case a strong contender for Montgomery multiplication \cite{montgomery:multiplication}. Montgomery multiplication works by representing each symbol $a$ as $aR \mod p$, where $R$ is an integer that satisfies $R = b^i > p$, where $b$ is the size of each limb in bits and $i$ is an integer. Montgomery multiplication means that, given two integers $aR\mod p, bR\mod p$, we can compute and return $abR\mod p$. More importantly, we can achieve this without any division, which is often the bottleneck of modular arithmatic, including within GMP. The cost of this is that as each character is processed, we need to convert that character into its Montgomery representation.
+The first is a theoretical proposal. We can see that this scheme uses a lot of modular multiplication operations. More importantly, all of these operations have the same modulus $p$. Intuitively, this makes this case a strong contender for Montgomery multiplication \cite{montgomery:multiplication}. Montgomery multiplication works by representing each symbol $a$ as $aR \mod p$, where $R$ is an integer that satisfies $R = b^i > p$, where $b$ is the size of each limb in bits and $i$ is an integer. Montgomery multiplication means that, given two integers $aR\mod p, bR\mod p$, we can compute and return $abR\mod p$. More importantly, we can achieve this without any division, which is often the bottleneck of modular arithmetic, including within GMP. The cost of this is that as each character is processed, we need to convert that character into its Montgomery representation.
 
 One problem with this is that we are doing more than just modular multiplication: We are also doing addition modulo $p$. Thankfully however, we can see that addition of Montgomery representations works as well by considering the following fingerprint for a string $S$ where all characters are in Montgomery representation:
 
