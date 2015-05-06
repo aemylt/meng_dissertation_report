@@ -24,7 +24,7 @@
 }
 
 \ProcessPgfOptions{/dissertation}
-\LoadClass[10pt,a4paper,oneside]{book}
+\LoadClass[10pt,a4paper,twoside]{book}
 
 % see http://www.ctan.org/tex-archive/macros/latex/required/graphics
 \RequirePackage{graphicx}

@@ -65,16 +65,15 @@ However, just because algorithms perform better in theory does not always mean t
 
 \begin{itemize}
   \item I implemented a streaming version of the Aho-Corasick \cite{Aho:1975:ESM:360825.360855} algorithm.
-  \item I implemented the first ever version of the Clifford et al. \cite{2015arXiv150406242C} algorithm. As part of this, I found a number of issues with the version of the paper used for this implementation, and either fixed them or provided further analysis of them.
+  \item I produced the first ever implementation of the Clifford et al.\@ \cite{2015arXiv150406242C} algorithm. As part of this, I found a number of issues with the version of the paper used for this implementation, and either fixed them or provided further analysis of them.
   \item I developed a test bench using Python to generate patterns and C to run the text and patterns on the two implementations. The test bench is set up to allow any number of patterns of lengths randomly generated between 1 and some maximum length from any body of text.
-  \item I analysed the Clifford et al. algorithm using profiling tools to find bottlenecks in the algorithm's performance.
+  \item I analysed the Clifford et al.\@ algorithm using profiling tools to find bottlenecks in the algorithm's performance.
   \item I suggested a number of optimisations to the algorithm based on the bottlenecks found during profiling.
 \end{itemize}
 
 \chapter*{Supporting Technologies}
 \label{ch:supporting-tech}
 
-\begin{quote}
 \begin{itemize}
 \item I used the GNU Multiple Precision Arithmetic Library (GMP) to support my implementation of Karp-Rabin fingerprints: \url{https://gmplib.org/}
 \item I used the C Minimum Perfect Hashing Library (CMPH) for static perfect hashing: \url{http://cmph.sourceforge.net/}
@@ -82,13 +81,11 @@ However, just because algorithms perform better in theory does not always mean t
 \item The algorithms were tested against 50MB of gene DNA sequences from the Pizza\&Chili Corpus: \url{http://pizzachili.dcc.uchile.cl/texts/dna/}
 \item The algorithms were profiled using the GNU command \texttt{gprof}
 \end{itemize}
-\end{quote}
 
 %-----------------------------------------------------------------------------
 
 \chapter*{Notation and Acronyms}
 
-\begin{quote}
 \begin{tabular}{lcl}
 CMPH &: & C Minimum Perfect Hashing Library \\
 GMP &: & GNU Multiple Precision Arithmetic Library \\
@@ -107,7 +104,6 @@ $|S|$ &: & The length of a string $S$ \\
 $\phi(S)$ &: & The Karp-Rabin fingerprint of a string $S$ \\
 $\rho_S$ &: & The period of a string $S$ \\
 \end{tabular}
-\end{quote}
 
 %-----------------------------------------------------------------------------
 
@@ -171,9 +167,9 @@ The aspects we care about when measuring the performance of algorithms is the am
 
 In fact, it is easy to perform pattern matching in less space than it takes to store the text. A number of pattern matching algorithms -- such as Knuth-Morris-Pratt \cite{kmp} and Karp-Rabin \cite{5390135} -- work by iterating over each character in the text, and only need to know enough characters in the text to be able to check if the past few characters in the text match the pattern. Thus, we can process the text for these algorithms one character at a time and as a result match patterns in less space than it takes to store the text.
 
-However, pattern matching in less space than it takes to store the pattern is more challenging. After all, the logic stated above still holds: How can we find a match against a pattern if we don't even have enough space to know what the pattern is? And indeed, it was shown by Clifford et al. \cite{clifford:black-box} that for many of these problems, this was the best we can achieve without the possibility of errors. Fast forward to 2009, and Benny and Ely Porat \cite{5438620} provided the first solution for pattern matching -- the question asked at the start of this section -- in less space than it takes to store the pattern. To paraphrase the two authors, this result ``[broke] the barrier that held for this problem for a long time.''
+However, pattern matching in less space than it takes to store the pattern is more challenging. After all, the logic stated above still holds: How can we find a match against a pattern if we don't even have enough space to know what the pattern is? And indeed, it was shown by Clifford et al.\@ \cite{clifford:black-box} that for many of these problems, this was the best we can achieve without the possibility of errors. Fast forward to 2009, and Benny and Ely Porat \cite{5438620} provided the first solution for pattern matching -- the question asked at the start of this section -- in less space than it takes to store the pattern. To paraphrase the two authors, this result ``[broke] the barrier that held for this problem for a long time.''
 
-Sadly, subsequent work was not as fruitful as one might have hoped. Clifford et al. \cite{DBLP:journals/corr/abs-1106-4412} bleakly proved that for many problems, including distance matching and pattern matching with wildcards listed above, solving them in sublinear space was impossible. Plus, the only sublinear solution for another pattern matching problem found for three years was also in Porat and Porat's 2009 paper, where they solved $k$-mismatch by running multiple instances of their algorithm. The only other contribution for three years was Breslauer and Galil \cite{Breslauer:2014:RSS:2660854.2635814}, who improved on the performance of Porat and Porat's algorithm in 2011.
+Sadly, subsequent work was not as fruitful as one might have hoped. Clifford et al.\@ \cite{DBLP:journals/corr/abs-1106-4412} bleakly proved that for many problems, including distance matching and pattern matching with wildcards listed above, solving them in sublinear space was impossible. Plus, the only sublinear solution for another pattern matching problem found for three years was also in Porat and Porat's 2009 paper, where they solved $k$-mismatch by running multiple instances of their algorithm. The only other contribution for three years was Breslauer and Galil \cite{Breslauer:2014:RSS:2660854.2635814}, who improved on the performance of Porat and Porat's algorithm in 2011.
 
 Finally, another breakthrough occurred in 2012, when Jalsenius, Porat and Sach \cite{JPS:2013} provided the second pattern matching problem that can be solved in sublinear space. Their solution was for the Parameterised Matching problem, which declares a match if the text matches the pattern under some one-to-one relabelling of characters. For example, $ababb$ matches $babaa$ by relabelling $a \to b, b \to a$, but $ababb$ cannot match $baaba$ or $ababc$.
 
@@ -181,15 +177,15 @@ Finally, another breakthrough occurred in 2012, when Jalsenius, Porat and Sach \
 
 The specific problem investigated here is dictionary matching. Dictionary matching is a variant of pattern matching, proposed to answer the same question as the original pattern matching problem, but with the problem extended to many patterns. A simple solution is to merely run a pattern matching algorithm such as Knuth-Morris-Pratt several times in parallel, but dictionary matching solutions aim to perform better than solutions written this way.
 
-The question was first proposed by Alfred V. Aho and Margaret J. Corasick in 1975 \cite{Aho:1975:ESM:360825.360855}. Forty years later, their algorithm -- also known throughout this paper as Aho-Corasick -- still remains a benchmark for solving this problem today. The other common solution was designed four years after Aho-Corasick by Beate Commentz-Walter \cite{commentz-walter:algo} which runs faster on average than Aho-Corasick. But both solutions require enough space to store all occurrences of the pattern. It is possible to achieve less space than this using a variant of Richard M. Karp and M. O. Rabin's 1987 algorithm \cite{5390135}, but only if all patterns are the same length.
+The question was first proposed by Alfred V.\@ Aho and Margaret J.\@ Corasick in 1975 \cite{Aho:1975:ESM:360825.360855}. Forty years later, their algorithm -- also known throughout this paper as Aho-Corasick -- still remains a benchmark for solving this problem today. The other common solution was designed four years after Aho-Corasick by Beate Commentz-Walter \cite{commentz-walter:algo} which runs faster on average than Aho-Corasick. But both solutions require enough space to store all occurrences of the pattern. It is possible to achieve less space than this using a variant of Richard M.\@ Karp and M.\@ O.\@ Rabin's 1987 algorithm \cite{5390135}, but only if all patterns are the same length.
 
-It was finally in 2015 that a sublinear space algorithm to the problem of dictionary matching was found by Clifford et al. \cite{2015arXiv150406242C}. Their solution was developed based on the Breslauer and Galil algorithm for sublinear space pattern matching \cite{Breslauer:2014:RSS:2660854.2635814}, and was expanded into an algorithm for matching multiple patterns of any length by breaking the problem into three separate cases.
+It was finally in 2015 that a sublinear space algorithm to the problem of dictionary matching was found by Clifford et al.\@ \cite{2015arXiv150406242C}. Their solution was developed based on the Breslauer and Galil algorithm for sublinear space pattern matching \cite{Breslauer:2014:RSS:2660854.2635814}, and was expanded into an algorithm for matching multiple patterns of any length by breaking the problem into three separate cases.
 
 \section{Aims}
 
 As stated in the subtitle, this project is an empirical analysis of dictionary matching. It was inspired by an eight week project which I conducted for the Theory and Algorithms Group at the University of Bristol during the summer of 2014, which focused on an empirical analysis of algorithms for problems such as parameterised matching and exact matching, including to our knowledge the first ever implementation of Breslauer and Galil's algorithm for exact matching in sublinear space. At the same time, researchers in the Theory and Algorithms Group started investigating the concept of dictionary matching in sublinear space, which led to this work as a spiritual successor.
 
-This project looks at the practical performance of sublinear space dictionary matching. The main concern of the work is to see if we can achieve a dramatically smaller amount of space for streaming the text than we can from Aho-Corasick in practice. This consists of two stages. For the first stage, I implement both algorithms in C using external libraries listed in \nameref{ch:supporting-tech}. As part of this stage, I identify interesting points and limitations of both algorithms and examine how to fix them. For the second stage, evaluation, I design a test bench using a combination of Python to generate patterns and C to measure the performance of the algorithms when run on real texts. Finally, I profile the implementations to identify bottlenecks of the Clifford et al. solution and suggest methods for potential practical optimisations.
+This project looks at the practical performance of sublinear space dictionary matching. The main concern of the work is to see if we can achieve a dramatically smaller amount of space for streaming the text than we can from Aho-Corasick in practice. This consists of two stages. For the first stage, I implement both algorithms in C using external libraries listed in \nameref{ch:supporting-tech}. As part of this stage, I identify interesting points and limitations of both algorithms and examine how to fix them. For the second stage, evaluation, I design a test bench using a combination of Python to generate patterns and C to measure the performance of the algorithms when run on real texts. Finally, I profile the implementations to identify bottlenecks of the Clifford et al.\@ solution and suggest methods for potential practical optimisations.
 
 \section{Motivation and Significance}
 
@@ -206,7 +202,7 @@ The above points argue in favour of research into improving the space consumptio
 \section{Challenges}
 \label{sec:challenges}
 
-There were a number of challenges throughout this project. The first and most significant challenge was that while Aho-Corasick is a tried and tested algorithm in both theory and practice over a period of forty years, this new solution by Clifford et al. was not. In fact, the Clifford et al. algorithm was still under development as implementation of the algorithm began. This resulted in some aspects being delayed as the relevant part of the paper was still being designed, and even some problems related to the algorithm itself being discovered. These points where the implementation revealed problems with the underlying algorithm will be the main focus of Chapter~\ref{chap:execution}, as these were the most interesting aspects of implementation.
+There were a number of challenges throughout this project. The first and most significant challenge was that while Aho-Corasick is a tried and tested algorithm in both theory and practice over a period of forty years, this new solution by Clifford et al.\@ was not. In fact, the Clifford et al.\@ algorithm was still under development as implementation of the algorithm began. This resulted in some aspects being delayed as the relevant part of the paper was still being designed, and even some problems related to the algorithm itself being discovered. These points where the implementation revealed problems with the underlying algorithm will be the main focus of Chapter~\ref{chap:execution}, as these were the most interesting aspects of implementation.
 
 The second challenge is gathering data to test our implementations on for analysis. This is important for two main reasons. Firstly, we want patterns which are interesting enough to show differences in the behaviour of the two algorithms, but we also want these patterns to be realistic for applications that would be using that data. And secondly, we care about this as the nature of the data affects the way the patterns perform; Aho-Corasick will perform differently if the patterns are $a, aa, aaa, aaaa, aaaaa$ than if the patterns are five strings generated purely at random.
 
@@ -215,13 +211,13 @@ The third and final challenge is in the creation of the test bench and measureme
 \section{Central Objectives}
 \label{sec:objectives}
 
-Our overall goal for this project is to evaluate whether or not the reduced space for the Clifford et al. algorithm is actually beneficial in practice, and compare the benefits and drawbacks in performance with that of Aho-Corasick. In order to achieve this, our concrete objectives are:
+Our overall goal for this project is to evaluate whether or not the reduced space for the Clifford et al.\@ algorithm is actually beneficial in practice, and compare the benefits and drawbacks in performance with that of Aho-Corasick. In order to achieve this, our concrete objectives are:
 
 \begin{enumerate}
   \item To develop an implementation of the Aho-Corasick algorithm to act as a benchmark for performance.
-  \item To develop the first ever implementation of the Clifford et al. algorithm for dictionary matching.
+  \item To develop the first ever implementation of the Clifford et al.\@ algorithm for dictionary matching.
   \item To implement a test framework in order to measure the performance of these two algorithms on real data.
-  \item To find practical bottlenecks in the Clifford et al. algorithm with regards to space and time.
+  \item To find practical bottlenecks in the Clifford et al.\@ algorithm with regards to space and time.
   \item To implement potential optimisations and consider to what degree these improve performance.
 \end{enumerate}
 
@@ -245,7 +241,7 @@ Like pattern matching, dictionary matching is also simple to describe intuitivel
 
 Formally, this is defined as follows: We have a text $n$ characters long $T = t_0...t_{n-1}$, and a set of $k$ patterns $\mathcal{P} = \{P_0,...,P_k\}$ of respective lengths $M = \{m_0,...,m_k\}$. Hence a given pattern $P_i$ is a string of $m_i$ characters $p_{i,0}...p_{i,m_i-1}$. We output an index $j \in \{\min(M),...,n_1\}$ if $\exists i \in \{0,...,k-1\}$ such that $t_{j-m_i+1}...t_{j} = P_i$.
 
-Note that for this work, we do not care about what patterns have occurred in the text, only that a pattern has occurred. There is some degree of debate over this -- Aho-Corasick, for example, can return which patterns matched at a given index -- but this definition is the one followed by Clifford et al. \cite{2015arXiv150406242C}.
+Note that for this work, we do not care about what patterns have occurred in the text, only that a pattern has occurred. There is some degree of debate over this -- Aho-Corasick, for example, can return which patterns matched at a given index -- but this definition is the one followed by Clifford et al.\@ \cite{2015arXiv150406242C}.
 
 \section{The Streaming Model}
 \label{sec:streaming-model}
@@ -399,7 +395,7 @@ All of these operations can be completed in constant time.
 
 It is interesting to note that a variant of the Karp-Rabin algorithm can be used for a subset of dictionary matching, where all the patterns are the same length $m$ \cite{candan:data}. This can be done by storing a fingerprint of the last $m$ characters read from the text, and using static perfect hashing as described in section \ref{min-perf-hash} to check if the fingerprint of the text matches any fingerprints of the patterns. Using suffix and concatenation techniques above and storing a circular buffer of the last $m$ characters, we can accomplish this with $O(k + m)$ space and $O(1)$ time per character. However, due to the limitation that all the patterns have to be the same length, this method has not been analysed for this project.
 
-The last point to mention is the probability of a collision. Breslauer and Galil \cite{Breslauer:2014:RSS:2660854.2635814} provide a theorem that if $u$ and $v$ are two different strings of length $l \leq n$, $p \in \Theta(n^{2 + \alpha})$ for some level of accuracy $\alpha \geq 0$ and $r \in \mathcal{F}_p$ is randomly chosen, then the probability that $\phi(u) = \phi(v)$ is smaller than $\frac{1}{n^{1 + \alpha}}$. We will however see in Section~\ref{ssec:short-collisions} why this does not necessarily hold for the dictionary matching algorithm devised by Clifford et al. \cite{2015arXiv150406242C}.
+The last point to mention is the probability of a collision. Breslauer and Galil \cite{Breslauer:2014:RSS:2660854.2635814} provide a theorem that if $u$ and $v$ are two different strings of length $l \leq n$, $p \in \Theta(n^{2 + \alpha})$ for some level of accuracy $\alpha \geq 0$ and $r \in \mathcal{F}_p$ is randomly chosen, then the probability that $\phi(u) = \phi(v)$ is smaller than $\frac{1}{n^{1 + \alpha}}$. We will however see in Section~\ref{ssec:short-collisions} why this does not necessarily hold for the dictionary matching algorithm devised by Clifford et al.\@ \cite{2015arXiv150406242C}.
 
 \section{Porat and Porat: Single Pattern Matching in Sublinear Space}
 \label{sec:porat-porat}
@@ -538,7 +534,7 @@ For more information, visit the blog \url{https://streamsandpatterns.wordpress.c
 \section{Clifford, Fontaine, Porat and Sach: Dictionary Matching in Sublinear Space}
 \label{sec:theory-clifford}
 
-Clifford et al. \cite{2015arXiv150406242C} provided a solution to dictionary matching under the streaming model in less space than it takes to store the pattern. Their solution uses $O(k\log m)$ space and $O(\log m)$ time per character, where $m = \max(M)$. It is worth noting that this description is based on a version of this paper that was not accepted, and the accepted version of the paper differs in some instances. Also, please note that this is how the algorithm is described in the paper; any changes in later chapters are my own corrections.
+Clifford et al.\@ \cite{2015arXiv150406242C} provided a solution to dictionary matching under the streaming model in less space than it takes to store the pattern. Their solution uses $O(k\log m)$ space and $O(\log m)$ time per character, where $m = \max(M)$. It is worth noting that this description is based on a version of this paper that was not accepted, and the accepted version of the paper differs in some instances. Also, please note that this is how the algorithm is described in the paper; any changes in later chapters are my own corrections.
 
 The first step to understanding the algorithm as described in the paper is to consider a subset of the dictionary matching problem, where all the patterns are a power of two in length. This algorithm is very similar to the one described in Section~\ref{sec:porat-porat}, where all the patterns are broken up into $\log m_i$ fingerprints, denoted $\phi_{i,j}$ and defined as follows:
 
@@ -838,7 +834,7 @@ Now for each character in the text, we iterate over each level and use the stati
 
 \section{Prelude to the General Case Algorithms}
 
-Sections~\ref{sec:impl-short}, \ref{sec:impl-periodic} and \ref{sec:impl-long} look at implementing each of the three algorithms by Clifford et al. described in Section~\ref{sec:theory-clifford} for the general case of dictionary matching. This section provides some general points which apply to all three algorithms.
+Sections~\ref{sec:impl-short}, \ref{sec:impl-periodic} and \ref{sec:impl-long} look at implementing each of the three algorithms by Clifford et al.\@ described in Section~\ref{sec:theory-clifford} for the general case of dictionary matching. This section provides some general points which apply to all three algorithms.
 
 The algorithms are described in this report in opposite order to the original paper. This is intentional, as this was the order in which I implemented each algorithm.
 
@@ -1114,39 +1110,39 @@ Finally, to look at potential optimisations for both algorithms, I ran separate 
 \subsection{Performance as Patterns become Longer}
 \label{ssec:long-pattern-results}
 
-Figure~\ref{fig:long-pattern-results} shows the time taken to build the data structures, time taken to process each character, and the size of the data structure for both Aho-Corasick and the new algorithm by Clifford et al. for 1,000 patterns of uniformly random lengths between 1 and a maximum value ranging from 1,000 to 10,000 characters. Five tests were run for each maximum length.
+Figure~\ref{fig:long-pattern-results} shows the time taken to build the data structures, time taken to process each character, and the size of the data structure for both Aho-Corasick and the new algorithm by Clifford et al.\@ for 1,000 patterns of uniformly random lengths between 1 and a maximum value ranging from 1,000 to 10,000 characters. Five tests were run for each maximum length.
 
 \begin{figure}[t]
 \begin{center}
   \includegraphics[width=0.5\linewidth]{build_length_1000_10000}\\
   \includegraphics[width=0.5\linewidth]{time_length_1000_10000}\includegraphics[width=0.5\linewidth]{size_length_1000_10000}
 \end{center}
-\caption{Build time, run time per character and space for the Clifford et al. algorithm (Green) against Aho-Corasick (Blue) over the length of the pattern}
+\caption{Build time, run time per character and space for the Clifford et al.\@ algorithm (Green) against Aho-Corasick (Blue) over the length of the pattern}
 \label{fig:long-pattern-results}
 \end{figure}
 
 \subsubsection{Build Time}
 
-The first point that can be noticed is the spike for Clifford et al. at roughly 1,000 characters for average pattern length. I was very curious as to why this spike occurred, and in particular how it dropped to nearly half the time for patterns one thousand characters longer and only again started taking that much time to preprocess at an average length of 5,000 characters. We will look at profiling this case in Section~\ref{sec:profile-results}, but it is worth noting that an average length of 1,000 characters per pattern over a uniform distribution would put the maximum length at roughly 2,000 characters. Since there are 1,000 patterns in total, this would be the upper limit of the case where all patterns are processed using the short patterns case, which would imply that short patterns is a bottleneck with respect to preprocessing time.
+The first point that can be noticed is the spike for Clifford et al.\@ at roughly 1,000 characters for average pattern length. I was very curious as to why this spike occurred, and in particular how it dropped to nearly half the time for patterns one thousand characters longer and only again started taking that much time to preprocess at an average length of 5,000 characters. We will look at profiling this case in Section~\ref{sec:profile-results}, but it is worth noting that an average length of 1,000 characters per pattern over a uniform distribution would put the maximum length at roughly 2,000 characters. Since there are 1,000 patterns in total, this would be the upper limit of the case where all patterns are processed using the short patterns case, which would imply that short patterns is a bottleneck with respect to preprocessing time.
 
-The other point that surprised me was how similar these preprocessing times were. Following the preprocessing times from my summer project and how significantly faster KMP was than Breslauer and Galil, I was expecting something similar here. Instead, the algorithm by Clifford et al. in fact took \textit{less} time in most cases. It seems that the more complex state machine required by Aho-Corasick results in a larger overhead than Knuth-Morris-Pratt. I would have preferred to have measured this for even longer patterns, due to the fact that the build time of Clifford et al. is getting closer to that of Aho-Corasick by the time the patterns reach an average length of 5000 characters, but this was not possible due to time constraints.
+The other point that surprised me was how similar these preprocessing times were. Following the preprocessing times from my summer project and how significantly faster KMP was than Breslauer and Galil, I was expecting something similar here. Instead, the algorithm by Clifford et al.\@ in fact took \textit{less} time in most cases. It seems that the more complex state machine required by Aho-Corasick results in a larger overhead than Knuth-Morris-Pratt. I would have preferred to have measured this for even longer patterns, due to the fact that the build time of Clifford et al.\@ is getting closer to that of Aho-Corasick by the time the patterns reach an average length of 5000 characters, but this was not possible due to time constraints.
 
 \subsubsection{Run Time per Character}
 
-Another interesting change in time complexity happens at an average pattern length of 1,000 characters for the algorithm by Clifford et al. when it comes to run time per character. But this time it is in the opposite direction, jumping from just under $35\mu s$ to roughly $40\mu s$ between 1,000 and 2,000 long characters for the average pattern length. This seems to imply that, while the short patterns algorithm is a bottleneck for preprocessing, it is actually one of the faster aspects of the algorithm as far as actual processing is concerned.
+Another interesting change in time complexity happens at an average pattern length of 1,000 characters for the algorithm by Clifford et al.\@ when it comes to run time per character. But this time it is in the opposite direction, jumping from $33\mu$s to roughly $43\mu$s between 1,000 and 2,000 long characters for the average pattern length. This seems to imply that, while the short patterns algorithm is a bottleneck for preprocessing, it is actually one of the faster aspects of the algorithm as far as actual processing is concerned.
 
-As far as performance is concerned, the Aho-Corasick algorithm is roughly 80 times faster per character than Clifford et al. One point that surprised me is that beyond the increase at the start, we don't see any noticeable increase in time complexity per character as the average length of the patterns increases. This goes against the theoretical analysis, which states that we should see a logarithmic scaling. This would have made for another good reason to test on even longer patterns were time available to do so.
+As far as performance is concerned, the Aho-Corasick algorithm is roughly 80 times faster per character than Clifford et al.\@ One point that surprised me is that beyond the increase at the start, we don't see any noticeable increase in time complexity per character as the average length of the patterns increases. This goes against the theoretical analysis, which states that we should see a logarithmic scaling. This would have made for another good reason to test on even longer patterns were time available to do so.
 
 \subsubsection{Size of Data Structure}
 
-Data structure size was a significant surprise. I was expecting the size of the data structure to be less -- this is comparing a logarithmic size data structure with a linear size one, after all -- but I was not expecting it on the scale shown in the graphs. To give an idea of how significant this difference is, even on the shorter patterns -- patterns with an average length of 500 characters long -- the data structure for Aho-Corasick was roughly 140 times larger than that of Clifford et al. By the longest average pattern lengths of 5,000 characters, this had grown to approximately 250 times larger.
+Data structure size was a significant surprise. I was expecting the size of the data structure to be less -- this is comparing a logarithmic size data structure with a linear size one, after all -- but I was not expecting it on the scale shown in the graphs. To give an idea of how significant this difference is, even on the shorter patterns -- patterns with an average length of 500 characters long -- the data structure for Aho-Corasick was roughly 140 times larger than that of Clifford et al.; 80MB to 0.57MB. By the longest average pattern lengths of 5,000 characters, this had grown to approximately 250 times larger; 800MB to 3.1MB.
 
-Because of the significant difference in data structure size, I acknowledge that it makes seeing the line difficult. This is a common problem, and a better view of just the size for the Clifford et al. algorithm can be seen in Figure~\ref{fig:case-results}.
+Because of the significant difference in data structure size, I acknowledge that it makes seeing the line difficult. This is a common problem, and a better view of just the size for the Clifford et al.\@ algorithm can be seen in Figure~\ref{fig:case-results}.
 
 \subsection{Performance for Shorter Patterns}
 \label{ssec:short-pattern-results}
 
-I was originally going to do further testing on higher number of patterns of similar lengths to those in Section~\ref{ssec:long-pattern-results}. However, I decided this was of little interest as we already knew what the result would be if we started testing, for example, 2,000 patterns of 5,000 characters each: Aho-Corasick would remain performing better at time complexity while Clifford et al. would perform better at space. As a result, I figured it was more interesting to try shorter patterns, and see if we could decrease the gap in performance between the two algorithms.
+I was originally going to do further testing on higher number of patterns of similar lengths to those in Section~\ref{ssec:long-pattern-results}. However, I decided this was of little interest as we already knew what the result would be if we started testing, for example, 2,000 patterns of 5,000 characters each: Aho-Corasick would remain performing better at time complexity while Clifford et al.\@ would perform better at space. As a result, I figured it was more interesting to try shorter patterns, and see if we could decrease the gap in performance between the two algorithms.
 
 These results are shown in Figure~\ref{fig:short-pattern-results}. Each test now consists of 100 patterns, each pattern of lengths uniformly selected as before except the maximum length now ranges from 200 to 1,000 characters. Again, five tests were run for each maximum length.
 
@@ -1155,7 +1151,7 @@ These results are shown in Figure~\ref{fig:short-pattern-results}. Each test now
   \includegraphics[width=0.5\linewidth]{build_length_200_1000}\\
   \includegraphics[width=0.5\linewidth]{time_length_200_1000}\includegraphics[width=0.5\linewidth]{size_length_200_1000}
 \end{center}
-\caption{Build time, run time per character and space for the Clifford et al. algorithm (Green) against Aho-Corasick (Blue) over the length of the pattern for shorter patterns}
+\caption{Build time, run time per character and space for the Clifford et al.\@ algorithm (Green) against Aho-Corasick (Blue) over the length of the pattern for shorter patterns}
 \label{fig:short-pattern-results}
 \end{figure}
 
@@ -1163,11 +1159,11 @@ These results are shown in Figure~\ref{fig:short-pattern-results}. Each test now
 
 Build time shows similar results as before, though there are some differences. First of all, the spike for cases where all patterns are deemed short is still there, but it is a lot less noticeable. In particular, it has now formed two spikes: One at an average length of 100 characters and another, larger one at 200 characters. This might simply be a granularity issue, and might perhaps be an argument for testing a more detailed range of average pattern lengths, to see if the spike becomes more regular then.
 
-We can also see the same trend as before in terms of comparing the two algorithms. They start off closely correlated when preprocessing short patterns, but Aho-Corasick then starts taking longer as the patterns grow. From just over 200 characters onwards, the preprocessing time of Clifford et al. is increasing, but a much more gradual rate. There is a bizarre spike at the end of the pattern, however, which will be investigated more when we discuss run time per character.
+We can also see the same trend as before in terms of comparing the two algorithms. They start off closely correlated when preprocessing short patterns, but Aho-Corasick then starts taking longer as the patterns grow. From just over 200 characters onwards, the preprocessing time of Clifford et al.\@ is increasing, but a much more gradual rate. There is a bizarre spike at the end of the pattern, however, which will be investigated more when we discuss run time per character.
 
 \subsubsection{Run Time per Character}
 
-Again, we see similar results here as in Section~\ref{ssec:long-pattern-results}. Time taken per character goes up after 200 characters as fewer patterns are deemed short, and that run time is roughly level for the rest of the tests. Overall, the Clifford et al. algorithm takes roughly 80 times longer per character than Aho-Corasick.
+Again, we see similar results here as in Section~\ref{ssec:long-pattern-results}. Time taken per character goes up after 200 characters as fewer patterns are deemed short, and that run time is roughly level for the rest of the tests. Overall, the Clifford et al.\@ algorithm takes roughly 80 times longer per character than Aho-Corasick; $32\mu$s to $0.45\mu$s.
 
 One interesting point is that there is a bizarre spike between 450 and 500 characters. We can also notice a spike in the same location for build time. The most likely explanation is that this test is anomalous, potentially caused by a caching issue with GMP or CMPH.
 
@@ -1175,7 +1171,7 @@ One interesting point is that there is a bizarre spike between 450 and 500 chara
 
 For this range of pattern lengths, we are able to see the trend in size for dictionary matching better. In particular, we can see that the case where the patterns are short takes up less space than the long patterns case. It is hard to tell however if this is the result of a constant factor or just due to the fact that the patterns themselves are shorter.
 
-Compared to Aho-Corasick, we still see a saving in space, but the saving is less dramatic. The structure is about 30 times smaller at both the smallest tests -- 100 characters long on average -- and the longest -- 500 characters on average -- but as the algorithms for longer patterns start running at 200 characters on average, this performance drops to 20 times smaller.
+Compared to Aho-Corasick, we still see a saving in space, but the saving is less dramatic. The structure is about 30 times smaller at both the smallest tests -- 100 characters long on average -- and the longest -- 500 characters on average -- but as the algorithms for longer patterns start running at 200 characters on average, this performance drops to 20 times smaller. The sizes from Aho-Corasick to Cliffort et al.\@ respectively are 1.6MB to 48kB for shortest, 7MB to 248kB for longest and 3.2MB to 160kB for 200 characters on average.
 
 \subsection{Performance over Number of Patterns}
 \label{ssec:many-pattern-results}
@@ -1187,34 +1183,34 @@ The next results, shown in Figure~\ref{fig:many-pattern-results}, display the pe
   \includegraphics[width=0.5\linewidth]{build_num_200_1000}\\
   \includegraphics[width=0.5\linewidth]{time_num_200_1000}\includegraphics[width=0.5\linewidth]{size_num_200_1000}
 \end{center}
-\caption{Build time, run time per character and space for the Clifford et al. algorithm (Green) against Aho-Corasick (Blue) over the number of patterns}
+\caption{Build time, run time per character and space for the Clifford et al.\@ algorithm (Green) against Aho-Corasick (Blue) over the number of patterns}
 \label{fig:many-pattern-results}
 \end{figure}
 
 \subsubsection{Build Time}
 
-Here we have the opposite effect to that in Sections~\ref{ssec:long-pattern-results} and \ref{ssec:short-pattern-results}, with the two algorithms taking similar lengths of time as before, yet Clifford et al. taking dramatically longer from about 600 patterns onwards. This adds further confirmation to the claim that short patterns are a bottleneck for preprocessing; since patterns are defined as being short relative to the number of patterns, as we add more patterns to the dictionary yet the length of the patterns on average remains the same, more patterns start being processed by the short patterns algorithm.
+Here we have the opposite effect to that in Sections~\ref{ssec:long-pattern-results} and \ref{ssec:short-pattern-results}, with the two algorithms taking similar lengths of time as before, yet Clifford et al.\@ taking dramatically longer from about 600 patterns onwards. This adds further confirmation to the claim that short patterns are a bottleneck for preprocessing; since patterns are defined as being short relative to the number of patterns, as we add more patterns to the dictionary yet the length of the patterns on average remains the same, more patterns start being processed by the short patterns algorithm.
 
 \subsubsection{Run Time per Character}
 
-Again, we have the opposite effect to the previous sections. Clifford et al. started roughly 85 times slower, peaked at 400 patterns when it was roughly 90 times slower, and then started to speed up again until it was just over 40 times slower. This supports the theory that the short patterns algorithm is faster than the long patterns case when it comes to processing time.
+Again, we have the opposite effect to the previous sections. Clifford et al.\@ started roughly 85 times slower, peaked at 400 patterns when it was roughly 90 times slower, and then started to speed up again until it was just over 40 times slower. This supports the theory that the short patterns algorithm is faster than the long patterns case when it comes to processing time. Respective times from Clifford et al.\@ to Aho-Corasick respectively for each case mentioned are $38.6 \mu$s to $0.45 \mu$s for 200 patterns, $42.3 \mu$s to $0.50 \mu$s for 400 patterns and $34.0 \mu$s to $0.75 \mu$s for 1,000 patterns.
 
 \subsubsection{Size of Data Structure}
 
-The size of our data structure is comparable to the graph we saw in Section~\ref{ssec:long-pattern-results}. At 200 patterns, the algorithm by Clifford et al. was roughly 60 times smaller than the data structure for Aho-Corasick. By 600 patterns, when just over half of them on average would be deemed short, Aho-Corasick was roughly 95 times larger, and at 1,000 patterns it became 260 times larger.
+The size of our data structure is comparable to the graph we saw in Section~\ref{ssec:long-pattern-results}. At 200 patterns, the algorithm by Clifford et al.\@ was roughly 60 times smaller than the data structure for Aho-Corasick. By 600 patterns, when just over half of them on average would be deemed short, Aho-Corasick was roughly 95 times larger, and at 1,000 patterns it became 260 times larger. Respective sizes from Aho-Corasick to Cliffort et al.\@ respectively are 33.2MB to 0.56MB for 200 patterns, 95MB to 1MB for 600 patterns and 160MB to 0.61MB for 1,000 patterns.
 
 \subsection{Performance as $\alpha$ Increases}
 
 At the end of Section~\ref{sec:kr-fingerprints}, when we discuss the probability of a collision in the fingerprints, we mention that the Karp-Rabin fingerprints take a precision value $\alpha$ during construction. A larger value for $\alpha$ results in a larger prime, as $p \in O(n^{2 + \alpha})$. If we were using native 32 or 64 bit integers, then this would have no effect on performance. But because we are using multiple precision integers, this can affect all aspects of performance measured, as preprocessing time, run time and size all depend on the respective performance of the individual fingerprints being constant.
 
-To analyse this, we measured the performance of the Clifford et al. algorithm with values for $\alpha$ ranging between 0 and 5. For each value of alpha, five tests were run and the average performance of these results were taken. Each test consisted of 100 patterns varying between 1 and 400 characters long. The results of these tests are shown in Figure~\ref{fig:alpha-results}.
+To analyse this, we measured the performance of the Clifford et al.\@ algorithm with values for $\alpha$ ranging between 0 and 5. For each value of alpha, five tests were run and the average performance of these results were taken. Each test consisted of 100 patterns varying between 1 and 400 characters long. The results of these tests are shown in Figure~\ref{fig:alpha-results}.
 
 \begin{figure}[t]
 \begin{center}
   \includegraphics[width=0.5\linewidth]{build_alpha}\\
   \includegraphics[width=0.5\linewidth]{time_alpha}\includegraphics[width=0.5\linewidth]{size_alpha}
 \end{center}
-\caption{Build time, run time per character and space for Clifford et al.'s algorithm as $\alpha$ increases}
+\caption{Build time, run time per character and space for the Clifford et al.\@ algorithm as $\alpha$ increases}
 \label{fig:alpha-results}
 \end{figure}
 
@@ -1225,7 +1221,7 @@ We can see this change, but the actual scaling is more complex: The performance 
 \subsection{Space Consumption for Each Case}
 \label{ssec:case-size}
 
-We will to some extent investigate the time taken for each case in Section~\ref{sec:profile-results}, but for now we can look at the space consumption for each of the cases in Clifford et al.'s algorithm. These results are shown in Figure~\ref{fig:case-results}.
+We will to some extent investigate the time taken for each case in Section~\ref{sec:profile-results}, but for now we can look at the space consumption for each of the cases in the Clifford et al.\@ algorithm. These results are shown in Figure~\ref{fig:case-results}.
 
 One caveat to bear in mind is that the main data structure for this implementation is the structure for long algorithms, and thus contains various shared fingerprints -- including the shared buffer of the last $2k$ fingerprints of the text, the fingerprint of the whole text and a fingerprint just for temporary values -- and thus is not entirely representative of the space consumption of the algorithm alone. The tests that this might affect are as the number of patterns or $\alpha$ increase, as the size of the shared items only scale in terms of $k$ and $\alpha$.
 
@@ -1255,18 +1251,18 @@ The final aspect I wanted to investigate was how much the two algorithms disagre
   \item I wanted to see how frequently the edge cases were hit.
 \end{enumerate}
 
-For this, I measured the number of matches from both algorithms when applying the tests over average pattern lengths and number of patterns described in Sections~\ref{ssec:long-pattern-results}, \ref{ssec:short-pattern-results} and \ref{ssec:many-pattern-results} and computed the difference. Assuming Aho-Corasick ran correctly, I took the number of matches from Aho-Corasick and subtracted the number of matches from Clifford et al. and represented the difference as a percentage of the number of matches made by Aho-Corasick. For number of patterns, I did the same as before and took the average for each test. The results can be seen in Figure~\ref{fig:diff-results}.
+For this, I measured the number of matches from both algorithms when applying the tests over average pattern lengths and number of patterns described in Sections~\ref{ssec:long-pattern-results}, \ref{ssec:short-pattern-results} and \ref{ssec:many-pattern-results} and computed the difference. Assuming Aho-Corasick ran correctly, I took the number of matches from Aho-Corasick and subtracted the number of matches from Clifford et al.\@ and represented the difference as a percentage of the number of matches made by Aho-Corasick. For number of patterns, I did the same as before and took the average for each test. The results can be seen in Figure~\ref{fig:diff-results}.
 
 \begin{figure}[t]
 \begin{center}
   \includegraphics[width=0.5\linewidth]{diff_num_200_1000}\\
   \includegraphics[width=0.5\linewidth]{diff_length_1000_10000}\includegraphics[width=0.5\linewidth]{diff_length_200_1000}
 \end{center}
-\caption{Difference in number of matches between Aho-Corasick and Clifford et al. implementation}
+\caption{Difference in number of matches between Aho-Corasick and Clifford et al.\@ implementation}
 \label{fig:diff-results}
 \end{figure}
 
-It is unlikely that these differences have occurred due to collisions in the fingerprints; having run some of these tests multiple times, the number of matches has remained consistent throughout. This means that the more likely scenario is the Clifford et al. algorithm hitting the edge cases.
+It is unlikely that these differences have occurred due to collisions in the fingerprints; having run some of these tests multiple times, the number of matches has remained consistent throughout. This means that the more likely scenario is the Clifford et al.\@ algorithm hitting the edge cases.
 
 We can observe that for the graphs where the pattern lengths are increasing, the peaks are where the average pattern length is roughly 2-3 times larger than the number of patterns. We can analyse this with the definition in Section~\ref{ssec:impl-edge-case} in mind. If the average pattern length is 3,000 characters for 1,000 patterns, then the average length of the prefixes $Q_i$ is 2,000 characters, and thus the length processed by power of two matching is 1,024 characters. At this point, the start and end of the pattern only need a few characters in common to have a period shorter than the number of patterns.
 
@@ -1277,7 +1273,7 @@ The final point to emphasise is that, while these can be pretty severe when look
 \subsection{Profiling Results}
 \label{sec:profile-results}
 
-In order to find bottlenecks, I ran the Clifford et al. algorithm on three test cases:
+In order to find bottlenecks, I ran the Clifford et al.\@ algorithm on three test cases:
 
 \begin{itemize}
   \item 1,000 patterns up to 2,000 characters long, to see why there is such a big spike in preprocessing time at this point.
@@ -1390,13 +1386,13 @@ Each power of two length prefix on the final row only needs to store one VO, as 
 
 \section{Main Results}
 
-As far as data structure size alone is concerned, the Clifford et al. algorithm is by far the superior of the solutions. Even on relatively short patterns -- the smallest test size was 100 patterns, each of which was on average only 100 characters long -- we have a data structure which is 20-30 times smaller than that of Aho-Corasick. What is more exciting is that at 1,000 patterns of 3,000 characters on average, the data structure starts using less space than it takes to even store the pattern.
+As far as data structure size alone is concerned, the Clifford et al.\@ algorithm is by far the superior of the solutions. Even on relatively short patterns -- the smallest test size was 100 patterns, each of which was on average only 100 characters long -- we have a data structure which is 20-30 times smaller than that of Aho-Corasick. What is more exciting is that at 1,000 patterns of 3,000 characters on average, the data structure starts using less space than it takes to even store the pattern.
 
-In terms of overall benefit, the answer is more difficult. For our smallest test range -- 100 pattens of maximum lengths 200-1,000 characters -- while we do see a 20-30 factor reduction in size as stated in the above paragraph, the average time per character is 60-80 times longer than before, and thus the benefit is not worth the drawbacks. But as the patterns start getting longer, we can see a more worthwhile benefit to using the Clifford et al. approach; on 1,000 patterns of maximum length 1,000 characters, Aho-Corasick only gives us a 60 times factor in speed while using 140 times more space.
+In terms of overall benefit, the answer is more difficult. For our smallest test range -- 100 pattens of maximum lengths 200-1,000 characters -- while we do see a 20-30 factor reduction in size as stated in the above paragraph, the average time per character is 60-80 times longer than before, and thus the benefit is not worth the drawbacks. But as the patterns start getting longer, we can see a more worthwhile benefit to using the Clifford et al.\@ approach; on 1,000 patterns of maximum length 1,000 characters, Aho-Corasick only gives us a 60 times factor in speed while using 140 times more space.
 
-When the number of patterns increase, we can see a payoff start at roughly 600 patterns of average length 2,000 characters long, when Clifford et al. uses roughly eighty times more time yet ninety five times less space. Since the average length of the patterns for these sets of patterns is approximately 1,000 characters long, this means a total of 600,000 characters is where we start seeing a benefit in these tests. But it should be remembered, of course, that it is not just the total length of the patterns, but also how long each pattern is relative to the number of patterns that affects the performance of the Clifford et al. algorithm, so this is not guaranteed to be a constant break-even point.
+When the number of patterns increase, we can see a payoff start at roughly 600 patterns of average length 2,000 characters long, when Clifford et al.\@ uses roughly eighty times more time yet ninety five times less space. Since the average length of the patterns for these sets of patterns is approximately 1,000 characters long, this means a total of 600,000 characters is where we start seeing a benefit in these tests. But it should be remembered, of course, that it is not just the total length of the patterns, but also how long each pattern is relative to the number of patterns that affects the performance of the Clifford et al.\@ algorithm, so this is not guaranteed to be a constant break-even point.
 
-Regarding comparative performance of preprocessing time, Clifford et al. takes roughly the same amount of time if not less than Aho-Corasick, as long as the majority of patterns are not short. If most patterns are short, then Clifford et al. can take dramatically longer time. For this case, we have also proposed a potential optimisation by reducing the number of fingerprint equality checks required to look for duplicates.
+Regarding comparative performance of preprocessing time, Clifford et al.\@ takes roughly the same amount of time if not less than Aho-Corasick, as long as the majority of patterns are not short. If most patterns are short, then Clifford et al.\@ can take dramatically longer time. For this case, we have also proposed a potential optimisation by reducing the number of fingerprint equality checks required to look for duplicates.
 
 Our results from profiling show that the majority of overhead is from short patterns, and in particular the number of equality checks made by the short patterns algorithm. It is particularly interesting that the algorithm for short patterns has the worst performance when there are few if any matches in the text. This combined with the paragraph about preprocessing time above makes for a question of priorities: Do we want most patterns to be short and thus have worse preprocessing time, or few patterns to be short and thus have worse run time?
 
@@ -1404,9 +1400,9 @@ The final point is that it is probable that we do not need the prime number $p$ 
 
 \section{Current Status}
 
-The Aho-Corasick algorithm has been implemented correctly, so Objective 1 specified in Section~\ref{sec:objectives} is complete. Towards the end of the testing there was some profiling attempted to see in more detail where the bottleneck for preprocessing Aho-Corasick was, but this was not able to yield results in the time available. Analysis of the Clifford et al. algorithm, as the younger of the two methods, was more important for this project.
+The Aho-Corasick algorithm has been implemented correctly, so Objective 1 specified in Section~\ref{sec:objectives} is complete. Towards the end of the testing there was some profiling attempted to see in more detail where the bottleneck for preprocessing Aho-Corasick was, but this was not able to yield results in the time available. Analysis of the Clifford et al.\@ algorithm, as the younger of the two methods, was more important for this project.
 
-Objective 2 has not been fully completed, due to the fact that the edge case defined in Section~\ref{ssec:impl-edge-case} has not been implemented, nor has the error in the current implementation described in Section~\ref{sssec:error-prob} been fixed, nor has the algorithm been deamortised. However, for the edge case I have done analysis to detect and explain the test cases most likely to cause problems, and made suggestions for both deamortising the algorithm and fixing the error. Other than those points, the three main cases for the Clifford et al. algorithm have been implemented, and thus the majority of this objective has been satisfied.
+Objective 2 has not been fully completed, due to the fact that the edge case defined in Section~\ref{ssec:impl-edge-case} has not been implemented, nor has the error in the current implementation described in Section~\ref{sssec:error-prob} been fixed, nor has the algorithm been deamortised. However, for the edge case I have done analysis to detect and explain the test cases most likely to cause problems, and made suggestions for both deamortising the algorithm and fixing the error. Other than those points, the three main cases for the Clifford et al.\@ algorithm have been implemented, and thus the majority of this objective has been satisfied.
 
 Objective 3 has been completely satisfied. The test framework is also designed to be generic, so it can generate and run any number of patterns of any maximum length given any text file. This is done by specifying the text file, number of patterns and their maximum length when you call the pattern generation script, and then specifying the location of the text and patterns files when you run the algorithm tester. The only potential improvement would be to investigate the performance of periodic patterns further, as this was the only aspect that could not be tested entirely based on the data selected.
 
@@ -1416,13 +1412,17 @@ Objective 5 has been satisfied in part. While optimisations have not been implem
 
 \section{Future Work}
 
-A number of suggestions for improving the implementation of the Clifford et al. algorithm as future work have already been suggested in Section~\ref{sec:proposed-improvements}. This section details broader questions related to the topic at hand.
+A number of suggestions for improving the implementation of the Clifford et al.\@ algorithm as future work have already been suggested in Section~\ref{sec:proposed-improvements}. This section details broader questions related to the topic at hand.
 
 \subsection{Implement Later Versions of the Algorithm}
 
 As stated in Section~\ref{sec:challenges}, one of the major challenges in this work was that the algorithm was still undergoing development while I was implementing it. As it stands, the most recent version of the algorithm, and thus the version that is published, has included the work of another author alongside the four mentioned in the title of Section~\ref{sec:theory-clifford}, and now has a performance of $O(\log\log(k + m))$ time per character. This version also fixes the problem of periodic patterns requiring that either no pattern is a suffix of any other pattern or that we do not know which pattern matched by binary search, at the cost of a log factor in time per character. This algorithm is developed as an extension to the version implemented in this project, and thus this work can be used as a stepping stone towards the final implementation.
 
 Furthermore, it might be possible to improve the algorithm. There is no currently known time-space tradeoff lower bound for dictionary matching, so a constant time solution in sublinear space might be achievable. This is a very difficult task however, and would require a strong combination of both theory and applied work to produce both an algorithm and an implementation.
+
+\subsection{Empirical Analysis of Fingerprints}
+
+Throughout this paper we have only used one form of fingerprint, the one proposed in Karp-Rabin's original paper \cite{5390135}. But there are several other fingerprints as well. Karp and Rabin propose in the same paper a second fingerprinting function using integer matrices. But there are other functions as well: Bille et al.\@ \cite{DBLP:journals/corr/abs-1305-2777} propose another using context-free grammars, and Cohen \cite{Cohen:1997:RHF:256163.256168} proposed another commonly known as `Buzhash' which uses cyclic polynomials. It would be interesting to analyse how these functions compare in practice to Karp-Rabin fingerprints, particularly when applied to algorithms such as the one implemented in this paper.
 
 \subsection{Improvements Towards the Test Bench}
 
@@ -1445,7 +1445,7 @@ Another opportunity that can come from improving the test bench is the ability t
 
 Alongside dictionary matching, there has been some work on pattern matching with multiple texts in the streaming model \cite{DBLP:journals/corr/abs-1202-3470}. But the problem of multiple texts and multiple patterns in the streaming model is still open, let alone doing so in sublinear space. This is an appealing area if you consider a router, which processes data packets coming from many different sources (IPs and ports), and thus can be modelled as an algorithm matching against multiple text streams.
 
-A simple solution with Aho-Corasick and static hashing would be to reuse the finite state machine and simply use $l$ integers to describe the state for each stream, thus achieving $O(l + \sum_{i = 0}^{k - 1}m_i)$ space and $O(l)$ time per character, if $l$ is the number of text streams. Another would be to apply $l$ instances of the Clifford et al. algorithm, and thus achieve $O(lk\log m)$ space and $O(l\log\log(k + m))$ time per character. There is potential to improve on these bounds in theoretical work and then analyse them in empirical research.
+A simple solution with Aho-Corasick and static hashing would be to reuse the finite state machine and simply use $l$ integers to describe the state for each stream, thus achieving $O(l + \sum_{i = 0}^{k - 1}m_i)$ space and $O(l)$ time per character, if $l$ is the number of text streams. Another would be to apply $l$ instances of the Clifford et al.\@ algorithm, and thus achieve $O(lk\log m)$ space and $O(l\log\log(k + m))$ time per character. There is potential to improve on these bounds in theoretical work and then analyse them in empirical research.
 
 % =============================================================================
 
