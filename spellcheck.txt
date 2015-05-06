@@ -32,7 +32,6 @@ Beate
 Beddows
 Bekoe
 Belazzougui
-Bille
 Bioinformatics
 Botelho
 Breslauer
@@ -41,7 +40,6 @@ BST.
 BSTs
 BSTs.
 buf
-Buzhash'
 case1
 case2
 case3
@@ -81,7 +79,6 @@ IPs
 j
 Jalsenius
 Karp-Rabin
-Karp-Rabin's
 KMP
 KMP.
 Knuth-Morris-Pratt
@@ -115,7 +112,6 @@ PreProc
 preprocess
 pseudorandom
 Quiana.
-Rabin
 Rabin's
 Rapha
 RBT

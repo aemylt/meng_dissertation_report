@@ -189,7 +189,7 @@ This project looks at the practical performance of sublinear space dictionary ma
 
 \section{Motivation and Significance}
 
-In Aho and Corasick's original paper, their algorithm is proposed as a solution for the problem of bibliographic search. They created an implementation of the algorithm to perform against another bibliographic search program which simply invoked a direct pattern matching algorithm against each pattern. The data they ran both algorithms on consisted of roughly ten million characters gathered from the titles of 150,000 scientific papers. They ran both programs on dictionaries consisting of keywords that bibliographers might be interested in searching for: The first dictionary contained fifteen keywords and the second contained twenty four.
+In Aho and Corasick's original paper \cite{Aho:1975:ESM:360825.360855}, their algorithm is proposed as a solution for the problem of bibliographic search. They created an implementation of the algorithm to perform against another bibliographic search program which simply invoked a direct pattern matching algorithm against each pattern. The data they ran both algorithms on consisted of roughly ten million characters gathered from the titles of 150,000 scientific papers. They ran both programs on dictionaries consisting of keywords that bibliographers might be interested in searching for: The first dictionary contained fifteen keywords and the second contained twenty four.
 
 While this was a reasonable use for the algorithm forty years ago, the problem is that data we want to process has become significantly larger since then. Dictionary matching has now evolved from simple searching of less than 25 keywords within ten megabytes of text to searching for sequence alignments in large genome databases \cite{15713233}. We now use dictionary matching algorithms for problems such as intrusion detection, by matching packets that are streamed into the network against known attacks \cite{1354682}. This change is not limited to the research environment either; the open-source intrusion prevention system Snort\footnote{\url{https://www.snort.org/}} performs pattern matching to detect attacks either through Aho-Corasick or a trie implementation \cite{website:snort-algo}. This reuse of the same solutions for larger problems is concerning, particularly when Aho and Corasick themselves stated that some cases might make the algorithm ``more space consuming and less attractive for some applications.'' \cite{Aho:1975:ESM:360825.360855}
 
@@ -1117,7 +1117,7 @@ Figure~\ref{fig:long-pattern-results} shows the time taken to build the data str
   \includegraphics[width=0.5\linewidth]{build_length_1000_10000}\\
   \includegraphics[width=0.5\linewidth]{time_length_1000_10000}\includegraphics[width=0.5\linewidth]{size_length_1000_10000}
 \end{center}
-\caption{Build time, run time per character and space for the Clifford et al.\@ algorithm (Green) against Aho-Corasick (Blue) over the length of the pattern}
+\caption{Build time, run time per character and space for the Clifford et al.\@ algorithm (Green) against Aho-Corasick (Blue) over the length of the pattern. See Figure~\ref{fig:case-results} for a better view of the space consumption for Clifford et al.}
 \label{fig:long-pattern-results}
 \end{figure}
 
@@ -1136,8 +1136,6 @@ As far as performance is concerned, the Aho-Corasick algorithm is roughly 80 tim
 \subsubsection{Size of Data Structure}
 
 Data structure size was a significant surprise. I was expecting the size of the data structure to be less -- this is comparing a logarithmic size data structure with a linear size one, after all -- but I was not expecting it on the scale shown in the graphs. To give an idea of how significant this difference is, even on the shorter patterns -- patterns with an average length of 500 characters long -- the data structure for Aho-Corasick was roughly 140 times larger than that of Clifford et al.; 80MB to 0.57MB. By the longest average pattern lengths of 5,000 characters, this had grown to approximately 250 times larger; 800MB to 3.1MB.
-
-Because of the significant difference in data structure size, I acknowledge that it makes seeing the line difficult. This is a common problem, and a better view of just the size for the Clifford et al.\@ algorithm can be seen in Figure~\ref{fig:case-results}.
 
 \subsection{Performance for Shorter Patterns}
 \label{ssec:short-pattern-results}
@@ -1183,7 +1181,7 @@ The next results, shown in Figure~\ref{fig:many-pattern-results}, display the pe
   \includegraphics[width=0.5\linewidth]{build_num_200_1000}\\
   \includegraphics[width=0.5\linewidth]{time_num_200_1000}\includegraphics[width=0.5\linewidth]{size_num_200_1000}
 \end{center}
-\caption{Build time, run time per character and space for the Clifford et al.\@ algorithm (Green) against Aho-Corasick (Blue) over the number of patterns}
+\caption{Build time, run time per character and space for the Clifford et al.\@ algorithm (Green) against Aho-Corasick (Blue) over the number of patterns. See Figure~\ref{fig:case-results} for a better view of the space consumption for Clifford et al.}
 \label{fig:many-pattern-results}
 \end{figure}
 
@@ -1419,10 +1417,6 @@ A number of suggestions for improving the implementation of the Clifford et al.\
 As stated in Section~\ref{sec:challenges}, one of the major challenges in this work was that the algorithm was still undergoing development while I was implementing it. As it stands, the most recent version of the algorithm, and thus the version that is published, has included the work of another author alongside the four mentioned in the title of Section~\ref{sec:theory-clifford}, and now has a performance of $O(\log\log(k + m))$ time per character. This version also fixes the problem of periodic patterns requiring that either no pattern is a suffix of any other pattern or that we do not know which pattern matched by binary search, at the cost of a log factor in time per character. This algorithm is developed as an extension to the version implemented in this project, and thus this work can be used as a stepping stone towards the final implementation.
 
 Furthermore, it might be possible to improve the algorithm. There is no currently known time-space tradeoff lower bound for dictionary matching, so a constant time solution in sublinear space might be achievable. This is a very difficult task however, and would require a strong combination of both theory and applied work to produce both an algorithm and an implementation.
-
-\subsection{Empirical Analysis of Fingerprints}
-
-Throughout this paper we have only used one form of fingerprint, the one proposed in Karp-Rabin's original paper \cite{5390135}. But there are several other fingerprints as well. Karp and Rabin propose in the same paper a second fingerprinting function using integer matrices. But there are other functions as well: Bille et al.\@ \cite{DBLP:journals/corr/abs-1305-2777} propose another using context-free grammars, and Cohen \cite{Cohen:1997:RHF:256163.256168} proposed another commonly known as `Buzhash' which uses cyclic polynomials. It would be interesting to analyse how these functions compare in practice to Karp-Rabin fingerprints, particularly when applied to algorithms such as the one implemented in this paper.
 
 \subsection{Improvements Towards the Test Bench}
 
